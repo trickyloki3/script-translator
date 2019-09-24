@@ -3,18 +3,18 @@
 
 #include "array.h"
 
-struct node {
-    struct node * next;
-    struct node * prev;
+struct pool_node {
+    struct pool_node * next;
+    struct pool_node * prev;
 };
 
-void node_attach(struct node *, struct node *);
-void node_detach(struct node *);
+void pool_node_attach(struct pool_node *, struct pool_node *);
+void pool_node_detach(struct pool_node *);
 
 struct pool {
     size_t size;
     size_t count;
-    struct node * list;
+    struct pool_node * list;
     struct stack stack;
 };
 

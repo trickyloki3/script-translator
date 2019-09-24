@@ -1,13 +1,13 @@
 #include "pool.h"
 
-void node_attach(struct node * x, struct node * y) {
+void pool_node_attach(struct pool_node * x, struct pool_node * y) {
     x->next->prev = y->prev;
     y->prev->next = x->next;
     x->next = y;
     y->prev = x;
 }
 
-void node_detach(struct node * x) {
+void pool_node_detach(struct pool_node * x) {
     x->prev->next = x->next;
     x->next->prev = x->prev;
     x->next = x;
@@ -17,8 +17,8 @@ void node_detach(struct node * x) {
 int pool_create(struct pool * pool, size_t size, size_t count) {
     int status = 0;
 
-    if(sizeof(struct node) > size) {
-        status = panic("size is less than %zu", sizeof(struct node));
+    if(sizeof(struct pool_node) > size) {
+        status = panic("size is less than %zu", sizeof(struct pool_node));
     } else if(!count) {
         status = panic("count is zero");
     } else {
@@ -67,25 +67,25 @@ int pool_expand(struct pool * pool) {
 }
 
 void * pool_get(struct pool * pool) {
-    struct node * node = NULL;
+    struct pool_node * node = NULL;
 
     if(pool->list || !pool_expand(pool)) {
         node = pool->list;
         pool->list = (pool->list == pool->list->next) ? NULL : pool->list->next;
-        node_detach(node);
+        pool_node_detach(node);
     }
 
     return node;
 }
 
 void pool_put(struct pool * pool, void * object) {
-    struct node * node = object;
+    struct pool_node * node = object;
 
     node->next = node;
     node->prev = node;
 
     if(pool->list)
-        node_attach(node, pool->list);
+        pool_node_attach(node, pool->list);
 
     pool->list = node;
 }
