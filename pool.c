@@ -1,5 +1,9 @@
 #include "pool.h"
 
+inline void pool_node_attach(struct pool_node *, struct pool_node *);
+inline void pool_node_detach(struct pool_node *);
+int pool_expand(struct pool *);
+
 inline void pool_node_attach(struct pool_node * x, struct pool_node * y) {
     x->next->prev = y->prev;
     y->prev->next = x->next;
