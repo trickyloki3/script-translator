@@ -1,13 +1,13 @@
 #include "pool.h"
 
-void pool_node_attach(struct pool_node * x, struct pool_node * y) {
+inline void pool_node_attach(struct pool_node * x, struct pool_node * y) {
     x->next->prev = y->prev;
     y->prev->next = x->next;
     x->next = y;
     y->prev = x;
 }
 
-void pool_node_detach(struct pool_node * x) {
+inline void pool_node_detach(struct pool_node * x) {
     x->prev->next = x->next;
     x->next->prev = x->prev;
     x->next = x;

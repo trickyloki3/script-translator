@@ -8,9 +8,6 @@ struct pool_node {
     struct pool_node * prev;
 };
 
-void pool_node_attach(struct pool_node *, struct pool_node *);
-void pool_node_detach(struct pool_node *);
-
 struct pool {
     size_t size;
     size_t count;
