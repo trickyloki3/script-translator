@@ -25,4 +25,17 @@ int stack_push(struct stack *, void *);
 void * stack_pop(struct stack *);
 void stack_clear(struct stack *);
 
+struct string {
+    size_t offset;
+    size_t length;
+    char * string;
+};
+
+int string_create(struct string *, size_t);
+void string_destroy(struct string *);
+int string_expand(struct string *, size_t);
+int string_putc(struct string *, char);
+int string_strdup(struct string *, char *, size_t);
+void string_clear(struct string *);
+
 #endif

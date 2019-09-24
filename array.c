@@ -87,3 +87,79 @@ void * stack_pop(struct stack * stack) {
 void stack_clear(struct stack * stack) {
     stack->top = 0;
 }
+
+int string_create(struct string * string, size_t length) {
+    int status = 0;
+
+    if(!length) {
+        status = panic("length is zero");
+    } else {
+        string->offset = 0;
+        string->length = length;
+        string->string = calloc(length, sizeof(char));
+        if(!string->string)
+            status = panic("out of memory");
+    }
+
+    return status;
+}
+
+void string_destroy(struct string * string) {
+    free(string->string);
+}
+
+int string_expand(struct string * string, size_t expand) {
+    int status = 0;
+    size_t length;
+    char * buffer;
+
+    if(!expand) {
+        status = panic("expand is zero");
+    } else {
+        length = string->offset + string->length;
+        buffer = realloc(string->string, length + expand);
+        if(!buffer) {
+            status = panic("out of memory");
+        } else {
+            memset(buffer + length, 0, expand);
+            string->length += expand;
+            string->string = buffer;
+        }
+    }
+
+    return status;
+}
+
+int string_putc(struct string * string, char c) {
+    int status = 0;
+
+    if(string->length < 2 && string_expand(string, string->offset + string->length)) {
+        status = panic("out of memory");
+    } else {
+        string->string[string->offset] = c;
+        string->offset++;
+        string->length--;
+    }
+
+    return status;
+}
+
+int string_strdup(struct string * string, char * buffer, size_t length) {
+    int status = 0;
+
+    if(string->length < length + 1 && string_expand(string, length + 1 - string->length)) {
+        status = panic("out of memory");
+    } else {
+        memcpy(string->string + string->offset, buffer, length);
+        string->offset += length;
+        string->length -= length;
+    }
+
+    return status;
+}
+
+void string_clear(struct string * string) {
+    memset(string->string, 0, string->offset);
+    string->length += string->offset;
+    string->offset = 0;
+}
