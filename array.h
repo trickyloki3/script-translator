@@ -22,7 +22,7 @@ struct stack {
 int stack_create(struct stack *, size_t, size_t);
 void stack_destroy(struct stack *);
 int stack_push(struct stack *, void *);
-int stack_pop(struct stack *);
+void * stack_pop(struct stack *);
 void stack_clear(struct stack *);
 
 #endif

@@ -73,16 +73,15 @@ int stack_push(struct stack * stack, void * element) {
     return status;
 }
 
-int stack_pop(struct stack * stack) {
-    int status = 0;
+void * stack_pop(struct stack * stack) {
+    void * element = NULL;
 
-    if(!stack->top) {
-        status = panic("stack is empty");
-    } else {
+    if(stack->top) {
+        element = array_index(&stack->array, stack->top - 1);
         stack->top--;
     }
 
-    return status;
+    return element;
 }
 
 void stack_clear(struct stack * stack) {
