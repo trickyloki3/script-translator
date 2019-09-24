@@ -1,6 +1,7 @@
 OBJECT+=utility.o
 OBJECT+=array.o
 OBJECT+=pool.o
+OBJECT+=map.o
 
 all: clean pj59
 
