@@ -175,6 +175,8 @@ int sector_create(struct sector * sector, size_t size, struct pool * pool) {
         status = panic("size is zero");
     } else if(!pool) {
         status = panic("pool is zero");
+    } else if(pool->size != sizeof(struct sector_node)) {
+        status = panic("pool is invalid");
     } else {
         sector->buffer = malloc(size);
         if(!sector->buffer) {
