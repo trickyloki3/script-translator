@@ -11,7 +11,7 @@ struct pool_node {
 struct pool {
     size_t size;
     size_t count;
-    struct pool_node * list;
+    struct pool_node * root;
     struct stack stack;
 };
 

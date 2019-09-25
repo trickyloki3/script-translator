@@ -28,7 +28,7 @@ int pool_create(struct pool * pool, size_t size, size_t count) {
     } else {
         pool->size = size;
         pool->count = count;
-        pool->list = NULL;
+        pool->root = NULL;
         if(stack_create(&pool->stack, sizeof(void *), 8))
             status = panic("failed to create stack object");
     }
@@ -73,9 +73,9 @@ int pool_expand(struct pool * pool) {
 void * pool_get(struct pool * pool) {
     struct pool_node * node = NULL;
 
-    if(pool->list || !pool_expand(pool)) {
-        node = pool->list;
-        pool->list = (pool->list == pool->list->next) ? NULL : pool->list->next;
+    if(pool->root || !pool_expand(pool)) {
+        node = pool->root;
+        pool->root = (pool->root == pool->root->next) ? NULL : pool->root->next;
         pool_node_detach(node);
     }
 
@@ -88,8 +88,8 @@ void pool_put(struct pool * pool, void * object) {
     node->next = node;
     node->prev = node;
 
-    if(pool->list)
-        pool_node_attach(node, pool->list);
+    if(pool->root)
+        pool_node_attach(node, pool->root);
 
-    pool->list = node;
+    pool->root = node;
 }
