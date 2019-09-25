@@ -4,6 +4,7 @@ OBJECT+=pool.o
 OBJECT+=map.o
 OBJECT+=list.o
 OBJECT+=sector.o
+OBJECT+=pool_map.o
 
 all: clean pj59
 
