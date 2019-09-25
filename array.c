@@ -60,7 +60,7 @@ void stack_destroy(struct stack * stack) {
     array_destroy(&stack->array);
 }
 
-int stack_push(struct stack * stack, void * element) {
+int stack_push_value(struct stack * stack, void * element) {
     int status = 0;
 
     if(stack->top >= stack->array.count && array_expand(&stack->array)) {
@@ -71,6 +71,17 @@ int stack_push(struct stack * stack, void * element) {
     }
 
     return status;
+}
+
+void * stack_push_reference(struct stack * stack) {
+    void * element = NULL;
+
+    if(stack->top < stack->array.count || !array_expand(&stack->array)) {
+        element = array_index(&stack->array, stack->top);
+        stack->top++;
+    }
+
+    return element;
 }
 
 void * stack_pop(struct stack * stack) {

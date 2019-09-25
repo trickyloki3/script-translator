@@ -57,7 +57,7 @@ int pool_expand(struct pool * pool) {
     if(!buffer) {
         status = panic("out of memory");
     } else {
-        if(stack_push(&pool->stack, &buffer)) {
+        if(stack_push_value(&pool->stack, &buffer)) {
             status = panic("failed to push stack object");
         } else {
             for(i = 0; i < pool->count; i++)
