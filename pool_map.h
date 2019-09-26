@@ -15,6 +15,6 @@ struct pool_map {
 int pool_map_create(struct pool_map *, size_t);
 void pool_map_destroy(struct pool_map *);
 int pool_map_create_pool(struct pool_map *, size_t, size_t);
-struct pool_map * pool_map_search_pool(struct pool_map *, size_t);
+struct pool * pool_map_search_pool(struct pool_map *, size_t);
 
 #endif

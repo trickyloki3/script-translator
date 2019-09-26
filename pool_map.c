@@ -84,6 +84,6 @@ int pool_map_create_pool(struct pool_map * pool_map, size_t size, size_t count) 
     return status;
 }
 
-struct pool_map * pool_map_search_pool(struct pool_map * pool_map, size_t size) {
+struct pool * pool_map_search_pool(struct pool_map * pool_map, size_t size) {
     return map_search(&pool_map->map, &size);
 }
