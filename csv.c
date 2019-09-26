@@ -41,7 +41,7 @@ void csv_destroy(struct csv * csv) {
     pool_destroy(&csv->pool);
 }
 
-int csv_parse(struct csv * csv, const char * path, size_t size) {
+int csv_parse(struct csv * csv, const char * path, size_t size, csv_process_cb process, void * data) {
     int status = 0;
 
     FILE * file;
@@ -49,30 +49,37 @@ int csv_parse(struct csv * csv, const char * path, size_t size) {
     csvpstate * parser;
     YY_BUFFER_STATE buffer;
 
-    file = fopen(path, "r");
-    if(!file) {
-        status = panic("failed to open %s", path);
+    if(!process) {
+        status = panic("process is zero");
     } else {
-        if(csvlex_init_extra(csv, &scanner)) {
-            status = panic("failed to create scanner object");
+        csv->process = process;
+        csv->data = data;
+
+        file = fopen(path, "r");
+        if(!file) {
+            status = panic("failed to open %s", path);
         } else {
-            parser = csvpstate_new();
-            if(!parser) {
-                status = panic("failed to create parser object");
+            if(csvlex_init_extra(csv, &scanner)) {
+                status = panic("failed to create scanner object");
             } else {
-                buffer = csv_create_buffer(file, size, scanner);
-                if(!buffer) {
-                    status = panic("failed to create buffer state object");
+                parser = csvpstate_new();
+                if(!parser) {
+                    status = panic("failed to create parser object");
                 } else {
-                    csvpush_buffer_state(buffer, scanner);
-                    status = csv_parse_loop(csv, scanner, parser);
-                    csvpop_buffer_state(scanner);
+                    buffer = csv_create_buffer(file, size, scanner);
+                    if(!buffer) {
+                        status = panic("failed to create buffer state object");
+                    } else {
+                        csvpush_buffer_state(buffer, scanner);
+                        status = csv_parse_loop(csv, scanner, parser);
+                        csvpop_buffer_state(scanner);
+                    }
+                    csvpstate_delete(parser);
                 }
-                csvpstate_delete(parser);
+                csvlex_destroy(scanner);
             }
-            csvlex_destroy(scanner);
+            fclose(file);
         }
-        fclose(file);
     }
 
     return status;
@@ -178,6 +185,18 @@ int csv_push_field_empty(struct csv * csv) {
         if(status)
             if(csv_put_string(csv, string))
                 status = panic("failed to put string object");
+    }
+
+    return status;
+}
+
+int csv_process_record(struct csv * csv) {
+    int status = 0;
+
+    if(csv->process(&csv->record, csv->data)) {
+        status = panic("failed to process record on csv object");
+    } else if(csv_clear_record(csv)) {
+        status = panic("failed to clear the record on csv object");
     }
 
     return status;

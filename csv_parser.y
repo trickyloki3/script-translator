@@ -38,8 +38,8 @@ void yyerror(CSVLTYPE *, struct csv *, char const *);
 
 %%
 
-file : record { csv_clear_record(csv); }
-     | file NEWLINE record { csv_clear_record(csv); }
+file : record { if(csv_process_record(csv)) YYABORT; }
+     | file NEWLINE record { if(csv_process_record(csv)) YYABORT; }
      | COMMENT
      | file NEWLINE COMMENT
      | SPACE
