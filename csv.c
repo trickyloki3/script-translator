@@ -193,11 +193,12 @@ int csv_push_field_empty(struct csv * csv) {
 int csv_process_record(struct csv * csv) {
     int status = 0;
 
-    if(csv->process(&csv->record, csv->data)) {
-        status = panic("failed to process record on csv object");
-    } else if(csv_clear_record(csv)) {
+    if(csv->record.root != csv->record.root->next)
+        if(csv->process(&csv->record, csv->data))
+            status = panic("failed to process record on csv object");
+
+    if(csv_clear_record(csv))
         status = panic("failed to clear the record on csv object");
-    }
 
     return status;
 }
