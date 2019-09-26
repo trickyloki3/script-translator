@@ -1,2 +1,8 @@
 *.o
+csv_parser.c
+csv_parser.h
+csv_parser.output
+csv_scanner.c
+csv_scanner.h
+lex.backup
 pj59
