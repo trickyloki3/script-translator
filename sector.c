@@ -1,5 +1,11 @@
 #include "sector.h"
 
+struct sector_header {
+    struct sector * sector;
+    size_t min;
+    size_t max;
+};
+
 int sector_node_create(struct sector *, size_t, size_t, struct sector_node **);
 void sector_node_destroy(struct sector *, struct sector_node *);
 inline void sector_node_attach(struct sector_node *, struct sector_node *);

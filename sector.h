@@ -16,12 +16,6 @@ struct sector {
     struct sector_node * root;
 };
 
-struct sector_header {
-    struct sector * sector;
-    size_t min;
-    size_t max;
-};
-
 int sector_create(struct sector *, size_t, struct pool *);
 void sector_destroy(struct sector *);
 void * sector_malloc(struct sector *, size_t);
