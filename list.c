@@ -102,6 +102,23 @@ void * list_pop(struct list * list) {
     return object;
 }
 
+void * list_poll(struct list * list) {
+    void * object = NULL;
+    struct list_node * node;
+
+    if(list->root) {
+        object = list->root->prev->object;
+
+        node = list->root->prev;
+        if(list->root == node)
+            list->root = NULL;
+        list_node_detach(node);
+        list_node_destroy(list, node);
+    }
+
+    return object;
+}
+
 void list_clear(struct list * list) {
     struct list_node * node;
 
