@@ -4,6 +4,7 @@ OBJECT+=pool.o
 OBJECT+=map.o
 OBJECT+=list.o
 OBJECT+=sector.o
+OBJECT+=range.o
 OBJECT+=pool_map.o
 OBJECT+=csv_parser.o
 OBJECT+=csv_scanner.o
