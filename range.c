@@ -1,18 +1,18 @@
 #include "range.h"
 
-inline long range_min(long, long);
-inline long range_max(long, long);
+static inline long range_min(long, long);
+static inline long range_max(long, long);
 
 int range_node_create(struct range *, long, long, struct range_node **);
 void range_node_destroy(struct range *, struct range_node *);
-inline void range_node_attach(struct range_node *, struct range_node *);
-inline void range_node_detach(struct range_node *);
+static inline void range_node_attach(struct range_node *, struct range_node *);
+static inline void range_node_detach(struct range_node *);
 
-inline long range_min(long x, long y) {
+static inline long range_min(long x, long y) {
     return x < y ? x : y;
 }
 
-inline long range_max(long x, long y) {
+static inline long range_max(long x, long y) {
     return x < y ? y : x;
 }
 
@@ -38,14 +38,14 @@ void range_node_destroy(struct range * range, struct range_node * node) {
     pool_put(range->pool, node);
 }
 
-inline void range_node_attach(struct range_node * x, struct range_node * y) {
+static inline void range_node_attach(struct range_node * x, struct range_node * y) {
     x->next->prev = y->prev;
     y->prev->next = x->next;
     x->next = y;
     y->prev = x;
 }
 
-inline void range_node_detach(struct range_node * x) {
+static inline void range_node_detach(struct range_node * x) {
     x->prev->next = x->next;
     x->next->prev = x->prev;
     x->next = x;

@@ -9,16 +9,16 @@
 
 int map_node_create(struct map *, void *, void *, struct map_node **);
 void map_node_destroy(struct map *, struct map_node *);
-inline void map_node_attach(struct map_node *, struct map_node *);
-inline void map_node_detach(struct map_node *);
+static inline void map_node_attach(struct map_node *, struct map_node *);
+static inline void map_node_detach(struct map_node *);
 
-inline void right_rotate(struct map *, struct map_node *);
-inline void left_rotate(struct map *, struct map_node *);
-inline void change_parent(struct map *, struct map_node *, struct map_node *);
+static inline void right_rotate(struct map *, struct map_node *);
+static inline void left_rotate(struct map *, struct map_node *);
+static inline void change_parent(struct map *, struct map_node *, struct map_node *);
 
-inline void map_insert_node(struct map *, struct map_node *);
-inline void map_delete_node(struct map *, struct map_node *);
-inline struct map_node * map_search_node(struct map *, void *);
+static inline void map_insert_node(struct map *, struct map_node *);
+static inline void map_delete_node(struct map *, struct map_node *);
+static inline struct map_node * map_search_node(struct map *, void *);
 
 int map_node_create(struct map * map, void * key, void * value, struct map_node ** result) {
     int status = 0;
@@ -46,21 +46,21 @@ void map_node_destroy(struct map * map, struct map_node * node) {
     pool_put(map->pool, node);
 }
 
-inline void map_node_attach(struct map_node * x, struct map_node * y) {
+static inline void map_node_attach(struct map_node * x, struct map_node * y) {
     x->next->prev = y->prev;
     y->prev->next = x->next;
     x->next = y;
     y->prev = x;
 }
 
-inline void map_node_detach(struct map_node * x) {
+static inline void map_node_detach(struct map_node * x) {
     x->prev->next = x->next;
     x->next->prev = x->prev;
     x->next = x;
     x->prev = x;
 }
 
-inline void right_rotate(struct map * map, struct map_node * x) {
+static inline void right_rotate(struct map * map, struct map_node * x) {
     struct map_node * y;
 
     y = x->left;
@@ -80,7 +80,7 @@ inline void right_rotate(struct map * map, struct map_node * x) {
     y->right = x;
 }
 
-inline void left_rotate(struct map * map, struct map_node * x) {
+static inline void left_rotate(struct map * map, struct map_node * x) {
     struct map_node * y;
 
     y = x->right;
@@ -100,7 +100,7 @@ inline void left_rotate(struct map * map, struct map_node * x) {
     y->left = x;
 }
 
-inline void change_parent(struct map * map, struct map_node * x, struct map_node * y) {
+static inline void change_parent(struct map * map, struct map_node * x, struct map_node * y) {
     if(is_nil(x->parent))
         map->root = y;
     else if(is_left_child(x))
@@ -112,7 +112,7 @@ inline void change_parent(struct map * map, struct map_node * x, struct map_node
         y->parent = x->parent;
 }
 
-inline void map_insert_node(struct map * map, struct map_node * x) {
+static inline void map_insert_node(struct map * map, struct map_node * x) {
     struct map_node * p;
     struct map_node * i;
     struct map_node * s;
@@ -180,7 +180,7 @@ inline void map_insert_node(struct map * map, struct map_node * x) {
     map->root->color = black;
 }
 
-inline void map_delete_node(struct map * map, struct map_node * x) {
+static inline void map_delete_node(struct map * map, struct map_node * x) {
     struct map_node * y;
     struct map_node * p;
     enum map_color c;
@@ -287,7 +287,7 @@ inline void map_delete_node(struct map * map, struct map_node * x) {
     map_node_detach(x);
 }
 
-inline struct map_node * map_search_node(struct map * map, void * key) {
+static inline struct map_node * map_search_node(struct map * map, void * key) {
     int status;
     struct map_node * i;
 

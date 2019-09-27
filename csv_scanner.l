@@ -6,7 +6,7 @@
 
 %option outfile="csv_scanner.c" header-file="csv_scanner.h"
 %option batch 8bit nodefault never-interactive yylineno noyywrap
-%option ansi-definitions ansi-prototypes bison-bridge bison-locations reentrant pointer prefix="csv"
+%option bison-bridge bison-locations reentrant pointer prefix="csv"
 %option align read full
 %option backup warn
 

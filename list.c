@@ -2,8 +2,8 @@
 
 int list_node_create(struct list *, void *, struct list_node **);
 void list_node_destroy(struct list *, struct list_node *);
-inline void list_node_attach(struct list_node *, struct list_node *);
-inline void list_node_detach(struct list_node *);
+static inline void list_node_attach(struct list_node *, struct list_node *);
+static inline void list_node_detach(struct list_node *);
 
 int list_node_create(struct list * list, void * object, struct list_node ** result) {
     int status = 0;
@@ -26,14 +26,14 @@ void list_node_destroy(struct list * list, struct list_node * node) {
     pool_put(list->pool, node);
 }
 
-inline void list_node_attach(struct list_node * x, struct list_node * y) {
+static inline void list_node_attach(struct list_node * x, struct list_node * y) {
     x->next->prev = y->prev;
     y->prev->next = x->next;
     x->next = y;
     y->prev = x;
 }
 
-inline void list_node_detach(struct list_node * x) {
+static inline void list_node_detach(struct list_node * x) {
     x->prev->next = x->next;
     x->next->prev = x->prev;
     x->next = x;

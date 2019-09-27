@@ -8,16 +8,16 @@ struct sector_header {
 
 int sector_node_create(struct sector *, size_t, size_t, struct sector_node **);
 void sector_node_destroy(struct sector *, struct sector_node *);
-inline void sector_node_attach(struct sector_node *, struct sector_node *);
-inline void sector_node_detach(struct sector_node *);
+static inline void sector_node_attach(struct sector_node *, struct sector_node *);
+static inline void sector_node_detach(struct sector_node *);
 
-inline size_t sector_min(size_t, size_t);
-inline size_t sector_max(size_t, size_t);
+static inline size_t sector_min(size_t, size_t);
+static inline size_t sector_max(size_t, size_t);
 int sector_add(struct sector *, size_t, size_t);
 int sector_remove(struct sector *, size_t, size_t);
 
-inline struct sector_header * sector_get_header(void *);
-inline void * sector_get_object(struct sector_header *);
+static inline struct sector_header * sector_get_header(void *);
+static inline void * sector_get_object(struct sector_header *);
 
 int sector_node_create(struct sector * sector, size_t min, size_t max, struct sector_node ** result) {
     int status = 0;
@@ -41,25 +41,25 @@ void sector_node_destroy(struct sector * sector, struct sector_node * node) {
     pool_put(sector->pool, node);
 }
 
-inline void sector_node_attach(struct sector_node * x, struct sector_node * y) {
+static inline void sector_node_attach(struct sector_node * x, struct sector_node * y) {
     x->next->prev = y->prev;
     y->prev->next = x->next;
     x->next = y;
     y->prev = x;
 }
 
-inline void sector_node_detach(struct sector_node * x) {
+static inline void sector_node_detach(struct sector_node * x) {
     x->prev->next = x->next;
     x->next->prev = x->prev;
     x->next = x;
     x->prev = x;
 }
 
-inline size_t sector_min(size_t x, size_t y) {
+static inline size_t sector_min(size_t x, size_t y) {
     return x < y ? x : y;
 }
 
-inline size_t sector_max(size_t x, size_t y) {
+static inline size_t sector_max(size_t x, size_t y) {
     return x < y ? y : x;
 }
 
@@ -166,11 +166,11 @@ int sector_remove(struct sector * sector, size_t x, size_t y) {
     return status;
 }
 
-inline struct sector_header * sector_get_header(void * object) {
+static inline struct sector_header * sector_get_header(void * object) {
     return (void *) (char *) object - sizeof(struct sector_header);
 }
 
-inline void * sector_get_object(struct sector_header * header) {
+static inline void * sector_get_object(struct sector_header * header) {
     return (char *) header + sizeof(struct sector_header);
 }
 
