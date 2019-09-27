@@ -5,11 +5,14 @@
 
 int csv_parse_loop(struct csv *, yyscan_t, csvpstate *);
 
-int csv_create(struct csv * csv, struct pool * pool) {
+int csv_create(struct csv * csv, size_t count, struct pool_map * pool_map) {
     int status = 0;
+    struct pool * pool;
 
-    if(pool_create(&csv->pool, sizeof(struct string), 32)) {
-        status = panic("failed to create pool object");
+    if(pool_map_get(pool_map, sizeof(struct string), count, &csv->pool)) {
+        status = panic("failed to get pool map object");
+    } else if(pool_map_get(pool_map, sizeof(struct list_node), count, &pool)) {
+        status = panic("failed to get pool map object");
     } else {
         if(list_create(&csv->string, pool)) {
             status = panic("failed to create list object");
@@ -19,8 +22,6 @@ int csv_create(struct csv * csv, struct pool * pool) {
             if(status)
                 list_destroy(&csv->string);
         }
-        if(status)
-            pool_destroy(&csv->pool);
     }
 
     return status;
@@ -32,13 +33,12 @@ void csv_destroy(struct csv * csv) {
     string = list_pop(&csv->string);
     while(string) {
         string_destroy(string);
-        pool_put(&csv->pool, string);
+        pool_put(csv->pool, string);
         string = list_pop(&csv->string);
     }
 
     list_destroy(&csv->record);
     list_destroy(&csv->string);
-    pool_destroy(&csv->pool);
 }
 
 int csv_parse(struct csv * csv, const char * path, size_t size, csv_process_cb process, void * data) {
@@ -116,14 +116,14 @@ struct string * csv_get_string(struct csv * csv) {
 
     string = list_pop(&csv->string);
     if(!string) {
-        string = pool_get(&csv->pool);
+        string = pool_get(csv->pool);
         if(!string) {
             status = panic("failed to get pool object");
         } else {
             if(string_create(string, 64))
                 status = panic("failed to create string object");
             if(status)
-                pool_put(&csv->pool, string);
+                pool_put(csv->pool, string);
         }
     }
 
@@ -139,7 +139,7 @@ int csv_put_string(struct csv * csv, struct string * string) {
 
     if(status) {
         string_destroy(string);
-        pool_put(&csv->pool, string);
+        pool_put(csv->pool, string);
     }
 
     return status;
