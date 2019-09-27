@@ -17,8 +17,14 @@ int csv_create(struct csv * csv, size_t count, struct pool_map * pool_map) {
         if(list_create(&csv->string, pool)) {
             status = panic("failed to create list object");
         } else {
-            if(list_create(&csv->record, pool))
+            if(list_create(&csv->active, pool)) {
                 status = panic("failed to create list object");
+            } else {
+                if(list_create(&csv->record, pool))
+                    status = panic("failed to create list object");
+                if(status)
+                    list_destroy(&csv->active);
+            }
             if(status)
                 list_destroy(&csv->string);
         }
@@ -38,6 +44,7 @@ void csv_destroy(struct csv * csv) {
     }
 
     list_destroy(&csv->record);
+    list_destroy(&csv->active);
     list_destroy(&csv->string);
 }
 
@@ -127,6 +134,14 @@ struct string * csv_get_string(struct csv * csv) {
         }
     }
 
+    if(!status) {
+        if(list_push(&csv->active, string))
+            status = panic("failed to push list object");
+        if(status)
+            if(csv_put_string(csv, string))
+                status = panic("failed to put string object");
+    }
+
     return status ? NULL : string;
 }
 
@@ -193,7 +208,7 @@ int csv_push_field_empty(struct csv * csv) {
 int csv_process_record(struct csv * csv) {
     int status = 0;
 
-    if(csv->record.root != csv->record.root->next)
+    if(csv->record.root && csv->record.root != csv->record.root->next)
         if(csv->process(&csv->record, csv->data))
             status = panic("failed to process record on csv object");
 
@@ -207,12 +222,14 @@ int csv_clear_record(struct csv * csv) {
     int status = 0;
     struct string * string;
 
-    string = list_pop(&csv->record);
+    string = list_pop(&csv->active);
     while(string && !status) {
         if(csv_put_string(csv, string))
             status = panic("failed to put string on csv object");
-        string = list_pop(&csv->record);
+        string = list_pop(&csv->active);
     }
+
+    list_clear(&csv->record);
 
     return status;
 }

@@ -11,6 +11,7 @@ typedef int (* csv_process_cb) (struct list *, void *);
 struct csv {
     struct pool * pool;
     struct list string;
+    struct list active;
     struct list record;
     csv_process_cb process;
     void * data;
