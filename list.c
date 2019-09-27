@@ -101,3 +101,17 @@ void * list_pop(struct list * list) {
 
     return object;
 }
+
+void list_clear(struct list * list) {
+    struct list_node * node;
+
+    if(list->root) {
+        while(list->root != list->root->next) {
+            node = list->root->next;
+            list_node_detach(node);
+            list_node_destroy(list, node);
+        }
+        list_node_destroy(list, list->root);
+        list->root = NULL;
+    }
+}
