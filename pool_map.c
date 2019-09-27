@@ -51,12 +51,13 @@ void pool_map_destroy(struct pool_map * pool_map) {
     pool_destroy(&pool_map->list_pool);
 }
 
-int pool_map_create_pool(struct pool_map * pool_map, size_t size, size_t count) {
+int pool_map_get(struct pool_map * pool_map, size_t size, size_t count, struct pool ** result) {
     int status = 0;
     struct pool * pool;
 
-    if(map_search(&pool_map->map, &size)) {
-        /* pool of the same size exist */
+    pool = map_search(&pool_map->map, &size);
+    if(pool) {
+        *result = pool;
     } else {
         pool = malloc(sizeof(*pool));
         if(!pool) {
@@ -68,8 +69,11 @@ int pool_map_create_pool(struct pool_map * pool_map, size_t size, size_t count) 
                 if(list_push(&pool_map->list, pool)) {
                     status = panic("failed to push list object");
                 } else {
-                    if(map_insert(&pool_map->map, &pool->size, pool))
+                    if(map_insert(&pool_map->map, &pool->size, pool)) {
                         status = panic("failed to insert map object");
+                    } else {
+                        *result = pool;
+                    }
                     if(status)
                         list_pop(&pool_map->list);
                 }
@@ -82,8 +86,4 @@ int pool_map_create_pool(struct pool_map * pool_map, size_t size, size_t count) 
     }
 
     return status;
-}
-
-struct pool * pool_map_search_pool(struct pool_map * pool_map, size_t size) {
-    return map_search(&pool_map->map, &size);
 }
