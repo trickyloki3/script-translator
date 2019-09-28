@@ -196,6 +196,20 @@ int string_strtol(struct string * string, int base, long * result) {
     return status;
 }
 
+int string_strtol_split(struct string * string, int base, char split, long * list, size_t size) {
+    size_t i = 0;
+    char * ptr;
+    char * end;
+
+    ptr = string->string;
+    while(ptr && i < size) {
+        list[i++] = strtol(ptr, &end, base);
+        ptr = *end == split ? end + 1 : NULL;
+    }
+
+    return *end ? panic("invalid string '%s' in '%s'", end, string->string) : 0;
+}
+
 int string_strtoul(struct string * string, int base, unsigned long * result) {
     int status = 0;
     char * end;
