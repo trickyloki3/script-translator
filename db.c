@@ -1,7 +1,20 @@
 #include "db.h"
 
+int long_compare(void *, void *);
+int string_compare(void *, void *);
+
 int item_create(struct item *, struct list *);
 void item_destroy(struct item *);
+
+int long_compare(void * x, void * y) {
+    long l = *((long *) x);
+    long r = *((long *) y);
+    return l < r ? -1 : l > r ? 1 : 0;
+}
+
+int string_compare(void * x, void * y) {
+    return strcmp(x, y);
+}
 
 int item_create(struct item * item, struct list * record) {
     int status = 0;
@@ -81,8 +94,13 @@ int item_tbl_process(struct list * record, void * data) {
         status = panic("out of memory");
     } else {
         memset(item, 0, sizeof(struct item));
-        if(item_create(item, record))
+        if(item_create(item, record)) {
             status = panic("failed to process item object");
+        } else if(map_insert(&item_tbl->map_by_id, &item->id, item)) {
+            status = panic("failed to insert map object");
+        } else if(map_insert(&item_tbl->map_by_name, item->name.string, item)) {
+            status = panic("failed to insert map object");
+        }
 
         if(status) {
             item_destroy(item);
@@ -98,13 +116,30 @@ int item_tbl_process(struct list * record, void * data) {
 
 int item_tbl_create(struct item_tbl * item_tbl, struct csv * csv, struct pool_map * pool_map) {
     int status = 0;
+    struct pool * pool;
 
+    item_tbl->root = NULL;
     if(pool_map_get(pool_map, sizeof(struct item), 512, &item_tbl->pool)) {
         status = panic("failed to get pool map object");
     } else {
-        item_tbl->root = NULL;
-        if(csv_parse(csv, "item_db.txt", 4096, item_tbl_process, item_tbl))
-            status = panic("failed to parse csv object");
+        if(pool_map_get(pool_map, sizeof(struct map_node), 512, &pool)) {
+            status = panic("failed to get pool map object");
+        } else {
+            if(map_create(&item_tbl->map_by_id, long_compare, pool)) {
+                status = panic("failed to create map object");
+            } else {
+                if(map_create(&item_tbl->map_by_name, string_compare, pool)) {
+                    status = panic("failed to create map object");
+                } else {
+                    if(csv_parse(csv, "item_db.txt", 4096, item_tbl_process, item_tbl))
+                        status = panic("failed to parse csv object");
+                    if(status)
+                        map_destroy(&item_tbl->map_by_name);
+                }
+                if(status)
+                    map_destroy(&item_tbl->map_by_id);
+            }
+        }
     }
 
     return status;
@@ -121,6 +156,8 @@ void item_tbl_destroy(struct item_tbl * item_tbl) {
         item_destroy(temp);
         pool_put(item_tbl->pool, temp);
     }
+    map_destroy(&item_tbl->map_by_name);
+    map_destroy(&item_tbl->map_by_id);
 }
 
 int db_create(struct db * db, struct csv * csv, struct pool_map * pool_map) {

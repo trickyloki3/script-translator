@@ -33,8 +33,10 @@ struct item {
 };
 
 struct item_tbl {
-    struct pool * pool;
     struct item * root;
+    struct pool * pool;
+    struct map map_by_id;
+    struct map map_by_name;
 };
 
 int item_tbl_create(struct item_tbl *, struct csv *, struct pool_map *);
