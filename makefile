@@ -9,6 +9,7 @@ OBJECT+=pool_map.o
 OBJECT+=csv_parser.o
 OBJECT+=csv_scanner.o
 OBJECT+=csv.o
+OBJECT+=db.o
 
 all: clean pj59
 

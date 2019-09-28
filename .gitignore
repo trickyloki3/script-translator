@@ -5,4 +5,5 @@ csv_parser.output
 csv_scanner.c
 csv_scanner.h
 lex.backup
+item_db.txt
 pj59
