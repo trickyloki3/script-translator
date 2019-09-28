@@ -119,6 +119,18 @@ void string_destroy(struct string * string) {
     free(string->string);
 }
 
+int string_copy(struct string * result, struct string * string) {
+    int status = 0;
+
+    if(string_create(result, string->offset + 1)) {
+        status = panic("failed to create string object");
+    } else if(string_strdup(result, string->string, string->offset)) {
+        status = panic("failed to strdup string object");
+    }
+
+    return status;
+}
+
 int string_expand(struct string * string, size_t expand) {
     int status = 0;
     size_t length;
@@ -164,6 +176,36 @@ int string_strdup(struct string * string, char * buffer, size_t length) {
         memcpy(string->string + string->offset, buffer, length);
         string->offset += length;
         string->length -= length;
+    }
+
+    return status;
+}
+
+int string_strtol(struct string * string, int base, long * result) {
+    int status = 0;
+    char * end;
+
+    if(!string->offset) {
+        *result = 0;
+    } else {
+        *result = strtol(string->string, &end, base);
+        if(string->string + string->offset != end)
+            status = panic("invalid string '%s' in '%s'", end, string->string);
+    }
+
+    return status;
+}
+
+int string_strtoul(struct string * string, int base, unsigned long * result) {
+    int status = 0;
+    char * end;
+
+    if(!string->offset) {
+        *result = 0;
+    } else {
+        *result = strtol(string->string, &end, base);
+        if(string->string + string->offset != end)
+            status = panic("invalid string '%s' in '%s'", end, string->string);
     }
 
     return status;

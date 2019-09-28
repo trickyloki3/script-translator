@@ -34,9 +34,12 @@ struct string {
 
 int string_create(struct string *, size_t);
 void string_destroy(struct string *);
+int string_copy(struct string *, struct string *);
 int string_expand(struct string *, size_t);
 int string_putc(struct string *, char);
 int string_strdup(struct string *, char *, size_t);
+int string_strtol(struct string *, int, long *);
+int string_strtoul(struct string *, int, unsigned long *);
 void string_clear(struct string *);
 
 #endif
