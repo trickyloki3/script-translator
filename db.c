@@ -36,6 +36,8 @@ int item_create(struct item * item, struct list * record) {
     size_t field;
     struct string * string;
 
+    memset(item, 0, sizeof(*item));
+
     field = 0;
     string = list_poll(record);
     while(string && !status) {
@@ -71,6 +73,9 @@ int item_create(struct item * item, struct list * record) {
     if(!status && field != 22)
         status = panic("row is missing columns");
 
+    if(status)
+        item_destroy(item);
+
     return status;
 }
 
@@ -91,17 +96,19 @@ int item_tbl_process(struct list * record, void * data) {
     if(!item) {
         status = panic("out of memory");
     } else {
-        memset(item, 0, sizeof(struct item));
         if(item_create(item, record)) {
             status = panic("failed to process item object");
-        } else if(map_insert(&item_tbl->map_by_id, &item->id, item)) {
-            status = panic("failed to insert map object");
-        } else if(map_insert(&item_tbl->map_by_name, item->name.string, item)) {
-            status = panic("failed to insert map object");
+        } else {
+            if(map_insert(&item_tbl->map_by_id, &item->id, item)) {
+                status = panic("failed to insert map object");
+            } else if(map_insert(&item_tbl->map_by_name, item->name.string, item)) {
+                status = panic("failed to insert map object");
+            }
+            if(status)
+                item_destroy(item);
         }
 
         if(status) {
-            item_destroy(item);
             pool_put(item_tbl->pool, item);
         } else {
             item->next = item_tbl->root;
