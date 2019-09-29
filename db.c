@@ -3,6 +3,7 @@
 int long_compare(void *, void *);
 int string_compare(void *, void *);
 
+int item_strtol_split(struct string *, long *, long *);
 int item_create(struct item *, struct list *);
 void item_destroy(struct item *);
 
@@ -16,12 +17,26 @@ int string_compare(void * x, void * y) {
     return strcmp(x, y);
 }
 
+int item_strtol_split(struct string * string, long * x, long * y) {
+    int status = 0;
+    long list[2] = {0, 0};
+
+    if(string_strtol_split(string, 10, ':', list, 2)) {
+        status = panic("failed to strtol split string object");
+    } else {
+        *x = list[0];
+        *y = list[1];
+    }
+
+    return status;
+}
+
 int item_create(struct item * item, struct list * record) {
     int status = 0;
-    size_t field = 0;
+    size_t field;
     struct string * string;
-    long list[2];
 
+    field = 0;
     string = list_poll(record);
     while(string && !status) {
         switch(field) {
@@ -32,16 +47,7 @@ int item_create(struct item * item, struct list * record) {
             case 4: status = string_strtol(string, 10, &item->buy); break;
             case 5: status = string_strtol(string, 10, &item->sell); break;
             case 6: status = string_strtol(string, 10, &item->weight); break;
-            case 7:
-                memset(list, 0, sizeof(list));
-                if(string_strtol_split(string, 10, ':', list, 2)) {
-                    status = panic("failed to strtol split string object");
-                } else {
-                    item->atk = list[0];
-                    item->matk = list[1];
-                }
-                break;
-            break;
+            case 7: status = item_strtol_split(string, &item->atk, &item->matk); break;
             case 8: status = string_strtol(string, 10, &item->def); break;
             case 9: status = string_strtol(string, 10, &item->range); break;
             case 10: status = string_strtol(string, 10, &item->slots); break;
@@ -50,15 +56,7 @@ int item_create(struct item * item, struct list * record) {
             case 13: status = string_strtol(string, 10, &item->gender); break;
             case 14: status = string_strtoul(string, 10, &item->location); break;
             case 15: status = string_strtol(string, 10, &item->weapon_level); break;
-            case 16:
-                memset(list, 0, sizeof(list));
-                if(string_strtol_split(string, 10, ':', list, 2)) {
-                    status = panic("failed to strtol split string object");
-                } else {
-                    item->base_level = list[0];
-                    item->max_level = list[1];
-                }
-                break;
+            case 16: status = item_strtol_split(string, &item->base_level, &item->max_level); break;
             case 17: status = string_strtol(string, 10, &item->refineable); break;
             case 18: status = string_strtol(string, 10, &item->view); break;
             case 19: status = string_copy(&item->bonus, string); break;
