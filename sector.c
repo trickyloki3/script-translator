@@ -184,6 +184,7 @@ int sector_create(struct sector * sector, size_t size, struct pool * pool) {
     } else if(pool->size != sizeof(struct sector_node)) {
         status = panic("pool is invalid");
     } else {
+        size += sizeof(struct sector_header);
         sector->buffer = malloc(size);
         if(!sector->buffer) {
             status = panic("out of memory");
