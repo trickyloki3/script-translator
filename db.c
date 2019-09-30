@@ -3,8 +3,11 @@
 int long_compare(void *, void *);
 int string_compare(void *, void *);
 
+int char_create(struct sector_list *, struct string *, char **);
+void char_destroy(char *);
+
 int item_strtol_split(struct string *, long *, long *);
-int item_create(struct item *, struct list *);
+int item_create(struct item *, struct list *, struct sector_list *);
 void item_destroy(struct item *);
 
 int long_compare(void * x, void * y) {
@@ -15,6 +18,26 @@ int long_compare(void * x, void * y) {
 
 int string_compare(void * x, void * y) {
     return strcmp(x, y);
+}
+
+int char_create(struct sector_list * sector_list, struct string * string, char ** result) {
+    int status = 0;
+    char * object;
+
+    object = sector_list_malloc(sector_list, string->offset + 1);
+    if(!object) {
+        status = panic("out of memory");
+    } else {
+        memcpy(object, string->string, string->offset);
+        object[string->offset] = 0;
+        *result = object;
+    }
+
+    return status;
+}
+
+void char_destroy(char * object) {
+    sector_list_free(object);
 }
 
 int item_strtol_split(struct string * string, long * x, long * y) {
@@ -31,7 +54,7 @@ int item_strtol_split(struct string * string, long * x, long * y) {
     return status;
 }
 
-int item_create(struct item * item, struct list * record) {
+int item_create(struct item * item, struct list * record, struct sector_list * sector_list) {
     int status = 0;
     size_t field;
     struct string * string;
@@ -43,8 +66,8 @@ int item_create(struct item * item, struct list * record) {
     while(string && !status) {
         switch(field) {
             case 0: status = string_strtol(string, 10, &item->id); break;
-            case 1: status = string_copy(&item->aegis, string); break;
-            case 2: status = string_copy(&item->name, string); break;
+            case 1: status = char_create(sector_list, string, &item->aegis); break;
+            case 2: status = char_create(sector_list, string, &item->name); break;
             case 3: status = string_strtol(string, 10, &item->type); break;
             case 4: status = string_strtol(string, 10, &item->buy); break;
             case 5: status = string_strtol(string, 10, &item->sell); break;
@@ -61,9 +84,9 @@ int item_create(struct item * item, struct list * record) {
             case 16: status = item_strtol_split(string, &item->base_level, &item->max_level); break;
             case 17: status = string_strtol(string, 10, &item->refineable); break;
             case 18: status = string_strtol(string, 10, &item->view); break;
-            case 19: status = string_copy(&item->bonus, string); break;
-            case 20: status = string_copy(&item->onequip, string); break;
-            case 21: status = string_copy(&item->onunequip, string); break;
+            case 19: status = char_create(sector_list, string, &item->bonus); break;
+            case 20: status = char_create(sector_list, string, &item->onequip); break;
+            case 21: status = char_create(sector_list, string, &item->onunequip); break;
             default: status = panic("row has too many columns"); break;
         }
         field++;
@@ -80,11 +103,11 @@ int item_create(struct item * item, struct list * record) {
 }
 
 void item_destroy(struct item * item) {
-    string_destroy(&item->onunequip);
-    string_destroy(&item->onequip);
-    string_destroy(&item->bonus);
-    string_destroy(&item->name);
-    string_destroy(&item->aegis);
+    char_destroy(item->onunequip);
+    char_destroy(item->onequip);
+    char_destroy(item->bonus);
+    char_destroy(item->name);
+    char_destroy(item->aegis);
 }
 
 int item_tbl_process(struct list * record, void * data) {
@@ -96,12 +119,12 @@ int item_tbl_process(struct list * record, void * data) {
     if(!item) {
         status = panic("out of memory");
     } else {
-        if(item_create(item, record)) {
+        if(item_create(item, record, item_tbl->sector_list)) {
             status = panic("failed to process item object");
         } else {
             if(map_insert(&item_tbl->map_by_id, &item->id, item)) {
                 status = panic("failed to insert map object");
-            } else if(map_insert(&item_tbl->map_by_name, item->name.string, item)) {
+            } else if(map_insert(&item_tbl->map_by_name, item->name, item)) {
                 status = panic("failed to insert map object");
             }
             if(status)
@@ -119,7 +142,7 @@ int item_tbl_process(struct list * record, void * data) {
     return status;
 }
 
-int item_tbl_create(struct item_tbl * item_tbl, struct csv * csv, struct pool_map * pool_map) {
+int item_tbl_create(struct item_tbl * item_tbl, struct csv * csv, struct pool_map * pool_map, struct sector_list * sector_list) {
     int status = 0;
     struct pool * pool;
 
@@ -136,6 +159,7 @@ int item_tbl_create(struct item_tbl * item_tbl, struct csv * csv, struct pool_ma
                 if(map_create(&item_tbl->map_by_name, string_compare, pool)) {
                     status = panic("failed to create map object");
                 } else {
+                    item_tbl->sector_list = sector_list;
                     if(csv_parse(csv, "item_db.txt", 4096, item_tbl_process, item_tbl))
                         status = panic("failed to parse csv object");
                     if(status)
@@ -165,10 +189,10 @@ void item_tbl_destroy(struct item_tbl * item_tbl) {
     map_destroy(&item_tbl->map_by_id);
 }
 
-int db_create(struct db * db, struct csv * csv, struct pool_map * pool_map) {
+int db_create(struct db * db, struct csv * csv, struct pool_map * pool_map, struct sector_list * sector_list) {
     int status = 0;
 
-    if(item_tbl_create(&db->item_tbl, csv, pool_map)) {
+    if(item_tbl_create(&db->item_tbl, csv, pool_map, sector_list)) {
         status = panic("failed to create item table object");
     } else {
         if(status)
