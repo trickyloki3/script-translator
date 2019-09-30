@@ -10,6 +10,7 @@ struct list_node {
 };
 
 struct list {
+    struct list_node * iter;
     struct list_node * root;
     struct pool * pool;
 };
@@ -20,5 +21,7 @@ int list_push(struct list *, void *);
 void * list_pop(struct list *);
 void * list_poll(struct list *);
 void list_clear(struct list *);
+void * list_start(struct list *);
+void * list_next(struct list *);
 
 #endif

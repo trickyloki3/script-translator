@@ -48,6 +48,7 @@ int list_create(struct list * list, struct pool * pool) {
     } else if(pool->size != sizeof(struct list_node)) {
         status = panic("pool is invalid");
     } else {
+        list->iter = NULL;
         list->root = NULL;
         list->pool = pool;
     }
@@ -131,4 +132,20 @@ void list_clear(struct list * list) {
         list_node_destroy(list, list->root);
         list->root = NULL;
     }
+}
+
+void * list_start(struct list * list) {
+    list->iter = list->root;
+    return list_next(list);
+}
+
+void * list_next(struct list * list) {
+    void * object = NULL;
+
+    if(list->iter) {
+        object = list->iter->object;
+        list->iter = list->iter->next == list->root ? NULL : list->iter->next;
+    }
+
+    return object;
 }
