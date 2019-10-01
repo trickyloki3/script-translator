@@ -210,6 +210,24 @@ int string_strtol_split(struct string * string, int base, char split, long * lis
     return *end ? panic("invalid string '%s' in '%s'", end, string->string) : 0;
 }
 
+int string_strtol_splitv(struct string * string, int base, char split, ...) {
+    va_list args;
+    long * value;
+    char * ptr;
+    char * end;
+
+    va_start(args, split);
+    value = va_arg(args, long *);
+    ptr = string->string;
+    while(ptr && value) {
+        *value = strtol(ptr, &end, base);
+        ptr = *end == split ? end + 1 : NULL;
+    }
+    va_end(args);
+
+    return *end ? panic("invalid string '%s' in '%s'", end, string->string) : 0;
+}
+
 int string_strtoul(struct string * string, int base, unsigned long * result) {
     int status = 0;
     char * end;

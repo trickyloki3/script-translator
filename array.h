@@ -40,6 +40,7 @@ int string_putc(struct string *, char);
 int string_strdup(struct string *, char *, size_t);
 int string_strtol(struct string *, int, long *);
 int string_strtol_split(struct string *, int, char, long *, size_t);
+int string_strtol_splitv(struct string *, int, char, ...);
 int string_strtoul(struct string *, int, unsigned long *);
 void string_clear(struct string *);
 

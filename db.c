@@ -6,7 +6,6 @@ int string_compare(void *, void *);
 int char_create(struct sector_list *, struct string *, char **);
 void char_destroy(char *);
 
-int item_strtol_split(struct string *, long *, long *);
 int item_create(struct item *, struct list *, struct sector_list *);
 void item_destroy(struct item *);
 int item_tbl_process(struct list *, void *);
@@ -39,20 +38,6 @@ void char_destroy(char * object) {
     sector_list_free(object);
 }
 
-int item_strtol_split(struct string * string, long * x, long * y) {
-    int status = 0;
-    long list[2] = {0, 0};
-
-    if(string_strtol_split(string, 10, ':', list, 2)) {
-        status = panic("failed to strtol split string object");
-    } else {
-        *x = list[0];
-        *y = list[1];
-    }
-
-    return status;
-}
-
 int item_create(struct item * item, struct list * record, struct sector_list * sector_list) {
     int status = 0;
     size_t field;
@@ -71,7 +56,7 @@ int item_create(struct item * item, struct list * record, struct sector_list * s
             case 4: status = string_strtol(string, 10, &item->buy); break;
             case 5: status = string_strtol(string, 10, &item->sell); break;
             case 6: status = string_strtol(string, 10, &item->weight); break;
-            case 7: status = item_strtol_split(string, &item->atk, &item->matk); break;
+            case 7: status = string_strtol_splitv(string, 10, ':', &item->atk, &item->matk, NULL); break;
             case 8: status = string_strtol(string, 10, &item->def); break;
             case 9: status = string_strtol(string, 10, &item->range); break;
             case 10: status = string_strtol(string, 10, &item->slots); break;
@@ -80,7 +65,7 @@ int item_create(struct item * item, struct list * record, struct sector_list * s
             case 13: status = string_strtol(string, 10, &item->gender); break;
             case 14: status = string_strtoul(string, 10, &item->location); break;
             case 15: status = string_strtol(string, 10, &item->weapon_level); break;
-            case 16: status = item_strtol_split(string, &item->base_level, &item->max_level); break;
+            case 16: status = string_strtol_splitv(string, 10, ':', &item->base_level, &item->max_level, NULL); break;
             case 17: status = string_strtol(string, 10, &item->refineable); break;
             case 18: status = string_strtol(string, 10, &item->view); break;
             case 19: status = char_create(sector_list, string, &item->bonus); break;
@@ -145,10 +130,10 @@ int item_tbl_create(struct item_tbl * item_tbl, struct csv * csv, struct pool_ma
     int status = 0;
     struct pool * pool;
 
-    item_tbl->root = NULL;
     if(pool_map_get(pool_map, sizeof(struct item), 512, &item_tbl->item_pool)) {
         status = panic("failed to get pool map object");
     } else {
+        item_tbl->root = NULL;
         if(pool_map_get(pool_map, sizeof(struct map_node), 512, &pool)) {
             status = panic("failed to get pool map object");
         } else {
