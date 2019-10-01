@@ -35,7 +35,7 @@ struct item {
 
 struct item_tbl {
     struct item * root;
-    struct pool * pool;
+    struct pool * item_pool;
     struct map map_by_id;
     struct map map_by_name;
     struct sector_list * sector_list;

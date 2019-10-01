@@ -9,6 +9,7 @@ void char_destroy(char *);
 int item_strtol_split(struct string *, long *, long *);
 int item_create(struct item *, struct list *, struct sector_list *);
 void item_destroy(struct item *);
+int item_tbl_process(struct list *, void *);
 
 int long_compare(void * x, void * y) {
     long l = *((long *) x);
@@ -115,7 +116,7 @@ int item_tbl_process(struct list * record, void * data) {
     struct item_tbl * item_tbl = data;
     struct item * item;
 
-    item = pool_get(item_tbl->pool);
+    item = pool_get(item_tbl->item_pool);
     if(!item) {
         status = panic("out of memory");
     } else {
@@ -132,7 +133,7 @@ int item_tbl_process(struct list * record, void * data) {
         }
 
         if(status) {
-            pool_put(item_tbl->pool, item);
+            pool_put(item_tbl->item_pool, item);
         } else {
             item->next = item_tbl->root;
             item_tbl->root = item;
@@ -147,7 +148,7 @@ int item_tbl_create(struct item_tbl * item_tbl, struct csv * csv, struct pool_ma
     struct pool * pool;
 
     item_tbl->root = NULL;
-    if(pool_map_get(pool_map, sizeof(struct item), 512, &item_tbl->pool)) {
+    if(pool_map_get(pool_map, sizeof(struct item), 512, &item_tbl->item_pool)) {
         status = panic("failed to get pool map object");
     } else {
         if(pool_map_get(pool_map, sizeof(struct map_node), 512, &pool)) {
@@ -183,7 +184,7 @@ void item_tbl_destroy(struct item_tbl * item_tbl) {
         temp = item;
         item = item->next;
         item_destroy(temp);
-        pool_put(item_tbl->pool, temp);
+        pool_put(item_tbl->item_pool, temp);
     }
     map_destroy(&item_tbl->map_by_name);
     map_destroy(&item_tbl->map_by_id);
