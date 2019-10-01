@@ -29,9 +29,7 @@ int char_create(struct sector_list * sector_list, struct string * string, char *
     if(!object) {
         status = panic("out of memory");
     } else {
-        memcpy(object, string->string, string->offset);
-        object[string->offset] = 0;
-        *result = object;
+        *result = memcpy(object, string->string, string->offset + 1);
     }
 
     return status;
