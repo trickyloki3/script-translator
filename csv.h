@@ -9,7 +9,7 @@
 typedef int (* csv_process_cb) (struct list *, void *);
 
 struct csv {
-    struct pool * pool;
+    struct pool * string_pool;
     struct list string;
     struct list active;
     struct list record;
