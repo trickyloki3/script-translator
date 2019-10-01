@@ -10,9 +10,9 @@ struct list_node {
 };
 
 struct list {
-    struct list_node * iter;
-    struct list_node * root;
     struct pool * pool;
+    struct list_node * root;
+    struct list_node * iter;
 };
 
 int list_create(struct list *, struct pool *);

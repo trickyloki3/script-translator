@@ -48,9 +48,9 @@ int list_create(struct list * list, struct pool * pool) {
     } else if(pool->size != sizeof(struct list_node)) {
         status = panic("pool is invalid");
     } else {
-        list->iter = NULL;
-        list->root = NULL;
         list->pool = pool;
+        list->root = NULL;
+        list->iter = NULL;
     }
 
     return status;

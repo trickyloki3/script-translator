@@ -317,8 +317,8 @@ int map_create(struct map * map, map_compare_cb compare, struct pool * pool) {
         status = panic("pool is invalid");
     } else {
         map->compare = compare;
-        map->root = NULL;
         map->pool = pool;
+        map->root = NULL;
     }
 
     return status;

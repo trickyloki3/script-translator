@@ -11,8 +11,8 @@ struct range_node {
 };
 
 struct range {
-    struct range_node * root;
     struct pool * pool;
+    struct range_node * root;
 };
 
 int range_create(struct range *, struct pool *);

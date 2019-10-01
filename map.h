@@ -23,8 +23,8 @@ typedef int (* map_compare_cb) (void *, void *);
 
 struct map {
     map_compare_cb compare;
-    struct map_node * root;
     struct pool * pool;
+    struct map_node * root;
 };
 
 int map_create(struct map *, map_compare_cb, struct pool *);
