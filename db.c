@@ -150,7 +150,7 @@ int item_tbl_create(struct item_tbl * item_tbl, struct csv * csv, struct pool_ma
                     status = panic("failed to create map object");
                 } else {
                     item_tbl->sector_list = sector_list;
-                    if(csv_parse(csv, "item_db.txt", 4096, item_tbl_process, item_tbl))
+                    if(csv_parse(csv, "item_db.txt", item_tbl_process, item_tbl))
                         status = panic("failed to parse csv object");
                     if(status)
                         map_destroy(&item_tbl->map_by_name);

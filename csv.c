@@ -5,7 +5,7 @@
 
 int csv_parse_loop(struct csv *, yyscan_t, csvpstate *);
 
-int csv_create(struct csv * csv, struct pool_map * pool_map) {
+int csv_create(struct csv * csv, size_t buffer_size, struct pool_map * pool_map) {
     int status = 0;
     struct pool * pool;
 
@@ -20,8 +20,11 @@ int csv_create(struct csv * csv, struct pool_map * pool_map) {
             if(list_create(&csv->active, pool)) {
                 status = panic("failed to create list object");
             } else {
-                if(list_create(&csv->record, pool))
+                if(list_create(&csv->record, pool)) {
                     status = panic("failed to create list object");
+                } else {
+                    csv->buffer_size = buffer_size;
+                }
                 if(status)
                     list_destroy(&csv->active);
             }
@@ -48,7 +51,7 @@ void csv_destroy(struct csv * csv) {
     list_destroy(&csv->string);
 }
 
-int csv_parse(struct csv * csv, const char * path, size_t size, csv_process_cb process, void * data) {
+int csv_parse(struct csv * csv, const char * path, csv_process_cb process, void * data) {
     int status = 0;
 
     FILE * file;
@@ -73,7 +76,7 @@ int csv_parse(struct csv * csv, const char * path, size_t size, csv_process_cb p
                 if(!parser) {
                     status = panic("failed to create parser object");
                 } else {
-                    buffer = csv_create_buffer(file, size, scanner);
+                    buffer = csv_create_buffer(file, csv->buffer_size, scanner);
                     if(!buffer) {
                         status = panic("failed to create buffer state object");
                     } else {
