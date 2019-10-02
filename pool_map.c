@@ -8,28 +8,33 @@ int size_compare(void * x, void * y) {
     return l < r ? -1 : l > r ? 1 : 0;
 }
 
-int pool_map_create(struct pool_map * pool_map, size_t count) {
+int pool_map_create(struct pool_map * pool_map, size_t granularity) {
     int status = 0;
 
-    if(pool_create(&pool_map->list_pool, sizeof(struct list_node), count)) {
-        status = panic("failed to create pool object");
+    if(!granularity) {
+        status = panic("granularity is zero");
     } else {
-        if(pool_create(&pool_map->map_pool, sizeof(struct map_node), count)) {
+        pool_map->granularity = granularity;
+        if(pool_create(&pool_map->list_pool, sizeof(struct list_node), pool_map->granularity / sizeof(struct list_node))) {
             status = panic("failed to create pool object");
         } else {
-            if(list_create(&pool_map->list, &pool_map->list_pool)) {
-                status = panic("failed to create list object");
+            if(pool_create(&pool_map->map_pool, sizeof(struct map_node), pool_map->granularity / sizeof(struct list_node))) {
+                status = panic("failed to create pool object");
             } else {
-                if(map_create(&pool_map->map, size_compare, &pool_map->map_pool))
-                    status = panic("failed to create map object");
+                if(list_create(&pool_map->list, &pool_map->list_pool)) {
+                    status = panic("failed to create list object");
+                } else {
+                    if(map_create(&pool_map->map, size_compare, &pool_map->map_pool))
+                        status = panic("failed to create map object");
+                    if(status)
+                        list_destroy(&pool_map->list);
+                }
                 if(status)
-                    list_destroy(&pool_map->list);
+                    pool_destroy(&pool_map->map_pool);
             }
             if(status)
-                pool_destroy(&pool_map->map_pool);
+                pool_destroy(&pool_map->list_pool);
         }
-        if(status)
-            pool_destroy(&pool_map->list_pool);
     }
 
     return status;
@@ -51,7 +56,7 @@ void pool_map_destroy(struct pool_map * pool_map) {
     pool_destroy(&pool_map->list_pool);
 }
 
-int pool_map_get(struct pool_map * pool_map, size_t size, size_t count, struct pool ** result) {
+int pool_map_get(struct pool_map * pool_map, size_t size, struct pool ** result) {
     int status = 0;
     struct pool * pool;
 
@@ -63,7 +68,7 @@ int pool_map_get(struct pool_map * pool_map, size_t size, size_t count, struct p
         if(!pool) {
             status = panic("out of memory");
         } else {
-            if(pool_create(pool, size, count)) {
+            if(pool_create(pool, size, pool_map->granularity / size)) {
                 status = panic("failed to create pool object");
             } else {
                 if(list_push(&pool_map->list, pool)) {

@@ -2,15 +2,15 @@
 
 int sector_list_sector_create(struct sector_list *, struct sector **);
 
-int sector_list_create(struct sector_list * sector_list, size_t size, size_t count, struct pool_map * pool_map) {
+int sector_list_create(struct sector_list * sector_list, size_t size, struct pool_map * pool_map) {
     int status = 0;
     struct pool * pool;
 
-    if(pool_map_get(pool_map, sizeof(struct sector), count, &sector_list->sector_pool)) {
+    if(pool_map_get(pool_map, sizeof(struct sector), &sector_list->sector_pool)) {
         status = panic("failed to get pool map object");
-    } else if(pool_map_get(pool_map, sizeof(struct sector_node), count, &sector_list->sector_node_pool)) {
+    } else if(pool_map_get(pool_map, sizeof(struct sector_node), &sector_list->sector_node_pool)) {
         status = panic("failed to get pool map object");
-    } else if(pool_map_get(pool_map, sizeof(struct list_node), count, &pool)) {
+    } else if(pool_map_get(pool_map, sizeof(struct list_node), &pool)) {
         status = panic("failed to get pool map object");
     } else {
         sector_list->size = size;

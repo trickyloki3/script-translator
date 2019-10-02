@@ -5,13 +5,13 @@
 
 int csv_parse_loop(struct csv *, yyscan_t, csvpstate *);
 
-int csv_create(struct csv * csv, size_t count, struct pool_map * pool_map) {
+int csv_create(struct csv * csv, struct pool_map * pool_map) {
     int status = 0;
     struct pool * pool;
 
-    if(pool_map_get(pool_map, sizeof(struct string), count, &csv->string_pool)) {
+    if(pool_map_get(pool_map, sizeof(struct string), &csv->string_pool)) {
         status = panic("failed to get pool map object");
-    } else if(pool_map_get(pool_map, sizeof(struct list_node), count, &pool)) {
+    } else if(pool_map_get(pool_map, sizeof(struct list_node), &pool)) {
         status = panic("failed to get pool map object");
     } else {
         if(list_create(&csv->string, pool)) {

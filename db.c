@@ -130,11 +130,11 @@ int item_tbl_create(struct item_tbl * item_tbl, struct csv * csv, struct pool_ma
     int status = 0;
     struct pool * pool;
 
-    if(pool_map_get(pool_map, sizeof(struct item), 512, &item_tbl->item_pool)) {
+    if(pool_map_get(pool_map, sizeof(struct item), &item_tbl->item_pool)) {
         status = panic("failed to get pool map object");
     } else {
         item_tbl->root = NULL;
-        if(pool_map_get(pool_map, sizeof(struct map_node), 512, &pool)) {
+        if(pool_map_get(pool_map, sizeof(struct map_node), &pool)) {
             status = panic("failed to get pool map object");
         } else {
             if(map_create(&item_tbl->map_by_id, long_compare, pool)) {

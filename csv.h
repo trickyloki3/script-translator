@@ -17,7 +17,7 @@ struct csv {
     void * data;
 };
 
-int csv_create(struct csv *, size_t, struct pool_map *);
+int csv_create(struct csv *, struct pool_map *);
 void csv_destroy(struct csv *);
 int csv_parse(struct csv *, const char *, size_t, csv_process_cb, void *);
 struct string * csv_get_string(struct csv *);

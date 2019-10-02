@@ -13,7 +13,7 @@ struct sector_list {
     struct list list;
 };
 
-int sector_list_create(struct sector_list *, size_t, size_t, struct pool_map *);
+int sector_list_create(struct sector_list *, size_t, struct pool_map *);
 void sector_list_destroy(struct sector_list *);
 void * sector_list_malloc(struct sector_list *, size_t);
 void sector_list_free(void *);
