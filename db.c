@@ -6,7 +6,7 @@ int string_compare(void *, void *);
 int char_create(struct sector_list *, struct string *, char **);
 void char_destroy(char *);
 
-int item_create(struct item *, struct list *, struct sector_list *);
+int item_create(struct item *, struct list *, struct pool *, struct sector_list *);
 void item_destroy(struct item *);
 int item_tbl_process(struct list *, void *);
 
@@ -38,7 +38,7 @@ void char_destroy(char * object) {
     sector_list_free(object);
 }
 
-int item_create(struct item * item, struct list * record, struct sector_list * sector_list) {
+int item_create(struct item * item, struct list * record, struct pool * pool, struct sector_list * sector_list) {
     int status = 0;
     size_t field;
     struct string * string;
@@ -77,8 +77,11 @@ int item_create(struct item * item, struct list * record, struct sector_list * s
         string = list_poll(record);
     }
 
-    if(!status && field != 22)
+    if(!status && field != 22){
         status = panic("row is missing columns");
+    } else if(list_create(&item->combo, pool)) {
+        status = panic("failed to create list object");
+    }
 
     if(status)
         item_destroy(item);
@@ -87,6 +90,7 @@ int item_create(struct item * item, struct list * record, struct sector_list * s
 }
 
 void item_destroy(struct item * item) {
+    list_destroy(&item->combo);
     char_destroy(item->onunequip);
     char_destroy(item->onequip);
     char_destroy(item->bonus);
@@ -103,7 +107,7 @@ int item_tbl_process(struct list * record, void * data) {
     if(!item) {
         status = panic("out of memory");
     } else {
-        if(item_create(item, record, item_tbl->sector_list)) {
+        if(item_create(item, record, item_tbl->list_node_pool, item_tbl->sector_list)) {
             status = panic("failed to process item object");
         } else {
             if(map_insert(&item_tbl->map_by_id, &item->id, item)) {
@@ -130,7 +134,9 @@ int item_tbl_create(struct item_tbl * item_tbl, struct csv * csv, struct pool_ma
     int status = 0;
     struct pool * pool;
 
-    if(pool_map_get(pool_map, sizeof(struct item), &item_tbl->item_pool)) {
+    if(pool_map_get(pool_map, sizeof(struct list_node), &item_tbl->list_node_pool)) {
+        status = panic("failed to get pool map object");
+    } else if(pool_map_get(pool_map, sizeof(struct item), &item_tbl->item_pool)) {
         status = panic("failed to get pool map object");
     } else {
         item_tbl->root = NULL;
