@@ -196,18 +196,39 @@ int string_strtol(struct string * string, int base, long * result) {
     return status;
 }
 
-int string_strtol_split(struct string * string, int base, char split, long * list, size_t size) {
-    size_t i = 0;
+int string_strtol_split(struct string * string, int base, char split, struct array * array) {
+    int status = 0;
     char * ptr;
+    size_t count;
     char * end;
 
     ptr = string->string;
-    while(ptr && i < size) {
-        list[i++] = strtol(ptr, &end, base);
-        ptr = *end == split ? end + 1 : NULL;
+    count = 0;
+    while(ptr) {
+        count++;
+        ptr = strchr(ptr, ':');
+        if(ptr)
+            ptr++;
     }
 
-    return *end ? panic("invalid string '%s' in '%s'", end, string->string) : 0;
+    if(array_create(array, sizeof(long), count)) {
+        status = panic("failed to create array object");
+    } else {
+        ptr = string->string;
+        count = 0;
+        while(ptr && count < array->count) {
+            ((long *) array->buffer)[count++] = strtol(ptr, &end, base);
+            ptr = *end == split ? end + 1 : NULL;
+        }
+
+        if(*end)
+            status = panic("invalid string '%s' in '%s'", end, string->string);
+
+        if(status)
+            array_destroy(array);
+    }
+
+    return status;
 }
 
 int string_strtol_splitv(struct string * string, int base, char split, ...) {
