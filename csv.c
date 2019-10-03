@@ -3,7 +3,7 @@
 #include "csv_parser.h"
 #include "csv_scanner.h"
 
-int csv_parse_loop(struct csv *, yyscan_t, csvpstate *);
+int csv_parse_loop(struct csv *, yyscan_t, csvpstate *, csv_process_cb, void *);
 
 int csv_create(struct csv * csv, size_t buffer_size, struct pool_map * pool_map) {
     int status = 0;
@@ -62,9 +62,6 @@ int csv_parse(struct csv * csv, const char * path, csv_process_cb process, void 
     if(!process) {
         status = panic("process is zero");
     } else {
-        csv->process = process;
-        csv->data = data;
-
         file = fopen(path, "r");
         if(!file) {
             status = panic("failed to open %s", path);
@@ -81,7 +78,7 @@ int csv_parse(struct csv * csv, const char * path, csv_process_cb process, void 
                         status = panic("failed to create buffer state object");
                     } else {
                         csvpush_buffer_state(buffer, scanner);
-                        status = csv_parse_loop(csv, scanner, parser);
+                        status = csv_parse_loop(csv, scanner, parser, process, data);
                         csvpop_buffer_state(scanner);
                     }
                     csvpstate_delete(parser);
@@ -95,7 +92,7 @@ int csv_parse(struct csv * csv, const char * path, csv_process_cb process, void 
     return status;
 }
 
-int csv_parse_loop(struct csv * csv, yyscan_t scanner, csvpstate * parser) {
+int csv_parse_loop(struct csv * csv, yyscan_t scanner, csvpstate * parser, csv_process_cb process, void * data) {
     int status = 0;
 
     CSVSTYPE value;
@@ -108,7 +105,7 @@ int csv_parse_loop(struct csv * csv, yyscan_t scanner, csvpstate * parser) {
         if(token < 0) {
             status = panic("failed to get the next token");
         } else {
-            state = csvpush_parse(parser, token, &value, &location, csv);
+            state = csvpush_parse(parser, token, &value, &location, csv, process, data);
             if(state && state != YYPUSH_MORE)
                 status = panic("failed to parse the current token");
         }
@@ -208,11 +205,11 @@ int csv_push_field_empty(struct csv * csv) {
     return status;
 }
 
-int csv_process_record(struct csv * csv) {
+int csv_process_record(struct csv * csv, csv_process_cb process, void * data) {
     int status = 0;
 
     if(csv->record.root && csv->record.root != csv->record.root->next)
-        if(csv->process(&csv->record, csv->data))
+        if(process(&csv->record, data))
             status = panic("failed to process record on csv object");
 
     if(csv_clear_record(csv))

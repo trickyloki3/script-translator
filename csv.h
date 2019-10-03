@@ -14,8 +14,6 @@ struct csv {
     struct list active;
     struct list record;
     size_t buffer_size;
-    csv_process_cb process;
-    void * data;
 };
 
 int csv_create(struct csv *, size_t, struct pool_map *);
@@ -26,7 +24,7 @@ int csv_put_string(struct csv *, struct string *);
 struct string * csv_strdup_string(struct csv *, char *, size_t);
 int csv_push_field(struct csv *, struct string *);
 int csv_push_field_empty(struct csv *);
-int csv_process_record(struct csv *);
+int csv_process_record(struct csv *, csv_process_cb, void *);
 int csv_clear_record(struct csv *);
 
 #endif
