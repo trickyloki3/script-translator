@@ -77,7 +77,7 @@ int item_create(struct item * item, struct list * record, struct pool * pool, st
         string = list_poll(record);
     }
 
-    if(!status && field != 22){
+    if(!status && field != 22) {
         status = panic("row is missing columns");
     } else if(list_create(&item->combo, pool)) {
         status = panic("failed to create list object");
@@ -110,21 +110,22 @@ int item_tbl_process(struct list * record, void * data) {
         if(item_create(item, record, item_tbl->list_node_pool, item_tbl->sector_list)) {
             status = panic("failed to process item object");
         } else {
-            if(map_insert(&item_tbl->map_by_id, &item->id, item)) {
-                status = panic("failed to insert map object");
-            } else if(map_insert(&item_tbl->map_by_name, item->name, item)) {
-                status = panic("failed to insert map object");
+            if(list_push(&item_tbl->list, item)) {
+                status = panic("failed to push list object");
+            } else {
+                if(map_insert(&item_tbl->map_by_id, &item->id, item)) {
+                    status = panic("failed to insert map object");
+                } else if(map_insert(&item_tbl->map_by_name, item->name, item)) {
+                    status = panic("failed to insert map object");
+                }
+                if(status)
+                    list_pop(&item_tbl->list);
             }
             if(status)
                 item_destroy(item);
         }
-
-        if(status) {
+        if(status)
             pool_put(item_tbl->item_pool, item);
-        } else {
-            item->next = item_tbl->root;
-            item_tbl->root = item;
-        }
     }
 
     return status;
@@ -138,10 +139,11 @@ int item_tbl_create(struct item_tbl * item_tbl, struct csv * csv, struct pool_ma
         status = panic("failed to get pool map object");
     } else if(pool_map_get(pool_map, sizeof(struct item), &item_tbl->item_pool)) {
         status = panic("failed to get pool map object");
+    } else if(pool_map_get(pool_map, sizeof(struct map_node), &pool)) {
+        status = panic("failed to get pool map object");
     } else {
-        item_tbl->root = NULL;
-        if(pool_map_get(pool_map, sizeof(struct map_node), &pool)) {
-            status = panic("failed to get pool map object");
+        if(list_create(&item_tbl->list, item_tbl->list_node_pool)) {
+            status = panic("failed to create list object");
         } else {
             if(map_create(&item_tbl->map_by_id, long_compare, pool)) {
                 status = panic("failed to create map object");
@@ -158,6 +160,8 @@ int item_tbl_create(struct item_tbl * item_tbl, struct csv * csv, struct pool_ma
                 if(status)
                     map_destroy(&item_tbl->map_by_id);
             }
+            if(status)
+                list_destroy(&item_tbl->list);
         }
     }
 
@@ -166,17 +170,16 @@ int item_tbl_create(struct item_tbl * item_tbl, struct csv * csv, struct pool_ma
 
 void item_tbl_destroy(struct item_tbl * item_tbl) {
     struct item * item;
-    struct item * temp;
 
-    item = item_tbl->root;
+    item = list_pop(&item_tbl->list);
     while(item) {
-        temp = item;
-        item = item->next;
-        item_destroy(temp);
-        pool_put(item_tbl->item_pool, temp);
+        item_destroy(item);
+        pool_put(item_tbl->item_pool, item);
+        item = list_pop(&item_tbl->list);
     }
     map_destroy(&item_tbl->map_by_name);
     map_destroy(&item_tbl->map_by_id);
+    list_destroy(&item_tbl->list);
 }
 
 int db_create(struct db * db, struct csv * csv, struct pool_map * pool_map, struct sector_list * sector_list) {

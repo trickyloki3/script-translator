@@ -31,13 +31,12 @@ struct item {
     char * onequip;
     char * onunequip;
     struct list combo;
-    struct item * next;
 };
 
 struct item_tbl {
     struct pool * list_node_pool;
     struct pool * item_pool;
-    struct item * root;
+    struct list list;
     struct map map_by_id;
     struct map map_by_name;
     struct sector_list * sector_list;
