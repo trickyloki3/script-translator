@@ -249,11 +249,13 @@ void * sector_malloc(struct sector * sector, size_t size) {
 void sector_free(void * object) {
     struct sector_header * header;
 
-    header = sector_get_header(object);
-    if(sector_add(header->sector, header->min, header->max)) {
-        panic("failed to add sector object");
-    } else {
-        memset(header, 0, sizeof(*header));
+    if(object) {
+        header = sector_get_header(object);
+        if(sector_add(header->sector, header->min, header->max)) {
+            panic("failed to add sector object");
+        } else {
+            memset(header, 0, sizeof(*header));
+        }
     }
 }
 
