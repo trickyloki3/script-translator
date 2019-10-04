@@ -189,7 +189,7 @@ int string_strtol(struct string * string, int base, long * result) {
         *result = 0;
     } else {
         *result = strtol(string->string, &end, base);
-        if(string->string + string->offset != end)
+        if(*end)
             status = panic("invalid string '%s' in '%s'", end, string->string);
     }
 
@@ -219,10 +219,9 @@ int string_strtol_split(struct string * string, int base, char split, struct arr
         while(ptr && count < array->count) {
             ((long *) array->buffer)[count++] = strtol(ptr, &end, base);
             ptr = *end == split ? end + 1 : NULL;
+            if(!ptr && *end)
+                status = panic("invalid string '%s' in '%s'", end, string->string);
         }
-
-        if(*end)
-            status = panic("invalid string '%s' in '%s'", end, string->string);
 
         if(status)
             array_destroy(array);
@@ -232,6 +231,7 @@ int string_strtol_split(struct string * string, int base, char split, struct arr
 }
 
 int string_strtol_splitv(struct string * string, int base, char split, ...) {
+    int status = 0;
     va_list args;
     long * value;
     char * ptr;
@@ -240,13 +240,15 @@ int string_strtol_splitv(struct string * string, int base, char split, ...) {
     va_start(args, split);
     value = va_arg(args, long *);
     ptr = string->string;
-    while(ptr && value) {
+    while(value && ptr) {
         *value = strtol(ptr, &end, base);
         ptr = *end == split ? end + 1 : NULL;
+        if(!ptr && *end)
+            status = panic("invalid string '%s' in '%s'", end, string->string);
     }
     va_end(args);
 
-    return *end ? panic("invalid string '%s' in '%s'", end, string->string) : 0;
+    return status;
 }
 
 int string_strtoul(struct string * string, int base, unsigned long * result) {
@@ -257,7 +259,7 @@ int string_strtoul(struct string * string, int base, unsigned long * result) {
         *result = 0;
     } else {
         *result = strtol(string->string, &end, base);
-        if(string->string + string->offset != end)
+        if(*end)
             status = panic("invalid string '%s' in '%s'", end, string->string);
     }
 
