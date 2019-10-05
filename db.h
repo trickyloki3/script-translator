@@ -40,6 +40,8 @@ struct item_tbl {
 };
 
 struct db {
+    struct pool_map * pool_map;
+    struct sector_list * sector_list;
     struct item_tbl item_tbl;
 };
 

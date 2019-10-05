@@ -1,13 +1,5 @@
 #include "db.h"
 
-struct dbc {
-    struct pool * item_pool;
-    struct pool * list_node_pool;
-    struct pool * map_node_pool;
-    struct sector_list * sector_list;
-    struct item_tbl * item_tbl;
-};
-
 int long_compare(void *, void *);
 int string_compare(void *, void *);
 
@@ -17,12 +9,12 @@ void char_destroy(char *);
 int item_create(struct item *, struct list *, struct sector_list *);
 void item_destroy(struct item *);
 
-int item_tbl_create(struct item_tbl *, struct pool *, struct pool *, struct pool *);
+int item_tbl_create(struct item_tbl *, struct pool_map *);
 void item_tbl_destroy(struct item_tbl *);
 int item_tbl_add(struct item_tbl *, struct list *, struct sector_list *);
 
-int dbc_item_tbl_read_cb(struct list *, void *);
-int dbc_item_tbl_read(struct dbc *, struct csv *);
+int db_item_tbl_create_cb(struct list *, void *);
+int db_item_tbl_create(struct db *, struct csv *);
 
 int long_compare(void * x, void * y) {
     long l = *((long *) x);
@@ -108,23 +100,27 @@ void item_destroy(struct item * item) {
     char_destroy(item->aegis);
 }
 
-int item_tbl_create(struct item_tbl * item_tbl, struct pool * item_pool, struct pool * list_node_pool, struct pool * map_node_pool) {
+int item_tbl_create(struct item_tbl * item_tbl, struct pool_map * pool_map) {
     int status = 0;
 
-    item_tbl->pool = item_pool;
-    if(list_create(&item_tbl->list, list_node_pool)) {
-        status = panic("failed to create list object");
+    item_tbl->pool = pool_map_get(pool_map, sizeof(struct item));
+    if(!item_tbl->pool) {
+        status = panic("failed to get pool map object");
     } else {
-        if(map_create(&item_tbl->map_id, long_compare, map_node_pool)) {
-            status = panic("failed to create map object");
+        if(list_create(&item_tbl->list, pool_map_get(pool_map, sizeof(struct list_node)))) {
+            status = panic("failed to create list object");
         } else {
-            if(map_create(&item_tbl->map_name, string_compare, map_node_pool))
+            if(map_create(&item_tbl->map_id, long_compare, pool_map_get(pool_map, sizeof(struct map_node)))) {
                 status = panic("failed to create map object");
+            } else {
+                if(map_create(&item_tbl->map_name, string_compare, pool_map_get(pool_map, sizeof(struct map_node))))
+                    status = panic("failed to create map object");
+                if(status)
+                    map_destroy(&item_tbl->map_id);
+            }
             if(status)
-                map_destroy(&item_tbl->map_id);
+                list_destroy(&item_tbl->list);
         }
-        if(status)
-            list_destroy(&item_tbl->list);
     }
 
     return status;
@@ -180,26 +176,26 @@ int item_tbl_add(struct item_tbl * item_tbl, struct list * record, struct sector
     return status;
 }
 
-int dbc_item_tbl_read_cb(struct list * record, void * data) {
+int db_item_tbl_create_cb(struct list * record, void * data) {
     int status = 0;
-    struct dbc * dbc = data;
+    struct db * db = data;
 
-    if(item_tbl_add(dbc->item_tbl, record, dbc->sector_list))
+    if(item_tbl_add(&db->item_tbl, record, db->sector_list))
         status = panic("failed to add item table object");
 
     return status;
 }
 
-int dbc_item_tbl_read(struct dbc * dbc, struct csv * csv) {
+int db_item_tbl_create(struct db * db, struct csv * csv) {
     int status = 0;
 
-    if(item_tbl_create(dbc->item_tbl, dbc->item_pool, dbc->list_node_pool, dbc->map_node_pool)) {
+    if(item_tbl_create(&db->item_tbl, db->pool_map)) {
         status = panic("failed to create item table object");
     } else {
-        if(csv_parse(csv, "item_db.txt", dbc_item_tbl_read_cb, dbc))
+        if(csv_parse(csv, "item_db.txt", db_item_tbl_create_cb, db))
             status = panic("failed to parse csv object");
         if(status)
-            item_tbl_destroy(dbc->item_tbl);
+            item_tbl_destroy(&db->item_tbl);
     }
 
     return status;
@@ -207,15 +203,11 @@ int dbc_item_tbl_read(struct dbc * dbc, struct csv * csv) {
 
 int db_create(struct db * db, struct pool_map * pool_map, struct sector_list * sector_list, struct csv * csv) {
     int status = 0;
-    struct dbc dbc;
 
-    dbc.item_pool = pool_map_get(pool_map, sizeof(struct item));
-    dbc.list_node_pool = pool_map_get(pool_map, sizeof(struct list_node));
-    dbc.map_node_pool = pool_map_get(pool_map, sizeof(struct map_node));
-    dbc.sector_list = sector_list;
-    dbc.item_tbl = &db->item_tbl;
-    if(dbc_item_tbl_read(&dbc, csv))
-        status = panic("failed to read item table object");
+    db->pool_map = pool_map;
+    db->sector_list = sector_list;
+    if(db_item_tbl_create(db, csv))
+        status = panic("failed to create item table object");
 
     return status;
 }
