@@ -3,19 +3,18 @@
 #include "csv_parser.h"
 #include "csv_scanner.h"
 
-int csv_parse_loop(struct csv *, yyscan_t, csvpstate *, csv_process_cb, void *);
+int csv_parse_loop(struct csv *, yyscan_t, csvpstate *);
 
-int csv_create(struct csv * csv, size_t buffer_size, struct pool_map * pool_map) {
+int csv_create(struct csv * csv, size_t buffer_size, struct pool * list_node_pool) {
     int status = 0;
 
-    csv->string_pool = pool_map_get(pool_map, sizeof(struct string));
-    if(list_create(&csv->string, pool_map_get(pool_map, sizeof(struct list_node)))) {
+    if(list_create(&csv->string, list_node_pool)) {
         status = panic("failed to create list object");
     } else {
-        if(list_create(&csv->active, pool_map_get(pool_map, sizeof(struct list_node)))) {
+        if(list_create(&csv->active, list_node_pool)) {
             status = panic("failed to create list object");
         } else {
-            if(list_create(&csv->record, pool_map_get(pool_map, sizeof(struct list_node)))) {
+            if(list_create(&csv->record, list_node_pool)) {
                 status = panic("failed to create list object");
             } else {
                 csv->buffer_size = buffer_size;
@@ -36,7 +35,7 @@ void csv_destroy(struct csv * csv) {
     string = list_pop(&csv->string);
     while(string) {
         string_destroy(string);
-        pool_put(csv->string_pool, string);
+        free(string);
         string = list_pop(&csv->string);
     }
 
@@ -56,6 +55,9 @@ int csv_parse(struct csv * csv, const char * path, csv_process_cb process, void 
     if(!process) {
         status = panic("process is zero");
     } else {
+        csv->process = process;
+        csv->data = data;
+
         file = fopen(path, "r");
         if(!file) {
             status = panic("failed to open %s", path);
@@ -72,7 +74,7 @@ int csv_parse(struct csv * csv, const char * path, csv_process_cb process, void 
                         status = panic("failed to create buffer state object");
                     } else {
                         csvpush_buffer_state(buffer, scanner);
-                        status = csv_parse_loop(csv, scanner, parser, process, data);
+                        status = csv_parse_loop(csv, scanner, parser);
                         csvpop_buffer_state(scanner);
                     }
                     csvpstate_delete(parser);
@@ -86,7 +88,7 @@ int csv_parse(struct csv * csv, const char * path, csv_process_cb process, void 
     return status;
 }
 
-int csv_parse_loop(struct csv * csv, yyscan_t scanner, csvpstate * parser, csv_process_cb process, void * data) {
+int csv_parse_loop(struct csv * csv, yyscan_t scanner, csvpstate * parser) {
     int status = 0;
 
     CSVSTYPE value;
@@ -99,7 +101,7 @@ int csv_parse_loop(struct csv * csv, yyscan_t scanner, csvpstate * parser, csv_p
         if(token < 0) {
             status = panic("failed to get the next token");
         } else {
-            state = csvpush_parse(parser, token, &value, &location, csv, process, data);
+            state = csvpush_parse(parser, token, &value, &location, csv);
             if(state && state != YYPUSH_MORE)
                 status = panic("failed to parse the current token");
         }
@@ -117,14 +119,14 @@ struct string * csv_get_string(struct csv * csv) {
 
     string = list_pop(&csv->string);
     if(!string) {
-        string = pool_get(csv->string_pool);
+        string = malloc(sizeof(*string));
         if(!string) {
             status = panic("failed to get pool object");
         } else {
             if(string_create(string, 64))
                 status = panic("failed to create string object");
             if(status)
-                pool_put(csv->string_pool, string);
+                free(string);
         }
     }
 
@@ -148,7 +150,7 @@ int csv_put_string(struct csv * csv, struct string * string) {
 
     if(status) {
         string_destroy(string);
-        pool_put(csv->string_pool, string);
+        free(string);
     }
 
     return status;
@@ -199,11 +201,11 @@ int csv_push_field_empty(struct csv * csv) {
     return status;
 }
 
-int csv_process_record(struct csv * csv, csv_process_cb process, void * data) {
+int csv_process_record(struct csv * csv) {
     int status = 0;
 
     if(csv->record.root && csv->record.root != csv->record.root->next)
-        if(process(&csv->record, data))
+        if(csv->process(&csv->record, csv->data))
             status = panic("failed to process record on csv object");
 
     if(csv_clear_record(csv))

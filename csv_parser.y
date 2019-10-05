@@ -30,16 +30,16 @@
 }
 
 %code {
-void yyerror(CSVLTYPE *, struct csv *, csv_process_cb, void *, char const *);
+void yyerror(CSVLTYPE *, struct csv *, char const *);
 }
 
 %define api.value.type {struct string *}
-%parse-param {struct csv * csv} {csv_process_cb process} {void * data}
+%parse-param {struct csv * csv}
 
 %%
 
-file : record { if(csv_process_record(csv, process, data)) YYABORT; }
-     | file NEWLINE record { if(csv_process_record(csv, process, data)) YYABORT; }
+file : record { if(csv_process_record(csv)) YYABORT; }
+     | file NEWLINE record { if(csv_process_record(csv)) YYABORT; }
      | COMMENT
      | file NEWLINE COMMENT
      | SPACE
@@ -56,6 +56,6 @@ field : %empty { if(csv_push_field_empty(csv)) YYABORT; }
 
 %%
 
-void yyerror(CSVLTYPE * location, struct csv * csv, csv_process_cb process, void * data, char const * message) {
+void yyerror(CSVLTYPE * location, struct csv * csv, char const * message) {
     panic("%s (line %d)", message, location->first_line);
 }
