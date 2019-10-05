@@ -57,7 +57,7 @@ int range_create(struct range * range, struct pool * pool) {
 
     if(!pool) {
         status = panic("pool is zero");
-    } else if(pool->size != range_node_size) {
+    } else if(pool->size != sizeof(struct range_node)) {
         status = panic("pool is invalid");
     } else {
         range->pool = pool;

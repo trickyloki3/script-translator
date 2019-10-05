@@ -6,9 +6,9 @@ int sector_list_create(struct sector_list * sector_list, size_t size, struct poo
     int status = 0;
 
     sector_list->pool = pool_map_get(pool_map, sizeof(struct sector));
-    sector_list->node_pool = pool_map_get(pool_map, sector_node_size);
+    sector_list->node_pool = pool_map_get(pool_map, sizeof(struct sector_node));
     sector_list->size = size;
-    if(list_create(&sector_list->list, pool_map_get(pool_map, list_node_size)))
+    if(list_create(&sector_list->list, pool_map_get(pool_map, sizeof(struct list_node))))
         status = panic("failed to create list object");
 
     return status;

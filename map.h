@@ -19,8 +19,6 @@ struct map_node {
     struct map_node * prev;
 };
 
-#define map_node_size sizeof(struct map_node)
-
 typedef int (* map_compare_cb) (void *, void *);
 
 struct map {

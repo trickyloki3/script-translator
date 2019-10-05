@@ -9,13 +9,13 @@ int csv_create(struct csv * csv, size_t buffer_size, struct pool_map * pool_map)
     int status = 0;
 
     csv->string_pool = pool_map_get(pool_map, sizeof(struct string));
-    if(list_create(&csv->string, pool_map_get(pool_map, list_node_size))) {
+    if(list_create(&csv->string, pool_map_get(pool_map, sizeof(struct list_node)))) {
         status = panic("failed to create list object");
     } else {
-        if(list_create(&csv->active, pool_map_get(pool_map, list_node_size))) {
+        if(list_create(&csv->active, pool_map_get(pool_map, sizeof(struct list_node)))) {
             status = panic("failed to create list object");
         } else {
-            if(list_create(&csv->record, pool_map_get(pool_map, list_node_size))) {
+            if(list_create(&csv->record, pool_map_get(pool_map, sizeof(struct list_node)))) {
                 status = panic("failed to create list object");
             } else {
                 csv->buffer_size = buffer_size;

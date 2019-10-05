@@ -15,10 +15,10 @@ int pool_map_create(struct pool_map * pool_map, size_t granularity) {
         status = panic("granularity is zero");
     } else {
         pool_map->granularity = granularity;
-        if(pool_create(&pool_map->list_pool, list_node_size, pool_map->granularity / list_node_size)) {
+        if(pool_create(&pool_map->list_pool, sizeof(struct list_node), pool_map->granularity / sizeof(struct list_node))) {
             status = panic("failed to create pool object");
         } else {
-            if(pool_create(&pool_map->map_pool, map_node_size, pool_map->granularity / map_node_size)) {
+            if(pool_create(&pool_map->map_pool, sizeof(struct map_node), pool_map->granularity / sizeof(struct map_node))) {
                 status = panic("failed to create pool object");
             } else {
                 if(list_create(&pool_map->list, &pool_map->list_pool)) {

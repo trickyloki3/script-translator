@@ -209,9 +209,9 @@ int db_create(struct db * db, struct pool_map * pool_map, struct sector_list * s
     int status = 0;
     struct dbc dbc;
 
-    dbc.item_pool = pool_map_get(pool_map, item_size);
-    dbc.list_node_pool = pool_map_get(pool_map, list_node_size);
-    dbc.map_node_pool = pool_map_get(pool_map, map_node_size);
+    dbc.item_pool = pool_map_get(pool_map, sizeof(struct item));
+    dbc.list_node_pool = pool_map_get(pool_map, sizeof(struct list_node));
+    dbc.map_node_pool = pool_map_get(pool_map, sizeof(struct map_node));
     dbc.sector_list = sector_list;
     dbc.item_tbl = &db->item_tbl;
     if(dbc_item_tbl_read(&dbc, csv))

@@ -8,8 +8,6 @@ struct pool_node {
     struct pool_node * prev;
 };
 
-#define pool_node_size sizeof(struct pool_node)
-
 struct pool {
     size_t size;
     size_t count;

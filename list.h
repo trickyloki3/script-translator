@@ -9,8 +9,6 @@ struct list_node {
     struct list_node * prev;
 };
 
-#define list_node_size sizeof(struct list_node)
-
 struct list {
     struct pool * pool;
     struct list_node * root;

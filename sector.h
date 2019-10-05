@@ -10,8 +10,6 @@ struct sector_node {
     struct sector_node * prev;
 };
 
-#define sector_node_size sizeof(struct sector_node)
-
 struct sector {
     char * buffer;
     struct pool * pool;
