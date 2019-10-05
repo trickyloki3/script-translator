@@ -57,7 +57,17 @@ int list_create(struct list * list, struct pool * pool) {
 }
 
 void list_destroy(struct list * list) {
-    list_clear(list);
+    struct list_node * node;
+
+    if(list->root) {
+        while(list->root != list->root->next) {
+            node = list->root->next;
+            list_node_detach(node);
+            list_node_destroy(list, node);
+        }
+        list_node_destroy(list, list->root);
+        list->root = NULL;
+    }
 }
 
 int list_push(struct list * list, void * object) {
@@ -92,20 +102,6 @@ void * list_pop(struct list * list) {
     }
 
     return object;
-}
-
-void list_clear(struct list * list) {
-    struct list_node * node;
-
-    if(list->root) {
-        while(list->root != list->root->next) {
-            node = list->root->next;
-            list_node_detach(node);
-            list_node_destroy(list, node);
-        }
-        list_node_destroy(list, list->root);
-        list->root = NULL;
-    }
 }
 
 void * list_start(struct list * list) {

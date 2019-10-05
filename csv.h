@@ -1,10 +1,9 @@
 #ifndef csv_h
 #define csv_h
 
+#include "array.h"
 #include "pool.h"
 #include "list.h"
-#include "pool_map.h"
-#include "array.h"
 
 typedef int (* csv_process_cb) (struct list *, void *);
 
