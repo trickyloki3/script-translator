@@ -7,13 +7,11 @@
 
 struct pool_map {
     size_t granularity;
-    struct pool list_pool;
-    struct pool map_pool;
     struct list list;
     struct map map;
 };
 
-int pool_map_create(struct pool_map *, size_t);
+int pool_map_create(struct pool_map *, size_t, struct pool *, struct pool *);
 void pool_map_destroy(struct pool_map *);
 struct pool * pool_map_get(struct pool_map *, size_t);
 
