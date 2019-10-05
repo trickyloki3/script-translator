@@ -30,26 +30,20 @@ struct item {
     char * bonus;
     char * onequip;
     char * onunequip;
-    struct list combo;
 };
 
 struct item_tbl {
-    struct pool * list_node_pool;
-    struct pool * item_pool;
+    struct pool * pool;
     struct list list;
-    struct map map_by_id;
-    struct map map_by_name;
-    struct sector_list * sector_list;
+    struct map map_id;
+    struct map map_name;
 };
-
-int item_tbl_create(struct item_tbl *, struct csv *, struct pool_map *, struct sector_list *);
-void item_tbl_destroy(struct item_tbl *);
 
 struct db {
     struct item_tbl item_tbl;
 };
 
-int db_create(struct db *, struct csv *, struct pool_map *, struct sector_list *);
+int db_create(struct db *, struct pool_map *, struct sector_list *, struct csv *);
 void db_destroy(struct db *);
 
 #endif
