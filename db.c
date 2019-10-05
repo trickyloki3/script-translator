@@ -60,35 +60,35 @@ int item_create(struct item * item, struct list * record, struct sector_list * s
     memset(item, 0, sizeof(*item));
 
     field = 0;
-    string = list_poll(record);
+    string = list_start(record);
     while(string && !status) {
         switch(field) {
-            case 0: status = string_strtol(string, 10, &item->id); break;
-            case 1: status = char_create(sector_list, string, &item->aegis); break;
-            case 2: status = char_create(sector_list, string, &item->name); break;
-            case 3: status = string_strtol(string, 10, &item->type); break;
-            case 4: status = string_strtol(string, 10, &item->buy); break;
-            case 5: status = string_strtol(string, 10, &item->sell); break;
-            case 6: status = string_strtol(string, 10, &item->weight); break;
-            case 7: status = string_strtol_splitv(string, 10, ':', &item->atk, &item->matk, NULL); break;
-            case 8: status = string_strtol(string, 10, &item->def); break;
-            case 9: status = string_strtol(string, 10, &item->range); break;
-            case 10: status = string_strtol(string, 10, &item->slots); break;
-            case 11: status = string_strtoul(string, 16, &item->job); break;
-            case 12: status = string_strtoul(string, 10, &item->upper); break;
-            case 13: status = string_strtol(string, 10, &item->gender); break;
-            case 14: status = string_strtoul(string, 10, &item->location); break;
-            case 15: status = string_strtol(string, 10, &item->weapon_level); break;
-            case 16: status = string_strtol_splitv(string, 10, ':', &item->base_level, &item->max_level, NULL); break;
-            case 17: status = string_strtol(string, 10, &item->refineable); break;
-            case 18: status = string_strtol(string, 10, &item->view); break;
-            case 19: status = char_create(sector_list, string, &item->bonus); break;
-            case 20: status = char_create(sector_list, string, &item->onequip); break;
-            case 21: status = char_create(sector_list, string, &item->onunequip); break;
+            case 0: status = char_create(sector_list, string, &item->onunequip); break;
+            case 1: status = char_create(sector_list, string, &item->onequip); break;
+            case 2: status = char_create(sector_list, string, &item->bonus); break;
+            case 3: status = string_strtol(string, 10, &item->view); break;
+            case 4: status = string_strtol(string, 10, &item->refineable); break;
+            case 5: status = string_strtol_splitv(string, 10, ':', &item->base_level, &item->max_level, NULL); break;
+            case 6: status = string_strtol(string, 10, &item->weapon_level); break;
+            case 7: status = string_strtoul(string, 10, &item->location); break;
+            case 8: status = string_strtol(string, 10, &item->gender); break;
+            case 9: status = string_strtoul(string, 10, &item->upper); break;
+            case 10: status = string_strtoul(string, 16, &item->job); break;
+            case 11: status = string_strtol(string, 10, &item->slots); break;
+            case 12: status = string_strtol(string, 10, &item->range); break;
+            case 13: status = string_strtol(string, 10, &item->def); break;
+            case 14: status = string_strtol_splitv(string, 10, ':', &item->atk, &item->matk, NULL); break;
+            case 15: status = string_strtol(string, 10, &item->weight); break;
+            case 16: status = string_strtol(string, 10, &item->sell); break;
+            case 17: status = string_strtol(string, 10, &item->buy); break;
+            case 18: status = string_strtol(string, 10, &item->type); break;
+            case 19: status = char_create(sector_list, string, &item->name); break;
+            case 20: status = char_create(sector_list, string, &item->aegis); break;
+            case 21: status = string_strtol(string, 10, &item->id); break;
             default: status = panic("row has too many columns"); break;
         }
         field++;
-        string = list_poll(record);
+        string = list_next(record);
     }
 
     if(!status && field != 22)

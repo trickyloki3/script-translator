@@ -10,7 +10,6 @@ typedef int (* csv_process_cb) (struct list *, void *);
 
 struct csv {
     struct list string;
-    struct list active;
     struct list record;
     size_t buffer_size;
     csv_process_cb process;
