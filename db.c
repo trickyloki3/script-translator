@@ -209,16 +209,13 @@ int db_create(struct db * db, struct pool_map * pool_map, struct sector_list * s
     int status = 0;
     struct dbc dbc;
 
-    if( pool_map_get(pool_map, sizeof(struct item), &dbc.item_pool) ||
-        pool_map_get(pool_map, sizeof(struct list_node), &dbc.list_node_pool) ||
-        pool_map_get(pool_map, sizeof(struct map_node), &dbc.map_node_pool) ) {
-        status = panic("failed to get pool map object");
-    } else {
-        dbc.sector_list = sector_list;
-        dbc.item_tbl = &db->item_tbl;
-        if(dbc_item_tbl_read(&dbc, csv))
-            status = panic("failed to read item table object");
-    }
+    dbc.item_pool = pool_map_get(pool_map, item_size);
+    dbc.list_node_pool = pool_map_get(pool_map, list_node_size);
+    dbc.map_node_pool = pool_map_get(pool_map, map_node_size);
+    dbc.sector_list = sector_list;
+    dbc.item_tbl = &db->item_tbl;
+    if(dbc_item_tbl_read(&dbc, csv))
+        status = panic("failed to read item table object");
 
     return status;
 }

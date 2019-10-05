@@ -7,29 +7,24 @@ int csv_parse_loop(struct csv *, yyscan_t, csvpstate *, csv_process_cb, void *);
 
 int csv_create(struct csv * csv, size_t buffer_size, struct pool_map * pool_map) {
     int status = 0;
-    struct pool * list_node_pool;
 
-    if( pool_map_get(pool_map, sizeof(struct string), &csv->string_pool) ||
-        pool_map_get(pool_map, sizeof(struct list_node), &list_node_pool) ) {
-        status = panic("failed to get pool map object");
+    csv->string_pool = pool_map_get(pool_map, sizeof(struct string));
+    if(list_create(&csv->string, pool_map_get(pool_map, list_node_size))) {
+        status = panic("failed to create list object");
     } else {
-        if(list_create(&csv->string, list_node_pool)) {
+        if(list_create(&csv->active, pool_map_get(pool_map, list_node_size))) {
             status = panic("failed to create list object");
         } else {
-            if(list_create(&csv->active, list_node_pool)) {
+            if(list_create(&csv->record, pool_map_get(pool_map, list_node_size))) {
                 status = panic("failed to create list object");
             } else {
-                if(list_create(&csv->record, list_node_pool)) {
-                    status = panic("failed to create list object");
-                } else {
-                    csv->buffer_size = buffer_size;
-                }
-                if(status)
-                    list_destroy(&csv->active);
+                csv->buffer_size = buffer_size;
             }
             if(status)
-                list_destroy(&csv->string);
+                list_destroy(&csv->active);
         }
+        if(status)
+            list_destroy(&csv->string);
     }
 
     return status;

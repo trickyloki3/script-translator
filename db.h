@@ -32,6 +32,8 @@ struct item {
     char * onunequip;
 };
 
+#define item_size sizeof(struct item)
+
 struct item_tbl {
     struct pool * pool;
     struct list list;

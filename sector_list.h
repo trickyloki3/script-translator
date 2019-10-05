@@ -7,8 +7,8 @@
 #include "pool_map.h"
 
 struct sector_list {
-    struct pool * sector_pool;
-    struct pool * sector_node_pool;
+    struct pool * pool;
+    struct pool * node_pool;
     size_t size;
     struct list list;
 };
