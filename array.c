@@ -170,6 +170,11 @@ int string_putc(struct string * string, char c) {
 int string_strdup(struct string * string, char * buffer, size_t length) {
     int status = 0;
 
+    while(isspace(*buffer) && length) {
+        buffer++;
+        length--;
+    }
+
     if(string->length < length + 1 && string_expand(string, length + 1 - string->length)) {
         status = panic("out of memory");
     } else {
