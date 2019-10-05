@@ -30,6 +30,7 @@ struct item {
     char * bonus;
     char * onequip;
     char * onunequip;
+    struct list combo;
 };
 
 struct item_tbl {
