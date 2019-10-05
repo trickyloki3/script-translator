@@ -21,8 +21,8 @@ static inline void pool_node_detach(struct pool_node * x) {
 int pool_create(struct pool * pool, size_t size, size_t count) {
     int status = 0;
 
-    if(sizeof(struct pool_node) > size) {
-        status = panic("size is less than %zu", sizeof(struct pool_node));
+    if(pool_node_size > size) {
+        status = panic("size is less than %zu", pool_node_size);
     } else if(!count) {
         status = panic("count is zero");
     } else {

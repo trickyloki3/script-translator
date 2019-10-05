@@ -6,6 +6,8 @@ struct sector_header {
     size_t max;
 };
 
+#define sector_header_size sizeof(struct sector_header)
+
 int sector_node_create(struct sector *, size_t, size_t, struct sector_node **);
 void sector_node_destroy(struct sector *, struct sector_node *);
 static inline void sector_node_attach(struct sector_node *, struct sector_node *);
@@ -167,11 +169,11 @@ int sector_remove(struct sector * sector, size_t x, size_t y) {
 }
 
 static inline struct sector_header * sector_get_header(void * object) {
-    return (void *) (char *) object - sizeof(struct sector_header);
+    return (void *) (char *) object - sector_header_size;
 }
 
 static inline void * sector_get_object(struct sector_header * header) {
-    return (char *) header + sizeof(struct sector_header);
+    return (char *) header + sector_header_size;
 }
 
 int sector_create(struct sector * sector, size_t size, struct pool * pool) {
@@ -181,10 +183,10 @@ int sector_create(struct sector * sector, size_t size, struct pool * pool) {
         status = panic("size is zero");
     } else if(!pool) {
         status = panic("pool is zero");
-    } else if(pool->size != sizeof(struct sector_node)) {
+    } else if(pool->size != sector_node_size) {
         status = panic("pool is invalid");
     } else {
-        size += sizeof(struct sector_header);
+        size += sector_header_size;
         sector->buffer = malloc(size);
         if(!sector->buffer) {
             status = panic("out of memory");
@@ -225,7 +227,7 @@ void * sector_malloc(struct sector * sector, size_t size) {
     struct sector_node * node;
     struct sector_header * header;
 
-    size += sizeof(struct sector_header) - 1;
+    size += sector_header_size - 1;
 
     node = sector->root->next;
     while(node != sector->root && size > node->max - node->min)
@@ -254,7 +256,7 @@ void sector_free(void * object) {
         if(sector_add(header->sector, header->min, header->max)) {
             panic("failed to add sector object");
         } else {
-            memset(header, 0, sizeof(*header));
+            memset(header, 0, sector_header_size);
         }
     }
 }

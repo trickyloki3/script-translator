@@ -10,6 +10,8 @@ struct range_node {
     struct range_node * prev;
 };
 
+#define range_node_size sizeof(struct range_node)
+
 struct range {
     struct pool * pool;
     struct range_node * root;

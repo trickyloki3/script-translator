@@ -313,7 +313,7 @@ int map_create(struct map * map, map_compare_cb compare, struct pool * pool) {
         status = panic("compare is zero");
     } else if(!pool) {
         status = panic("pool is zero");
-    } else if(pool->size != sizeof(struct map_node)) {
+    } else if(pool->size != map_node_size) {
         status = panic("pool is invalid");
     } else {
         map->compare = compare;
