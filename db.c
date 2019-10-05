@@ -21,10 +21,19 @@ int item_combo_tbl_create(struct item_combo_tbl *, struct pool_map *);
 void item_combo_tbl_destroy(struct item_combo_tbl *);
 int item_combo_tbl_add(struct item_combo_tbl *, struct list *, struct sector_list *);
 
+int skill_create(struct skill *, struct list *, struct sector_list *);
+void skill_destroy(struct skill *);
+
+int skill_tbl_create(struct skill_tbl *, struct pool_map *);
+void skill_tbl_destroy(struct skill_tbl *);
+int skill_tbl_add(struct skill_tbl *, struct list *, struct sector_list *);
+
 int db_item_tbl_create_cb(struct list *, void *);
 int db_item_tbl_create(struct db *, struct csv *);
 int db_item_combo_tbl_create_cb(struct list *, void *);
 int db_item_combo_tbl_create(struct db *, struct csv *);
+int db_skill_tbl_create_cb(struct list *, void *);
+int db_skill_tbl_create(struct db *, struct csv *);
 
 int long_compare(void * x, void * y) {
     long l = *((long *) x);
@@ -293,6 +302,139 @@ int item_combo_tbl_add(struct item_combo_tbl * item_combo_tbl, struct list * rec
     return status;
 }
 
+int skill_create(struct skill * skill, struct list * record, struct sector_list * sector_list) {
+    int status = 0;
+    size_t field;
+    struct string * string;
+
+    memset(skill, 0, sizeof(*skill));
+
+    field = 0;
+    string = list_start(record);
+    while(string && !status) {
+        switch(field) {
+            case 0: status = char_create(sector_list, string, &skill->name); break;
+            case 1: status = char_create(sector_list, string, &skill->macro); break;
+            case 2: status = string_strtol(string, 16, &skill->inf3); break;
+            case 3: status = string_strtol_split(string, 10, ':', &skill->blow_count); break;
+            case 4: status = char_create(sector_list, string, &skill->type); break;
+            case 5: status = string_strtol_split(string, 10, ':', &skill->max_count); break;
+            case 6: status = string_strtol(string, 16, &skill->inf2); break;
+            case 7: status = string_strtol(string, 10, &skill->cast_def_reduce_rate); break;
+            case 8: status = char_create(sector_list, string, &skill->cast_cancel); break;
+            case 9: status = string_strtol_split(string, 10, ':', &skill->hit_amount); break;
+            case 10: status = string_strtol(string, 10, &skill->maxlv); break;
+            case 11: status = string_strtol_split(string, 10, ':', &skill->splash); break;
+            case 12: status = string_strtol(string, 16, &skill->nk); break;
+            case 13: status = string_strtol_split(string, 10, ':', &skill->element); break;
+            case 14: status = string_strtol(string, 10, &skill->inf); break;
+            case 15: status = string_strtol(string, 10, &skill->hit); break;
+            case 16: status = string_strtol_split(string, 10, ':', &skill->range); break;
+            case 17: status = string_strtol(string, 10, &skill->id); break;
+            default: status = panic("row has too many columns"); break;
+        }
+        field++;
+        string = list_next(record);
+    }
+
+    if(!status && field != 18)
+        status = panic("row is missing columns");
+
+    if(status)
+        skill_destroy(skill);
+
+    return status;
+}
+
+void skill_destroy(struct skill * skill) {
+    char_destroy(skill->name);
+    char_destroy(skill->macro);
+    array_destroy(&skill->blow_count);
+    char_destroy(skill->type);
+    array_destroy(&skill->max_count);
+    char_destroy(skill->cast_cancel);
+    array_destroy(&skill->hit_amount);
+    array_destroy(&skill->splash);
+    array_destroy(&skill->element);
+    array_destroy(&skill->range);
+}
+
+int skill_tbl_create(struct skill_tbl * skill_tbl, struct pool_map * pool_map) {
+    int status = 0;
+
+    skill_tbl->pool = pool_map_get(pool_map, sizeof(struct skill));
+    if(!skill_tbl->pool) {
+        status = panic("failed to get pool map object");
+    } else {
+        if(list_create(&skill_tbl->list, pool_map_get(pool_map, sizeof(struct list_node)))) {
+            status = panic("failed to create list object");
+        } else {
+            if(map_create(&skill_tbl->map_id, long_compare, pool_map_get(pool_map, sizeof(struct map_node)))) {
+                status = panic("failed to create map object");
+            } else {
+                if(map_create(&skill_tbl->map_macro, string_compare, pool_map_get(pool_map, sizeof(struct map_node))))
+                    status = panic("failed to create map object");
+                if(status)
+                    map_destroy(&skill_tbl->map_id);
+            }
+            if(status)
+                list_destroy(&skill_tbl->list);
+        }
+    }
+
+    return status;
+}
+
+void skill_tbl_destroy(struct skill_tbl * skill_tbl) {
+    struct skill * skill;
+
+    skill = list_pop(&skill_tbl->list);
+    while(skill) {
+        skill_destroy(skill);
+        pool_put(skill_tbl->pool, skill);
+        skill = list_pop(&skill_tbl->list);
+    }
+
+    map_destroy(&skill_tbl->map_macro);
+    map_destroy(&skill_tbl->map_id);
+    list_destroy(&skill_tbl->list);
+}
+
+int skill_tbl_add(struct skill_tbl * skill_tbl, struct list * record, struct sector_list * sector_list) {
+    int status = 0;
+    struct skill * skill;
+
+    skill = pool_get(skill_tbl->pool);
+    if(!skill) {
+        status = panic("out of memory");
+    } else {
+        if(skill_create(skill, record, sector_list)) {
+            status = panic("failed to skill object");
+        } else {
+            if(list_push(&skill_tbl->list, skill)) {
+                status = panic("failed to push list object");
+            } else {
+                if(map_insert(&skill_tbl->map_id, &skill->id, skill)) {
+                    status = panic("failed to insert map object");
+                } else {
+                    if(map_insert(&skill_tbl->map_macro, skill->macro, skill))
+                        status = panic("failed to insert map object");
+                    if(status)
+                        map_delete(&skill_tbl->map_id, &skill->id);
+                }
+                if(status)
+                    list_pop(&skill_tbl->list);
+            }
+            if(status)
+                skill_destroy(skill);
+        }
+        if(status)
+            pool_put(skill_tbl->pool, skill);
+    }
+
+    return status;
+}
+
 int db_item_tbl_create_cb(struct list * record, void * data) {
     int status = 0;
     struct db * db = data;
@@ -352,6 +494,31 @@ int db_item_combo_tbl_create(struct db * db, struct csv * csv) {
     return status;
 }
 
+int db_skill_tbl_create_cb(struct list * record, void * data) {
+    int status = 0;
+    struct db * db = data;
+
+    if(skill_tbl_add(&db->skill_tbl, record, db->sector_list))
+        status = panic("failed to add skill table object");
+
+    return status;
+}
+
+int db_skill_tbl_create(struct db * db, struct csv * csv) {
+    int status = 0;
+
+    if(skill_tbl_create(&db->skill_tbl, db->pool_map)) {
+        status = panic("failed to create skill table object");
+    } else {
+        if(csv_parse(csv, "skill_db.txt", db_skill_tbl_create_cb, db))
+            status = panic("failed to parse csv object");
+        if(status)
+            skill_tbl_destroy(&db->skill_tbl);
+    }
+
+    return status;
+}
+
 int db_create(struct db * db, struct pool_map * pool_map, struct sector_list * sector_list, struct csv * csv) {
     int status = 0;
 
@@ -361,12 +528,15 @@ int db_create(struct db * db, struct pool_map * pool_map, struct sector_list * s
         status = panic("failed to create item table object");
     } else if(db_item_combo_tbl_create(db, csv)) {
         status = panic("failed to create item combo table object");
+    } else if(db_skill_tbl_create(db, csv)) {
+        status = panic("failed to create skill table object");
     }
 
     return status;
 }
 
 void db_destroy(struct db * db) {
+    skill_tbl_destroy(&db->skill_tbl);
     item_combo_tbl_destroy(&db->item_combo_tbl);
     item_tbl_destroy(&db->item_tbl);
 }

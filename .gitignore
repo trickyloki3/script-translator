@@ -7,4 +7,5 @@ csv_scanner.h
 lex.backup
 item_db.txt
 item_combo_db.txt
+skill_db.txt
 pj59

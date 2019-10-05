@@ -50,11 +50,40 @@ struct item_combo_tbl {
     struct list list;
 };
 
+struct skill {
+    long id;
+    struct array range;
+    long hit;
+    long inf;
+    struct array element;
+    long nk;
+    struct array splash;
+    long maxlv;
+    struct array hit_amount;
+    char * cast_cancel;
+    long cast_def_reduce_rate;
+    long inf2;
+    struct array max_count;
+    char * type;
+    struct array blow_count;
+    long inf3;
+    char * macro;
+    char * name;
+};
+
+struct skill_tbl {
+    struct pool * pool;
+    struct list list;
+    struct map map_id;
+    struct map map_macro;
+};
+
 struct db {
     struct pool_map * pool_map;
     struct sector_list * sector_list;
     struct item_tbl item_tbl;
     struct item_combo_tbl item_combo_tbl;
+    struct skill_tbl skill_tbl;
 };
 
 int db_create(struct db *, struct pool_map *, struct sector_list *, struct csv *);
