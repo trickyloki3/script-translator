@@ -13,8 +13,17 @@ int item_tbl_create(struct item_tbl *, struct pool_map *);
 void item_tbl_destroy(struct item_tbl *);
 int item_tbl_add(struct item_tbl *, struct list *, struct sector_list *);
 
+int item_combo_create(struct item_combo *, struct list *, struct sector_list *);
+void item_combo_destroy(struct item_combo *);
+
+int item_combo_tbl_create(struct item_combo_tbl *, struct pool_map *);
+void item_combo_tbl_destroy(struct item_combo_tbl *);
+int item_combo_tbl_add(struct item_combo_tbl *, struct list *, struct sector_list *);
+
 int db_item_tbl_create_cb(struct list *, void *);
 int db_item_tbl_create(struct db *, struct csv *);
+int db_item_combo_tbl_create_cb(struct list *, void *);
+int db_item_combo_tbl_create(struct db *, struct csv *);
 
 int long_compare(void * x, void * y) {
     long l = *((long *) x);
@@ -176,6 +185,89 @@ int item_tbl_add(struct item_tbl * item_tbl, struct list * record, struct sector
     return status;
 }
 
+int item_combo_create(struct item_combo * item_combo, struct list * record, struct sector_list * sector_list) {
+    int status = 0;
+    size_t field;
+    struct string * string;
+
+    memset(item_combo, 0, sizeof(*item_combo));
+
+    field = 0;
+    string = list_start(record);
+    while(string && !status) {
+        switch(field) {
+            case 0: status = char_create(sector_list, string, &item_combo->bonus); break;
+            case 1: status = string_strtol_split(string, 10, ':', &item_combo->id); break;
+            default: status = panic("row has too many columns"); break;
+        }
+        field++;
+        string = list_next(record);
+    }
+
+    if(!status && field != 2)
+        status = panic("row is missing columns");
+
+    if(status)
+        item_combo_destroy(item_combo);
+
+    return status;
+}
+
+void item_combo_destroy(struct item_combo * item_combo) {
+    char_destroy(item_combo->bonus);
+    array_destroy(&item_combo->id);
+}
+
+int item_combo_tbl_create(struct item_combo_tbl * item_combo_tbl, struct pool_map * pool_map) {
+    int status = 0;
+
+    item_combo_tbl->pool = pool_map_get(pool_map, sizeof(struct item_combo));
+    if(!item_combo_tbl->pool) {
+        status = panic("failed to get pool map object");
+    } else {
+        if(list_create(&item_combo_tbl->list, pool_map_get(pool_map, sizeof(struct list_node))))
+            status = panic("failed to create list object");
+    }
+
+    return status;
+}
+
+void item_combo_tbl_destroy(struct item_combo_tbl * item_combo_tbl) {
+    struct item_combo * item_combo;
+
+    item_combo = list_pop(&item_combo_tbl->list);
+    while(item_combo) {
+        item_combo_destroy(item_combo);
+        pool_put(item_combo_tbl->pool, item_combo);
+        item_combo = list_pop(&item_combo_tbl->list);
+    }
+
+    list_destroy(&item_combo_tbl->list);
+}
+
+int item_combo_tbl_add(struct item_combo_tbl * item_combo_tbl, struct list * record, struct sector_list * sector_list) {
+    int status = 0;
+    struct item_combo * item_combo;
+
+    item_combo = pool_get(item_combo_tbl->pool);
+    if(!item_combo) {
+        status = panic("out of memory");
+    } else {
+        if(item_combo_create(item_combo, record, sector_list)) {
+            status = panic("failed to create item combo object");
+        } else {
+            if(list_push(&item_combo_tbl->list, item_combo))
+                status = panic("failed to push list object");
+            if(status)
+                item_combo_destroy(item_combo);
+        }
+        if(status)
+            pool_put(item_combo_tbl->pool, item_combo);
+    }
+
+    return status;
+}
+
 int db_item_tbl_create_cb(struct list * record, void * data) {
     int status = 0;
     struct db * db = data;
@@ -201,17 +293,46 @@ int db_item_tbl_create(struct db * db, struct csv * csv) {
     return status;
 }
 
+int db_item_combo_tbl_create_cb(struct list * record, void * data) {
+    int status = 0;
+    struct db * db = data;
+
+    if(item_combo_tbl_add(&db->item_combo_tbl, record, db->sector_list))
+        status = panic("failed to add item combo table object");
+
+    return status;
+}
+
+int db_item_combo_tbl_create(struct db * db, struct csv * csv) {
+    int status = 0;
+
+    if(item_combo_tbl_create(&db->item_combo_tbl, db->pool_map)) {
+        status = panic("failed to create item combo table object");
+    } else {
+        if(csv_parse(csv, "item_combo_db.txt", db_item_combo_tbl_create_cb, db))
+            status = panic("failed to parse csv object");
+        if(status)
+            item_combo_tbl_destroy(&db->item_combo_tbl);
+    }
+
+    return status;
+}
+
 int db_create(struct db * db, struct pool_map * pool_map, struct sector_list * sector_list, struct csv * csv) {
     int status = 0;
 
     db->pool_map = pool_map;
     db->sector_list = sector_list;
-    if(db_item_tbl_create(db, csv))
+    if(db_item_tbl_create(db, csv)) {
         status = panic("failed to create item table object");
+    } else if(db_item_combo_tbl_create(db, csv)) {
+        status = panic("failed to create item combo table object");
+    }
 
     return status;
 }
 
 void db_destroy(struct db * db) {
+    item_combo_tbl_destroy(&db->item_combo_tbl);
     item_tbl_destroy(&db->item_tbl);
 }

@@ -39,10 +39,21 @@ struct item_tbl {
     struct map map_name;
 };
 
+struct item_combo {
+    struct array id;
+    char * bonus;
+};
+
+struct item_combo_tbl {
+    struct pool * pool;
+    struct list list;
+};
+
 struct db {
     struct pool_map * pool_map;
     struct sector_list * sector_list;
     struct item_tbl item_tbl;
+    struct item_combo_tbl item_combo_tbl;
 };
 
 int db_create(struct db *, struct pool_map *, struct sector_list *, struct csv *);
