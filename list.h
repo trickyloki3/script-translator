@@ -10,6 +10,7 @@ struct list_node {
 };
 
 struct list {
+    size_t size;
     struct pool * pool;
     struct list_node * root;
     struct list_node * iter;
