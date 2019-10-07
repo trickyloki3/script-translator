@@ -42,6 +42,7 @@ int string_strtol(struct string *, int, long *);
 int string_strtol_split(struct string *, int, char, struct array *);
 int string_strtol_splitv(struct string *, int, char, ...);
 int string_strtoul(struct string *, int, unsigned long *);
+int string_strtod(struct string *, double *);
 void string_clear(struct string *);
 
 #endif

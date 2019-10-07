@@ -271,6 +271,21 @@ int string_strtoul(struct string * string, int base, unsigned long * result) {
     return status;
 }
 
+int string_strtod(struct string * string, double * result) {
+    int status = 0;
+    char * end;
+
+    if(!string->offset) {
+        *result = 0;
+    } else {
+        *result = strtod(string->string, &end);
+        if(*end)
+            status = panic("invalid string '%s' in '%s'", end, string->string);
+    }
+
+    return status;
+}
+
 void string_clear(struct string * string) {
     memset(string->string, 0, string->offset);
     string->length += string->offset;
