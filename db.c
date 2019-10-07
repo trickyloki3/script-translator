@@ -49,6 +49,13 @@ int produce_tbl_create(struct produce_tbl *, struct pool_map *);
 void produce_tbl_destroy(struct produce_tbl *);
 int produce_tbl_add(struct produce_tbl *, struct list *, struct sector_list *);
 
+int mercenary_create(struct mercenary *, struct list *, struct sector_list *);
+void mercenary_destroy(struct mercenary *);
+
+int mercenary_tbl_create(struct mercenary_tbl *, struct pool_map *);
+void mercenary_tbl_destroy(struct mercenary_tbl *);
+int mercenary_tbl_add(struct mercenary_tbl *, struct list *, struct sector_list *);
+
 int db_item_tbl_create_cb(struct list *, void *);
 int db_item_tbl_create(struct db *, struct csv *);
 int db_item_combo_tbl_create_cb(struct list *, void *);
@@ -61,6 +68,8 @@ int db_mob_race2_tbl_create_cb(struct list *, void *);
 int db_mob_race2_tbl_create(struct db *, struct csv *);
 int db_produce_tbl_create_cb(struct list *, void *);
 int db_produce_tbl_create(struct db *, struct csv *);
+int db_mercenary_tbl_create_cb(struct list *, void *);
+int db_mercenary_tbl_create(struct db *, struct csv *);
 
 int long_compare(void * x, void * y) {
     long l = *((long *) x);
@@ -809,6 +818,127 @@ int produce_tbl_add(struct produce_tbl * produce_tbl, struct list * record, stru
     return status;
 }
 
+int mercenary_create(struct mercenary * mercenary, struct list * record, struct sector_list * sector_list) {
+    int status = 0;
+    size_t field;
+    struct string * string;
+
+    memset(mercenary, 0, sizeof(*mercenary));
+
+    if(record->size < 26) {
+        status = panic("row is missing columns");
+    } else {
+        field = 0;
+        string = list_start(record);
+        while(string && !status) {
+            switch(field) {
+                case 0: status = string_strtol(string, 10, &mercenary->dmotion); break;
+                case 1: status = string_strtol(string, 10, &mercenary->amotion); break;
+                case 2: status = string_strtol(string, 10, &mercenary->adelay); break;
+                case 3: status = string_strtol(string, 10, &mercenary->speed); break;
+                case 4: status = string_strtol(string, 10, &mercenary->element); break;
+                case 5: status = string_strtol(string, 10, &mercenary->race); break;
+                case 6: status = string_strtol(string, 10, &mercenary->scale); break;
+                case 7: status = string_strtol(string, 10, &mercenary->range3); break;
+                case 8: status = string_strtol(string, 10, &mercenary->range2); break;
+                case 9: status = string_strtol(string, 10, &mercenary->luk); break;
+                case 10: status = string_strtol(string, 10, &mercenary->dex); break;
+                case 11: status = string_strtol(string, 10, &mercenary->ini); break;
+                case 12: status = string_strtol(string, 10, &mercenary->vit); break;
+                case 13: status = string_strtol(string, 10, &mercenary->agi); break;
+                case 14: status = string_strtol(string, 10, &mercenary->str); break;
+                case 15: status = string_strtol(string, 10, &mercenary->mdef); break;
+                case 16: status = string_strtol(string, 10, &mercenary->def); break;
+                case 17: status = string_strtol(string, 10, &mercenary->atk2); break;
+                case 18: status = string_strtol(string, 10, &mercenary->atk1); break;
+                case 19: status = string_strtol(string, 10, &mercenary->range1); break;
+                case 20: status = string_strtol(string, 10, &mercenary->sp); break;
+                case 21: status = string_strtol(string, 10, &mercenary->hp); break;
+                case 22: status = string_strtol(string, 10, &mercenary->level); break;
+                case 23: status = char_create(sector_list, string, &mercenary->name); break;
+                case 24: status = char_create(sector_list, string, &mercenary->sprite); break;
+                case 25: status = string_strtol(string, 10, &mercenary->id); break;
+                default: status = panic("row has too many columns"); break;
+            }
+            field++;
+            string = list_next(record);
+        }
+    }
+
+    if(status)
+        mercenary_destroy(mercenary);
+
+    return status;
+}
+
+void mercenary_destroy(struct mercenary * mercenary) {
+    char_destroy(mercenary->name);
+    char_destroy(mercenary->sprite);
+}
+
+int mercenary_tbl_create(struct mercenary_tbl * mercenary_tbl, struct pool_map * pool_map) {
+    int status = 0;
+
+    mercenary_tbl->pool = pool_map_get(pool_map, sizeof(struct mercenary));
+    if(!mercenary_tbl->pool) {
+        status = panic("failed to get pool map object");
+    } else {
+        if(list_create(&mercenary_tbl->list, pool_map_get(pool_map, sizeof(struct list_node)))) {
+            status = panic("failed to create list object");
+        } else {
+            if(map_create(&mercenary_tbl->map_id, long_compare, pool_map_get(pool_map, sizeof(struct map_node))))
+                status = panic("failed to create map object");
+            if(status)
+                list_destroy(&mercenary_tbl->list);
+        }
+    }
+
+    return status;
+}
+
+void mercenary_tbl_destroy(struct mercenary_tbl * mercenary_tbl) {
+    struct mercenary * mercenary;
+
+    mercenary = list_pop(&mercenary_tbl->list);
+    while(mercenary) {
+        mercenary_destroy(mercenary);
+        pool_put(mercenary_tbl->pool, mercenary);
+        mercenary = list_pop(&mercenary_tbl->list);
+    }
+
+    map_destroy(&mercenary_tbl->map_id);
+    list_destroy(&mercenary_tbl->list);
+}
+
+int mercenary_tbl_add(struct mercenary_tbl * mercenary_tbl, struct list * record, struct sector_list * sector_list) {
+    int status = 0;
+    struct mercenary * mercenary;
+
+    mercenary = pool_get(mercenary_tbl->pool);
+    if(!mercenary) {
+        status = panic("out of memory");
+    } else {
+        if(mercenary_create(mercenary, record, sector_list)) {
+            status = panic("failed to create mercenary object");
+        } else {
+            if(list_push(&mercenary_tbl->list, mercenary)) {
+                status = panic("failed to push list object");
+            } else {
+                if(map_insert(&mercenary_tbl->map_id, &mercenary->id, mercenary))
+                    status = panic("failed to insert map object");
+                if(status)
+                    list_pop(&mercenary_tbl->list);
+            }
+            if(status)
+                mercenary_destroy(mercenary);
+        }
+        if(status)
+            pool_put(mercenary_tbl->pool, mercenary);
+    }
+
+    return status;
+}
+
 int db_item_tbl_create_cb(struct list * record, void * data) {
     int status = 0;
     struct db * db = data;
@@ -968,6 +1098,29 @@ int db_produce_tbl_create(struct db * db, struct csv * csv) {
     return status;
 }
 
+int db_mercenary_tbl_create_cb(struct list * record, void * data) {
+    int status = 0;
+    struct db * db = data;
+
+    if(mercenary_tbl_add(&db->mercenary_tbl, record, db->sector_list))
+        status = panic("failed to add mercenary table object");
+
+    return status;
+}
+
+int db_mercenary_tbl_create(struct db * db, struct csv * csv) {
+    int status = 0;
+
+    if(mercenary_tbl_create(&db->mercenary_tbl, db->pool_map)) {
+        status = panic("failed to create mercenary table object");
+    } else {
+        if(csv_parse(csv, "mercenary_db.txt", db_mercenary_tbl_create_cb, db))
+            status = panic("failed to parse csv object");
+        if(status)
+            mercenary_tbl_destroy(&db->mercenary_tbl);
+    }
+}
+
 int db_create(struct db * db, struct pool_map * pool_map, struct sector_list * sector_list, struct csv * csv) {
     int status = 0;
 
@@ -987,6 +1140,8 @@ int db_create(struct db * db, struct pool_map * pool_map, struct sector_list * s
         status = panic("failed to create mob race 2 table object");
     } else if(db_produce_tbl_create(db, csv)) {
         status = panic("failed to create produce table object");
+    } else if(db_mercenary_tbl_create(db, csv)) {
+        status = panic("failed to create mercenary table object");
     }
 
     if(status)
@@ -996,6 +1151,7 @@ int db_create(struct db * db, struct pool_map * pool_map, struct sector_list * s
 }
 
 void db_destroy(struct db * db) {
+    mercenary_tbl_destroy(&db->mercenary_tbl);
     produce_tbl_destroy(&db->produce_tbl);
     mob_race2_tbl_destroy(&db->mob_race2_tbl);
     mob_tbl_destroy(&db->mob_tbl);

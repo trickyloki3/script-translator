@@ -149,6 +149,41 @@ struct produce_tbl {
     struct map map_id;
 };
 
+struct mercenary {
+    long id;
+    char * sprite;
+    char * name;
+    long level;
+    long hp;
+    long sp;
+    long range1;
+    long atk1;
+    long atk2;
+    long def;
+    long mdef;
+    long str;
+    long agi;
+    long vit;
+    long ini;
+    long dex;
+    long luk;
+    long range2;
+    long range3;
+    long scale;
+    long race;
+    long element;
+    long speed;
+    long adelay;
+    long amotion;
+    long dmotion;
+};
+
+struct mercenary_tbl {
+    struct pool * pool;
+    struct list list;
+    struct map map_id;
+};
+
 struct db {
     struct pool_map * pool_map;
     struct sector_list * sector_list;
@@ -158,6 +193,7 @@ struct db {
     struct mob_tbl mob_tbl;
     struct mob_race2_tbl mob_race2_tbl;
     struct produce_tbl produce_tbl;
+    struct mercenary_tbl mercenary_tbl;
 };
 
 int db_create(struct db *, struct pool_map *, struct sector_list *, struct csv *);
