@@ -134,6 +134,21 @@ struct mob_race2_tbl {
     struct list list;
 };
 
+struct produce {
+    long id;
+    long item_id;
+    long item_lv;
+    long skill_id;
+    long skill_lv;
+    struct array material;
+};
+
+struct produce_tbl {
+    struct pool * pool;
+    struct list list;
+    struct map map_id;
+};
+
 struct db {
     struct pool_map * pool_map;
     struct sector_list * sector_list;
@@ -142,6 +157,7 @@ struct db {
     struct skill_tbl skill_tbl;
     struct mob_tbl mob_tbl;
     struct mob_race2_tbl mob_race2_tbl;
+    struct produce_tbl produce_tbl;
 };
 
 int db_create(struct db *, struct pool_map *, struct sector_list *, struct csv *);
