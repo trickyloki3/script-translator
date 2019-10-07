@@ -35,6 +35,13 @@ int mob_tbl_create(struct mob_tbl *, struct pool_map *);
 void mob_tbl_destroy(struct mob_tbl *);
 int mob_tbl_add(struct mob_tbl *, struct list *, struct sector_list *);
 
+int mob_race2_create(struct mob_race2 *, struct list *, struct sector_list *);
+void mob_race2_destroy(struct mob_race2 *);
+
+int mob_race2_tbl_create(struct mob_race2_tbl *, struct pool_map *);
+void mob_race2_tbl_destroy(struct mob_race2_tbl *);
+int mob_race2_tbl_add(struct mob_race2_tbl *, struct list *, struct sector_list *);
+
 int db_item_tbl_create_cb(struct list *, void *);
 int db_item_tbl_create(struct db *, struct csv *);
 int db_item_combo_tbl_create_cb(struct list *, void *);
@@ -43,6 +50,8 @@ int db_skill_tbl_create_cb(struct list *, void *);
 int db_skill_tbl_create(struct db *, struct csv *);
 int db_mob_tbl_create_cb(struct list *, void *);
 int db_mob_tbl_create(struct db *, struct csv *);
+int db_mob_race2_tbl_create_cb(struct list *, void *);
+int db_mob_race2_tbl_create(struct db *, struct csv *);
 
 int long_compare(void * x, void * y) {
     long l = *((long *) x);
@@ -599,6 +608,94 @@ int mob_tbl_add(struct mob_tbl * mob_tbl, struct list * record, struct sector_li
     return status;
 }
 
+int mob_race2_create(struct mob_race2 * mob_race2, struct list * record, struct sector_list * sector_list) {
+    int status = 0;
+    size_t field;
+    struct string * string;
+
+    memset(mob_race2, 0, sizeof(*mob_race2));
+
+    if(record->size < 2) {
+        status = panic("row is missing columns");
+    } else if(array_create(&mob_race2->id, sizeof(long), record->size - 1)) {
+        status = panic("failed to create array object");
+    } else {
+        field = 0;
+        string = list_start(record);
+        while(string && !status) {
+            if(field < record->size - 1) {
+                status = string_strtol(string, 10, array_index(&mob_race2->id, field));
+            } else if(field == record->size - 1) {
+                status = char_create(sector_list, string, &mob_race2->race);
+            } else {
+                status = panic("row has too many columns");
+            }
+            field++;
+            string = list_next(record);
+        }
+    }
+
+    if(status)
+        mob_race2_destroy(mob_race2);
+
+    return status;
+}
+
+void mob_race2_destroy(struct mob_race2 * mob_race2) {
+    array_destroy(&mob_race2->id);
+    char_destroy(mob_race2->race);
+}
+
+int mob_race2_tbl_create(struct mob_race2_tbl * mob_race2_tbl, struct pool_map * pool_map) {
+    int status = 0;
+
+    mob_race2_tbl->pool = pool_map_get(pool_map, sizeof(struct mob_race2));
+    if(!mob_race2_tbl->pool) {
+        status = panic("failed to get pool map object");
+    } else {
+        if(list_create(&mob_race2_tbl->list, pool_map_get(pool_map, sizeof(struct list_node))))
+            status = panic("failed to create list object");
+    }
+
+    return status;
+}
+
+void mob_race2_tbl_destroy(struct mob_race2_tbl * mob_race2_tbl) {
+    struct mob_race2 * mob_race2;
+
+    mob_race2 = list_pop(&mob_race2_tbl->list);
+    while(mob_race2) {
+        mob_race2_destroy(mob_race2);
+        pool_put(mob_race2_tbl->pool, mob_race2);
+        mob_race2 = list_pop(&mob_race2_tbl->list);
+    }
+
+    list_destroy(&mob_race2_tbl->list);
+}
+
+int mob_race2_tbl_add(struct mob_race2_tbl * mob_race2_tbl, struct list * record, struct sector_list * sector_list) {
+    int status = 0;
+    struct mob_race2 * mob_race2;
+
+    mob_race2 = pool_get(mob_race2_tbl->pool);
+    if(!mob_race2) {
+        status = panic("out of memory");
+    } else {
+        if(mob_race2_create(mob_race2, record, sector_list)) {
+            status = panic("failed to create mob race 2 object");
+        } else {
+            if(list_push(&mob_race2_tbl->list, mob_race2))
+                status = panic("failed to push list object");
+            if(status)
+                mob_race2_destroy(mob_race2);
+        }
+        if(status)
+            pool_put(mob_race2_tbl->pool, mob_race2);
+    }
+
+    return status;
+}
+
 int db_item_tbl_create_cb(struct list * record, void * data) {
     int status = 0;
     struct db * db = data;
@@ -700,9 +797,34 @@ int db_mob_tbl_create(struct db * db, struct csv * csv) {
         status = panic("failed to create mob table object");
     } else {
         if(csv_parse(csv, "mob_db.txt", db_mob_tbl_create_cb, db))
-            status = panic("failed to parse mob object");
+            status = panic("failed to parse csv object");
         if(status)
             mob_tbl_destroy(&db->mob_tbl);
+    }
+
+    return status;
+}
+
+int db_mob_race2_tbl_create_cb(struct list * record, void * data) {
+    int status = 0;
+    struct db * db = data;
+
+    if(mob_race2_tbl_add(&db->mob_race2_tbl, record, db->sector_list))
+        status = panic("failed to add mob race 2 table object");
+
+    return status;
+}
+
+int db_mob_race2_tbl_create(struct db * db, struct csv * csv) {
+    int status = 0;
+
+    if(mob_race2_tbl_create(&db->mob_race2_tbl, db->pool_map)) {
+        status = panic("failed to create mob race 2 table object");
+    } else {
+        if(csv_parse(csv, "mob_race2_db.txt", db_mob_race2_tbl_create_cb, db))
+            status = panic("failed to parse csv object");
+        if(status)
+            mob_race2_tbl_destroy(&db->mob_race2_tbl);
     }
 
     return status;
@@ -721,12 +843,15 @@ int db_create(struct db * db, struct pool_map * pool_map, struct sector_list * s
         status = panic("failed to create skill table object");
     } else if(db_mob_tbl_create(db, csv)) {
         status = panic("failed to create mob table object");
+    } else if(db_mob_race2_tbl_create(db, csv)) {
+        status = panic("failed to create mob race 2 table object");
     }
 
     return status;
 }
 
 void db_destroy(struct db * db) {
+    mob_race2_tbl_destroy(&db->mob_race2_tbl);
     mob_tbl_destroy(&db->mob_tbl);
     skill_tbl_destroy(&db->skill_tbl);
     item_combo_tbl_destroy(&db->item_combo_tbl);

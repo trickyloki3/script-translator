@@ -124,6 +124,16 @@ struct mob_tbl {
     struct map map_id;
 };
 
+struct mob_race2 {
+    char * race;
+    struct array id;
+};
+
+struct mob_race2_tbl {
+    struct pool * pool;
+    struct list list;
+};
+
 struct db {
     struct pool_map * pool_map;
     struct sector_list * sector_list;
@@ -131,6 +141,7 @@ struct db {
     struct item_combo_tbl item_combo_tbl;
     struct skill_tbl skill_tbl;
     struct mob_tbl mob_tbl;
+    struct mob_race2_tbl mob_race2_tbl;
 };
 
 int db_create(struct db *, struct pool_map *, struct sector_list *, struct csv *);
