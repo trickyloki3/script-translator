@@ -78,12 +78,59 @@ struct skill_tbl {
     struct map map_macro;
 };
 
+struct mob {
+    long id;
+    char * sprite;
+    char * kro;
+    char * iro;
+    long level;
+    long hp;
+    long sp;
+    long exp;
+    long jexp;
+    long range1;
+    long atk1;
+    long atk2;
+    long def;
+    long mdef;
+    long str;
+    long agi;
+    long vit;
+    long inte;
+    long dex;
+    long luk;
+    long range2;
+    long range3;
+    long scale;
+    long race;
+    long element;
+    long mode;
+    long speed;
+    long adelay;
+    long amotion;
+    long dmotion;
+    double mexp;
+    long mvp_drop_id[3];
+    long mvp_drop_chance[3];
+    long drop_id[9];
+    long drop_chance[9];
+    long drop_card_id;
+    long drop_card_chance;
+};
+
+struct mob_tbl {
+    struct pool * pool;
+    struct list list;
+    struct map map_id;
+};
+
 struct db {
     struct pool_map * pool_map;
     struct sector_list * sector_list;
     struct item_tbl item_tbl;
     struct item_combo_tbl item_combo_tbl;
     struct skill_tbl skill_tbl;
+    struct mob_tbl mob_tbl;
 };
 
 int db_create(struct db *, struct pool_map *, struct sector_list *, struct csv *);

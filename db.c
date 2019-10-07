@@ -28,12 +28,21 @@ int skill_tbl_create(struct skill_tbl *, struct pool_map *);
 void skill_tbl_destroy(struct skill_tbl *);
 int skill_tbl_add(struct skill_tbl *, struct list *, struct sector_list *);
 
+int mob_create(struct mob *, struct list *, struct sector_list *);
+void mob_destroy(struct mob *);
+
+int mob_tbl_create(struct mob_tbl *, struct pool_map *);
+void mob_tbl_destroy(struct mob_tbl *);
+int mob_tbl_add(struct mob_tbl *, struct list *, struct sector_list *);
+
 int db_item_tbl_create_cb(struct list *, void *);
 int db_item_tbl_create(struct db *, struct csv *);
 int db_item_combo_tbl_create_cb(struct list *, void *);
 int db_item_combo_tbl_create(struct db *, struct csv *);
 int db_skill_tbl_create_cb(struct list *, void *);
 int db_skill_tbl_create(struct db *, struct csv *);
+int db_mob_tbl_create_cb(struct list *, void *);
+int db_mob_tbl_create(struct db *, struct csv *);
 
 int long_compare(void * x, void * y) {
     long l = *((long *) x);
@@ -409,7 +418,7 @@ int skill_tbl_add(struct skill_tbl * skill_tbl, struct list * record, struct sec
         status = panic("out of memory");
     } else {
         if(skill_create(skill, record, sector_list)) {
-            status = panic("failed to skill object");
+            status = panic("failed to create skill object");
         } else {
             if(list_push(&skill_tbl->list, skill)) {
                 status = panic("failed to push list object");
@@ -430,6 +439,158 @@ int skill_tbl_add(struct skill_tbl * skill_tbl, struct list * record, struct sec
         }
         if(status)
             pool_put(skill_tbl->pool, skill);
+    }
+
+    return status;
+}
+
+int mob_create(struct mob * mob, struct list * record, struct sector_list * sector_list) {
+    int status = 0;
+    size_t field;
+    struct string * string;
+
+    memset(mob, 0, sizeof(*mob));
+
+    field = 0;
+    string = list_start(record);
+    while(string && !status) {
+        switch(field) {
+            case 0: status = string_strtol(string, 10, &mob->drop_card_chance); break;
+            case 1: status = string_strtol(string, 10, &mob->drop_card_id); break;
+            case 2: status = string_strtol(string, 10, &mob->drop_chance[8]); break;
+            case 3: status = string_strtol(string, 10, &mob->drop_id[8]); break;
+            case 4: status = string_strtol(string, 10, &mob->drop_chance[7]); break;
+            case 5: status = string_strtol(string, 10, &mob->drop_id[7]); break;
+            case 6: status = string_strtol(string, 10, &mob->drop_chance[6]); break;
+            case 7: status = string_strtol(string, 10, &mob->drop_id[6]); break;
+            case 8: status = string_strtol(string, 10, &mob->drop_chance[5]); break;
+            case 9: status = string_strtol(string, 10, &mob->drop_id[5]); break;
+            case 10: status = string_strtol(string, 10, &mob->drop_chance[4]); break;
+            case 11: status = string_strtol(string, 10, &mob->drop_id[4]); break;
+            case 12: status = string_strtol(string, 10, &mob->drop_chance[3]); break;
+            case 13: status = string_strtol(string, 10, &mob->drop_id[3]); break;
+            case 14: status = string_strtol(string, 10, &mob->drop_chance[2]); break;
+            case 15: status = string_strtol(string, 10, &mob->drop_id[2]); break;
+            case 16: status = string_strtol(string, 10, &mob->drop_chance[1]); break;
+            case 17: status = string_strtol(string, 10, &mob->drop_id[1]); break;
+            case 18: status = string_strtol(string, 10, &mob->drop_chance[0]); break;
+            case 19: status = string_strtol(string, 10, &mob->drop_id[0]); break;
+            case 20: status = string_strtol(string, 10, &mob->mvp_drop_chance[2]); break;
+            case 21: status = string_strtol(string, 10, &mob->mvp_drop_id[2]); break;
+            case 22: status = string_strtol(string, 10, &mob->mvp_drop_chance[1]); break;
+            case 23: status = string_strtol(string, 10, &mob->mvp_drop_id[1]); break;
+            case 24: status = string_strtol(string, 10, &mob->mvp_drop_chance[0]); break;
+            case 25: status = string_strtol(string, 10, &mob->mvp_drop_id[0]); break;
+            case 26: status = string_strtod(string, &mob->mexp); break;
+            case 27: status = string_strtol(string, 10, &mob->dmotion); break;
+            case 28: status = string_strtol(string, 10, &mob->amotion); break;
+            case 29: status = string_strtol(string, 10, &mob->adelay); break;
+            case 30: status = string_strtol(string, 10, &mob->speed); break;
+            case 31: status = string_strtol(string, 16, &mob->mode); break;
+            case 32: status = string_strtol(string, 10, &mob->element); break;
+            case 33: status = string_strtol(string, 10, &mob->race); break;
+            case 34: status = string_strtol(string, 10, &mob->scale); break;
+            case 35: status = string_strtol(string, 10, &mob->range3); break;
+            case 36: status = string_strtol(string, 10, &mob->range2); break;
+            case 37: status = string_strtol(string, 10, &mob->luk); break;
+            case 38: status = string_strtol(string, 10, &mob->dex); break;
+            case 39: status = string_strtol(string, 10, &mob->inte); break;
+            case 40: status = string_strtol(string, 10, &mob->vit); break;
+            case 41: status = string_strtol(string, 10, &mob->agi); break;
+            case 42: status = string_strtol(string, 10, &mob->str); break;
+            case 43: status = string_strtol(string, 10, &mob->mdef); break;
+            case 44: status = string_strtol(string, 10, &mob->def); break;
+            case 45: status = string_strtol(string, 10, &mob->atk2); break;
+            case 46: status = string_strtol(string, 10, &mob->atk1); break;
+            case 47: status = string_strtol(string, 10, &mob->range1); break;
+            case 48: status = string_strtol(string, 10, &mob->jexp); break;
+            case 49: status = string_strtol(string, 10, &mob->exp); break;
+            case 50: status = string_strtol(string, 10, &mob->sp); break;
+            case 51: status = string_strtol(string, 10, &mob->hp); break;
+            case 52: status = string_strtol(string, 10, &mob->level); break;
+            case 53: status = char_create(sector_list, string, &mob->iro); break;
+            case 54: status = char_create(sector_list, string, &mob->kro); break;
+            case 55: status = char_create(sector_list, string, &mob->sprite); break;
+            case 56: status = string_strtol(string, 10, &mob->id); break;
+            default: status = panic("row has too many columns"); break;
+        }
+        field++;
+        string = list_next(record);
+    }
+
+    if(!status && field != 57)
+        status = panic("row is missing columns");
+
+    if(status)
+        mob_destroy(mob);
+
+    return status;
+}
+
+void mob_destroy(struct mob * mob) {
+    char_destroy(mob->iro);
+    char_destroy(mob->kro);
+    char_destroy(mob->sprite);
+}
+
+int mob_tbl_create(struct mob_tbl * mob_tbl, struct pool_map * pool_map) {
+    int status = 0;
+
+    mob_tbl->pool = pool_map_get(pool_map, sizeof(struct mob));
+    if(!mob_tbl->pool) {
+        status = panic("failed to get pool map object");
+    } else {
+        if(list_create(&mob_tbl->list, pool_map_get(pool_map, sizeof(struct list_node)))) {
+            status = panic("failed to create list object");
+        } else {
+            if(map_create(&mob_tbl->map_id, long_compare, pool_map_get(pool_map, sizeof(struct map_node))))
+                status = panic("failed to create map object");
+            if(status)
+                list_destroy(&mob_tbl->list);
+        }
+    }
+
+    return status;
+}
+
+void mob_tbl_destroy(struct mob_tbl * mob_tbl) {
+    struct mob * mob;
+
+    mob = list_pop(&mob_tbl->list);
+    while(mob) {
+        mob_destroy(mob);
+        pool_put(mob_tbl->pool, mob);
+        mob = list_pop(&mob_tbl->list);
+    }
+
+    map_destroy(&mob_tbl->map_id);
+    list_destroy(&mob_tbl->list);
+}
+
+int mob_tbl_add(struct mob_tbl * mob_tbl, struct list * record, struct sector_list * sector_list) {
+    int status = 0;
+    struct mob * mob;
+
+    mob = pool_get(mob_tbl->pool);
+    if(!mob) {
+        status = panic("out of memory");
+    } else {
+        if(mob_create(mob, record, sector_list)) {
+            status = panic("failed to create mob object");
+        } else {
+            if(list_push(&mob_tbl->list, mob)) {
+                status = panic("failed to push list object");
+            } else {
+                if(map_insert(&mob_tbl->map_id, &mob->id, mob))
+                    status = panic("failed to insert map object");
+                if(status)
+                    list_pop(&mob_tbl->list);
+            }
+            if(status)
+                mob_destroy(mob);
+        }
+        if(status)
+            pool_put(mob_tbl->pool, mob);
     }
 
     return status;
@@ -519,6 +680,31 @@ int db_skill_tbl_create(struct db * db, struct csv * csv) {
     return status;
 }
 
+int db_mob_tbl_create_cb(struct list * record, void * data) {
+    int status = 0;
+    struct db * db = data;
+
+    if(mob_tbl_add(&db->mob_tbl, record, db->sector_list))
+        status = panic("failed to add mob table object");
+
+    return status;
+}
+
+int db_mob_tbl_create(struct db * db, struct csv * csv) {
+    int status = 0;
+
+    if(mob_tbl_create(&db->mob_tbl, db->pool_map)) {
+        status = panic("failed to create mob table object");
+    } else {
+        if(csv_parse(csv, "mob_db.txt", db_mob_tbl_create_cb, db))
+            status = panic("failed to parse mob object");
+        if(status)
+            mob_tbl_destroy(&db->mob_tbl);
+    }
+
+    return status;
+}
+
 int db_create(struct db * db, struct pool_map * pool_map, struct sector_list * sector_list, struct csv * csv) {
     int status = 0;
 
@@ -530,12 +716,15 @@ int db_create(struct db * db, struct pool_map * pool_map, struct sector_list * s
         status = panic("failed to create item combo table object");
     } else if(db_skill_tbl_create(db, csv)) {
         status = panic("failed to create skill table object");
+    } else if(db_mob_tbl_create(db, csv)) {
+        status = panic("failed to create mob table object");
     }
 
     return status;
 }
 
 void db_destroy(struct db * db) {
+    mob_tbl_destroy(&db->mob_tbl);
     skill_tbl_destroy(&db->skill_tbl);
     item_combo_tbl_destroy(&db->item_combo_tbl);
     item_tbl_destroy(&db->item_tbl);
