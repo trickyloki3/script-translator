@@ -79,42 +79,42 @@ int item_create(struct item * item, struct list * record, struct pool * list_nod
 
     memset(item, 0, sizeof(*item));
 
-    field = 0;
-    string = list_start(record);
-    while(string && !status) {
-        switch(field) {
-            case 0: status = char_create(sector_list, string, &item->onunequip); break;
-            case 1: status = char_create(sector_list, string, &item->onequip); break;
-            case 2: status = char_create(sector_list, string, &item->bonus); break;
-            case 3: status = string_strtol(string, 10, &item->view); break;
-            case 4: status = string_strtol(string, 10, &item->refineable); break;
-            case 5: status = string_strtol_splitv(string, 10, ':', &item->base_level, &item->max_level, NULL); break;
-            case 6: status = string_strtol(string, 10, &item->weapon_level); break;
-            case 7: status = string_strtoul(string, 10, &item->location); break;
-            case 8: status = string_strtol(string, 10, &item->gender); break;
-            case 9: status = string_strtoul(string, 10, &item->upper); break;
-            case 10: status = string_strtoul(string, 16, &item->job); break;
-            case 11: status = string_strtol(string, 10, &item->slots); break;
-            case 12: status = string_strtol(string, 10, &item->range); break;
-            case 13: status = string_strtol(string, 10, &item->def); break;
-            case 14: status = string_strtol_splitv(string, 10, ':', &item->atk, &item->matk, NULL); break;
-            case 15: status = string_strtol(string, 10, &item->weight); break;
-            case 16: status = string_strtol(string, 10, &item->sell); break;
-            case 17: status = string_strtol(string, 10, &item->buy); break;
-            case 18: status = string_strtol(string, 10, &item->type); break;
-            case 19: status = char_create(sector_list, string, &item->name); break;
-            case 20: status = char_create(sector_list, string, &item->aegis); break;
-            case 21: status = string_strtol(string, 10, &item->id); break;
-            default: status = panic("row has too many columns"); break;
-        }
-        field++;
-        string = list_next(record);
-    }
-
-    if(!status && field != 22) {
+    if(record->size < 22) {
         status = panic("row is missing columns");
     } else if(list_create(&item->combo, list_node_pool)) {
         status = panic("failed to create list object");
+    } else {
+        field = 0;
+        string = list_start(record);
+        while(string && !status) {
+            switch(field) {
+                case 0: status = char_create(sector_list, string, &item->onunequip); break;
+                case 1: status = char_create(sector_list, string, &item->onequip); break;
+                case 2: status = char_create(sector_list, string, &item->bonus); break;
+                case 3: status = string_strtol(string, 10, &item->view); break;
+                case 4: status = string_strtol(string, 10, &item->refineable); break;
+                case 5: status = string_strtol_splitv(string, 10, ':', &item->base_level, &item->max_level, NULL); break;
+                case 6: status = string_strtol(string, 10, &item->weapon_level); break;
+                case 7: status = string_strtoul(string, 10, &item->location); break;
+                case 8: status = string_strtol(string, 10, &item->gender); break;
+                case 9: status = string_strtoul(string, 10, &item->upper); break;
+                case 10: status = string_strtoul(string, 16, &item->job); break;
+                case 11: status = string_strtol(string, 10, &item->slots); break;
+                case 12: status = string_strtol(string, 10, &item->range); break;
+                case 13: status = string_strtol(string, 10, &item->def); break;
+                case 14: status = string_strtol_splitv(string, 10, ':', &item->atk, &item->matk, NULL); break;
+                case 15: status = string_strtol(string, 10, &item->weight); break;
+                case 16: status = string_strtol(string, 10, &item->sell); break;
+                case 17: status = string_strtol(string, 10, &item->buy); break;
+                case 18: status = string_strtol(string, 10, &item->type); break;
+                case 19: status = char_create(sector_list, string, &item->name); break;
+                case 20: status = char_create(sector_list, string, &item->aegis); break;
+                case 21: status = string_strtol(string, 10, &item->id); break;
+                default: status = panic("row has too many columns"); break;
+            }
+            field++;
+            string = list_next(record);
+        }
     }
 
     if(status)
@@ -235,20 +235,21 @@ int item_combo_create(struct item_combo * item_combo, struct list * record, stru
 
     memset(item_combo, 0, sizeof(*item_combo));
 
-    field = 0;
-    string = list_start(record);
-    while(string && !status) {
-        switch(field) {
-            case 0: status = char_create(sector_list, string, &item_combo->bonus); break;
-            case 1: status = string_strtol_split(string, 10, ':', &item_combo->id); break;
-            default: status = panic("row has too many columns"); break;
-        }
-        field++;
-        string = list_next(record);
-    }
-
-    if(!status && field != 2)
+    if(record->size < 2) {
         status = panic("row is missing columns");
+    } else {
+        field = 0;
+        string = list_start(record);
+        while(string && !status) {
+            switch(field) {
+                case 0: status = char_create(sector_list, string, &item_combo->bonus); break;
+                case 1: status = string_strtol_split(string, 10, ':', &item_combo->id); break;
+                default: status = panic("row has too many columns"); break;
+            }
+            field++;
+            string = list_next(record);
+        }
+    }
 
     if(status)
         item_combo_destroy(item_combo);
@@ -318,36 +319,37 @@ int skill_create(struct skill * skill, struct list * record, struct sector_list 
 
     memset(skill, 0, sizeof(*skill));
 
-    field = 0;
-    string = list_start(record);
-    while(string && !status) {
-        switch(field) {
-            case 0: status = char_create(sector_list, string, &skill->name); break;
-            case 1: status = char_create(sector_list, string, &skill->macro); break;
-            case 2: status = string_strtol(string, 16, &skill->inf3); break;
-            case 3: status = string_strtol_split(string, 10, ':', &skill->blow_count); break;
-            case 4: status = char_create(sector_list, string, &skill->type); break;
-            case 5: status = string_strtol_split(string, 10, ':', &skill->max_count); break;
-            case 6: status = string_strtol(string, 16, &skill->inf2); break;
-            case 7: status = string_strtol(string, 10, &skill->cast_def_reduce_rate); break;
-            case 8: status = char_create(sector_list, string, &skill->cast_cancel); break;
-            case 9: status = string_strtol_split(string, 10, ':', &skill->hit_amount); break;
-            case 10: status = string_strtol(string, 10, &skill->maxlv); break;
-            case 11: status = string_strtol_split(string, 10, ':', &skill->splash); break;
-            case 12: status = string_strtol(string, 16, &skill->nk); break;
-            case 13: status = string_strtol_split(string, 10, ':', &skill->element); break;
-            case 14: status = string_strtol(string, 10, &skill->inf); break;
-            case 15: status = string_strtol(string, 10, &skill->hit); break;
-            case 16: status = string_strtol_split(string, 10, ':', &skill->range); break;
-            case 17: status = string_strtol(string, 10, &skill->id); break;
-            default: status = panic("row has too many columns"); break;
-        }
-        field++;
-        string = list_next(record);
-    }
-
-    if(!status && field != 18)
+    if(record->size < 18) {
         status = panic("row is missing columns");
+    } else {
+        field = 0;
+        string = list_start(record);
+        while(string && !status) {
+            switch(field) {
+                case 0: status = char_create(sector_list, string, &skill->name); break;
+                case 1: status = char_create(sector_list, string, &skill->macro); break;
+                case 2: status = string_strtol(string, 16, &skill->inf3); break;
+                case 3: status = string_strtol_split(string, 10, ':', &skill->blow_count); break;
+                case 4: status = char_create(sector_list, string, &skill->type); break;
+                case 5: status = string_strtol_split(string, 10, ':', &skill->max_count); break;
+                case 6: status = string_strtol(string, 16, &skill->inf2); break;
+                case 7: status = string_strtol(string, 10, &skill->cast_def_reduce_rate); break;
+                case 8: status = char_create(sector_list, string, &skill->cast_cancel); break;
+                case 9: status = string_strtol_split(string, 10, ':', &skill->hit_amount); break;
+                case 10: status = string_strtol(string, 10, &skill->maxlv); break;
+                case 11: status = string_strtol_split(string, 10, ':', &skill->splash); break;
+                case 12: status = string_strtol(string, 16, &skill->nk); break;
+                case 13: status = string_strtol_split(string, 10, ':', &skill->element); break;
+                case 14: status = string_strtol(string, 10, &skill->inf); break;
+                case 15: status = string_strtol(string, 10, &skill->hit); break;
+                case 16: status = string_strtol_split(string, 10, ':', &skill->range); break;
+                case 17: status = string_strtol(string, 10, &skill->id); break;
+                default: status = panic("row has too many columns"); break;
+            }
+            field++;
+            string = list_next(record);
+        }
+    }
 
     if(status)
         skill_destroy(skill);
@@ -451,75 +453,76 @@ int mob_create(struct mob * mob, struct list * record, struct sector_list * sect
 
     memset(mob, 0, sizeof(*mob));
 
-    field = 0;
-    string = list_start(record);
-    while(string && !status) {
-        switch(field) {
-            case 0: status = string_strtol(string, 10, &mob->drop_card_chance); break;
-            case 1: status = string_strtol(string, 10, &mob->drop_card_id); break;
-            case 2: status = string_strtol(string, 10, &mob->drop_chance[8]); break;
-            case 3: status = string_strtol(string, 10, &mob->drop_id[8]); break;
-            case 4: status = string_strtol(string, 10, &mob->drop_chance[7]); break;
-            case 5: status = string_strtol(string, 10, &mob->drop_id[7]); break;
-            case 6: status = string_strtol(string, 10, &mob->drop_chance[6]); break;
-            case 7: status = string_strtol(string, 10, &mob->drop_id[6]); break;
-            case 8: status = string_strtol(string, 10, &mob->drop_chance[5]); break;
-            case 9: status = string_strtol(string, 10, &mob->drop_id[5]); break;
-            case 10: status = string_strtol(string, 10, &mob->drop_chance[4]); break;
-            case 11: status = string_strtol(string, 10, &mob->drop_id[4]); break;
-            case 12: status = string_strtol(string, 10, &mob->drop_chance[3]); break;
-            case 13: status = string_strtol(string, 10, &mob->drop_id[3]); break;
-            case 14: status = string_strtol(string, 10, &mob->drop_chance[2]); break;
-            case 15: status = string_strtol(string, 10, &mob->drop_id[2]); break;
-            case 16: status = string_strtol(string, 10, &mob->drop_chance[1]); break;
-            case 17: status = string_strtol(string, 10, &mob->drop_id[1]); break;
-            case 18: status = string_strtol(string, 10, &mob->drop_chance[0]); break;
-            case 19: status = string_strtol(string, 10, &mob->drop_id[0]); break;
-            case 20: status = string_strtol(string, 10, &mob->mvp_drop_chance[2]); break;
-            case 21: status = string_strtol(string, 10, &mob->mvp_drop_id[2]); break;
-            case 22: status = string_strtol(string, 10, &mob->mvp_drop_chance[1]); break;
-            case 23: status = string_strtol(string, 10, &mob->mvp_drop_id[1]); break;
-            case 24: status = string_strtol(string, 10, &mob->mvp_drop_chance[0]); break;
-            case 25: status = string_strtol(string, 10, &mob->mvp_drop_id[0]); break;
-            case 26: status = string_strtod(string, &mob->mexp); break;
-            case 27: status = string_strtol(string, 10, &mob->dmotion); break;
-            case 28: status = string_strtol(string, 10, &mob->amotion); break;
-            case 29: status = string_strtol(string, 10, &mob->adelay); break;
-            case 30: status = string_strtol(string, 10, &mob->speed); break;
-            case 31: status = string_strtol(string, 16, &mob->mode); break;
-            case 32: status = string_strtol(string, 10, &mob->element); break;
-            case 33: status = string_strtol(string, 10, &mob->race); break;
-            case 34: status = string_strtol(string, 10, &mob->scale); break;
-            case 35: status = string_strtol(string, 10, &mob->range3); break;
-            case 36: status = string_strtol(string, 10, &mob->range2); break;
-            case 37: status = string_strtol(string, 10, &mob->luk); break;
-            case 38: status = string_strtol(string, 10, &mob->dex); break;
-            case 39: status = string_strtol(string, 10, &mob->inte); break;
-            case 40: status = string_strtol(string, 10, &mob->vit); break;
-            case 41: status = string_strtol(string, 10, &mob->agi); break;
-            case 42: status = string_strtol(string, 10, &mob->str); break;
-            case 43: status = string_strtol(string, 10, &mob->mdef); break;
-            case 44: status = string_strtol(string, 10, &mob->def); break;
-            case 45: status = string_strtol(string, 10, &mob->atk2); break;
-            case 46: status = string_strtol(string, 10, &mob->atk1); break;
-            case 47: status = string_strtol(string, 10, &mob->range1); break;
-            case 48: status = string_strtol(string, 10, &mob->jexp); break;
-            case 49: status = string_strtol(string, 10, &mob->exp); break;
-            case 50: status = string_strtol(string, 10, &mob->sp); break;
-            case 51: status = string_strtol(string, 10, &mob->hp); break;
-            case 52: status = string_strtol(string, 10, &mob->level); break;
-            case 53: status = char_create(sector_list, string, &mob->iro); break;
-            case 54: status = char_create(sector_list, string, &mob->kro); break;
-            case 55: status = char_create(sector_list, string, &mob->sprite); break;
-            case 56: status = string_strtol(string, 10, &mob->id); break;
-            default: status = panic("row has too many columns"); break;
-        }
-        field++;
-        string = list_next(record);
-    }
-
-    if(!status && field != 57)
+    if(record->size < 57) {
         status = panic("row is missing columns");
+    } else {
+        field = 0;
+        string = list_start(record);
+        while(string && !status) {
+            switch(field) {
+                case 0: status = string_strtol(string, 10, &mob->drop_card_chance); break;
+                case 1: status = string_strtol(string, 10, &mob->drop_card_id); break;
+                case 2: status = string_strtol(string, 10, &mob->drop_chance[8]); break;
+                case 3: status = string_strtol(string, 10, &mob->drop_id[8]); break;
+                case 4: status = string_strtol(string, 10, &mob->drop_chance[7]); break;
+                case 5: status = string_strtol(string, 10, &mob->drop_id[7]); break;
+                case 6: status = string_strtol(string, 10, &mob->drop_chance[6]); break;
+                case 7: status = string_strtol(string, 10, &mob->drop_id[6]); break;
+                case 8: status = string_strtol(string, 10, &mob->drop_chance[5]); break;
+                case 9: status = string_strtol(string, 10, &mob->drop_id[5]); break;
+                case 10: status = string_strtol(string, 10, &mob->drop_chance[4]); break;
+                case 11: status = string_strtol(string, 10, &mob->drop_id[4]); break;
+                case 12: status = string_strtol(string, 10, &mob->drop_chance[3]); break;
+                case 13: status = string_strtol(string, 10, &mob->drop_id[3]); break;
+                case 14: status = string_strtol(string, 10, &mob->drop_chance[2]); break;
+                case 15: status = string_strtol(string, 10, &mob->drop_id[2]); break;
+                case 16: status = string_strtol(string, 10, &mob->drop_chance[1]); break;
+                case 17: status = string_strtol(string, 10, &mob->drop_id[1]); break;
+                case 18: status = string_strtol(string, 10, &mob->drop_chance[0]); break;
+                case 19: status = string_strtol(string, 10, &mob->drop_id[0]); break;
+                case 20: status = string_strtol(string, 10, &mob->mvp_drop_chance[2]); break;
+                case 21: status = string_strtol(string, 10, &mob->mvp_drop_id[2]); break;
+                case 22: status = string_strtol(string, 10, &mob->mvp_drop_chance[1]); break;
+                case 23: status = string_strtol(string, 10, &mob->mvp_drop_id[1]); break;
+                case 24: status = string_strtol(string, 10, &mob->mvp_drop_chance[0]); break;
+                case 25: status = string_strtol(string, 10, &mob->mvp_drop_id[0]); break;
+                case 26: status = string_strtod(string, &mob->mexp); break;
+                case 27: status = string_strtol(string, 10, &mob->dmotion); break;
+                case 28: status = string_strtol(string, 10, &mob->amotion); break;
+                case 29: status = string_strtol(string, 10, &mob->adelay); break;
+                case 30: status = string_strtol(string, 10, &mob->speed); break;
+                case 31: status = string_strtol(string, 16, &mob->mode); break;
+                case 32: status = string_strtol(string, 10, &mob->element); break;
+                case 33: status = string_strtol(string, 10, &mob->race); break;
+                case 34: status = string_strtol(string, 10, &mob->scale); break;
+                case 35: status = string_strtol(string, 10, &mob->range3); break;
+                case 36: status = string_strtol(string, 10, &mob->range2); break;
+                case 37: status = string_strtol(string, 10, &mob->luk); break;
+                case 38: status = string_strtol(string, 10, &mob->dex); break;
+                case 39: status = string_strtol(string, 10, &mob->inte); break;
+                case 40: status = string_strtol(string, 10, &mob->vit); break;
+                case 41: status = string_strtol(string, 10, &mob->agi); break;
+                case 42: status = string_strtol(string, 10, &mob->str); break;
+                case 43: status = string_strtol(string, 10, &mob->mdef); break;
+                case 44: status = string_strtol(string, 10, &mob->def); break;
+                case 45: status = string_strtol(string, 10, &mob->atk2); break;
+                case 46: status = string_strtol(string, 10, &mob->atk1); break;
+                case 47: status = string_strtol(string, 10, &mob->range1); break;
+                case 48: status = string_strtol(string, 10, &mob->jexp); break;
+                case 49: status = string_strtol(string, 10, &mob->exp); break;
+                case 50: status = string_strtol(string, 10, &mob->sp); break;
+                case 51: status = string_strtol(string, 10, &mob->hp); break;
+                case 52: status = string_strtol(string, 10, &mob->level); break;
+                case 53: status = char_create(sector_list, string, &mob->iro); break;
+                case 54: status = char_create(sector_list, string, &mob->kro); break;
+                case 55: status = char_create(sector_list, string, &mob->sprite); break;
+                case 56: status = string_strtol(string, 10, &mob->id); break;
+                default: status = panic("row has too many columns"); break;
+            }
+            field++;
+            string = list_next(record);
+        }
+    }
 
     if(status)
         mob_destroy(mob);
