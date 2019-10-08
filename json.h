@@ -22,7 +22,7 @@ struct json_node {
     union {
         struct map map;
         struct list list;
-        long number;
+        double number;
         char * string;
     };
 };
