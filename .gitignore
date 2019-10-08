@@ -5,6 +5,11 @@ csv_parser.output
 csv_scanner.c
 csv_scanner.h
 lex.backup
+json_parser.c
+json_parser.h
+json_parser.output
+json_scanner.c
+json_scanner.h
 item_db.txt
 item_combo_db.txt
 skill_db.txt

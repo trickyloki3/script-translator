@@ -10,6 +10,9 @@ OBJECT+=sector_list.o
 OBJECT+=csv_parser.o
 OBJECT+=csv_scanner.o
 OBJECT+=csv.o
+OBJECT+=json_parser.o
+OBJECT+=json_scanner.o
+OBJECT+=json.o
 OBJECT+=db.o
 
 all: clean pj59
@@ -36,4 +39,9 @@ clean:
 	@rm -f csv_scanner.c
 	@rm -f csv_scanner.h
 	@rm -f lex.backup
+	@rm -f json_parser.c
+	@rm -f json_parser.h
+	@rm -f json_parser.output
+	@rm -f json_scanner.c
+	@rm -f json_scanner.h
 	@rm -f pj59
