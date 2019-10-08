@@ -201,7 +201,7 @@ int string_strtol(struct string * string, int base, long * result) {
     return status;
 }
 
-int string_strtol_split(struct string * string, int base, char split, struct array * array) {
+int string_strtol_split(struct string * string, int base, int split, struct array * array) {
     int status = 0;
     char * ptr;
     size_t count;
@@ -235,7 +235,7 @@ int string_strtol_split(struct string * string, int base, char split, struct arr
     return status;
 }
 
-int string_strtol_splitv(struct string * string, int base, char split, ...) {
+int string_strtol_splitv(struct string * string, int base, int split, ...) {
     int status = 0;
     va_list args;
     long * value;

@@ -425,7 +425,6 @@ int range_or(struct range * result, struct range * x, struct range * y) {
 int range_not(struct range * result, struct range * x) {
     int status = 0;
     struct range_node * node;
-    long xmin, xmax;
 
     if(range_create(result, x->pool)) {
         status = panic("failed to create range object");
