@@ -1119,6 +1119,8 @@ int db_mercenary_tbl_create(struct db * db, struct csv * csv) {
         if(status)
             mercenary_tbl_destroy(&db->mercenary_tbl);
     }
+
+    return status;
 }
 
 int db_create(struct db * db, struct pool_map * pool_map, struct sector_list * sector_list, struct csv * csv) {
