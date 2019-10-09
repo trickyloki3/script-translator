@@ -41,5 +41,7 @@ int json_create(struct json *, struct pool_map *, struct sector_list *);
 void json_destroy(struct json *);
 int json_parse(struct json *, const char *);
 int json_add_node(struct json *, enum json_type, char *, size_t, struct json_node **);
+int json_push_node(struct json *, struct json_node *);
+int json_pop_node(struct json *, enum json_type);
 
 #endif

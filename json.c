@@ -111,6 +111,9 @@ int json_parse_loop(struct json * json, yyscan_t scanner, jsonpstate * parser) {
         }
     } while(token && state == YYPUSH_MORE && !status);
 
+    if(list_start(&json->nest))
+        status = panic("nest is non-empty");
+
     return status;
 }
 
@@ -188,6 +191,32 @@ int json_add_node(struct json * json, enum json_type type, char * string, size_t
             pool_put(json->json_node_pool, node);
     }
 
+
+    return status;
+}
+
+int json_push_node(struct json * json, struct json_node * node) {
+    int status = 0;
+
+    if(node->type != json_object && node->type != json_array) {
+        status = panic("invalid type - %d", node->type);
+    } else if(list_push(&json->nest, node)) {
+        status = panic("failed to push list object");
+    }
+
+    return status;
+}
+
+int json_pop_node(struct json * json, enum json_type type) {
+    int status = 0;
+    struct json_node * node;
+
+    node = list_pop(&json->nest);
+    if(!node) {
+        status = panic("list is empty");
+    } else if(node->type != type) {
+        status = panic("invalid type - %d", node->type);
+    }
 
     return status;
 }

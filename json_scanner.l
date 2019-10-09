@@ -44,19 +44,35 @@ UNICODE         {ESCAPE}\x75{HEXDIG}{HEXDIG}{HEXDIG}{HEXDIG}
 %%
 
 {BEGINARRAY} {
-    return json_add_node(yyextra, json_array, NULL, 0, yylval) ? -1 : JSON_BEGINARRAY;
+    int status = 0;
+
+    if(json_add_node(yyextra, json_array, NULL, 0, yylval)) {
+        status = panic("failed to add json object");
+    } else if(json_push_node(yyextra, *yylval)) {
+        status = panic("failed to push json object");
+    }
+
+    return status ? -1 : JSON_BEGINARRAY;
 }
 
 {BEGINOBJECT} {
-    return json_add_node(yyextra, json_object, NULL, 0, yylval) ? -1 : JSON_BEGINOBJECT;
+    int status = 0;
+
+    if(json_add_node(yyextra, json_object, NULL, 0, yylval)) {
+        status = panic("failed to add json object");
+    } else if(json_push_node(yyextra, *yylval)) {
+        status = panic("failed to push json object");
+    }
+
+    return status ? -1 : JSON_BEGINOBJECT;
 }
 
 {ENDARRAY} {
-    return JSON_ENDARRAY;
+    return json_pop_node(yyextra, json_array) ? -1 : JSON_ENDARRAY;
 }
 
 {ENDOBJECT} {
-    return JSON_ENDOBJECT;
+    return json_pop_node(yyextra, json_object) ? -1 : JSON_ENDOBJECT;
 }
 
 {NAMESEPARATOR} {
