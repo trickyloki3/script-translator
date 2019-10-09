@@ -18,7 +18,23 @@ int char_create(struct sector_list * sector_list, struct string * string, char *
     if(!object) {
         status = panic("out of memory");
     } else {
-        *result = memcpy(object, string->string, string->offset + 1);
+        object[string->offset] = 0;
+        *result = memcpy(object, string->string, string->offset);
+    }
+
+    return status;
+}
+
+int char_create2(struct sector_list * sector_list, char * string, size_t length, char ** result) {
+    int status = 0;
+    char * object;
+
+    object = sector_list_malloc(sector_list, length + 1);
+    if(!object) {
+        status = panic("out of memory");
+    } else {
+        object[length] = 0;
+        *result = memcpy(object, string, length);
     }
 
     return status;
