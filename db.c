@@ -55,7 +55,9 @@ void constant_destroy(struct constant *);
 
 int constant_tbl_create(struct constant_tbl *, struct pool_map *);
 void constant_tbl_destroy(struct constant_tbl *);
+int constant_tbl_json_create(struct constant_tbl *, struct json_node *);
 int constant_tbl_add(struct constant_tbl *, struct list *, struct pool *, struct sector_list *);
+int constant_tbl_add_map(struct constant_tbl *, struct json_node *, char *, struct map *);
 
 int db_item_tbl_create_cb(struct list *, void *);
 int db_item_tbl_create(struct db *, struct csv *);
@@ -72,7 +74,7 @@ int db_produce_tbl_create(struct db *, struct csv *);
 int db_mercenary_tbl_create_cb(struct list *, void *);
 int db_mercenary_tbl_create(struct db *, struct csv *);
 int db_constant_tbl_create_cb(struct list *, void *);
-int db_constant_tbl_create(struct db *, struct csv *);
+int db_constant_tbl_create(struct db *, struct csv *, struct json *);
 
 int item_create(struct item * item, struct list * record, struct pool * list_node_pool, struct sector_list * sector_list) {
     int status = 0;
@@ -996,8 +998,48 @@ void constant_tbl_destroy(struct constant_tbl * constant_tbl) {
         constant = list_pop(&constant_tbl->list);
     }
 
+    map_destroy(&constant_tbl->map_vip_status);
+    map_destroy(&constant_tbl->map_sizes);
+    map_destroy(&constant_tbl->map_sc_start);
+    map_destroy(&constant_tbl->map_sc_end);
+    map_destroy(&constant_tbl->map_readparam);
+    map_destroy(&constant_tbl->map_races);
+    map_destroy(&constant_tbl->map_options);
+    map_destroy(&constant_tbl->map_mapflags);
+    map_destroy(&constant_tbl->map_locations);
+    map_destroy(&constant_tbl->map_jobs);
+    map_destroy(&constant_tbl->map_itemgroups);
+    map_destroy(&constant_tbl->map_gettimes);
+    map_destroy(&constant_tbl->map_elements);
+    map_destroy(&constant_tbl->map_effects);
+    map_destroy(&constant_tbl->map_classes);
+    map_destroy(&constant_tbl->map_announces);
     map_destroy(&constant_tbl->map_macro);
     list_destroy(&constant_tbl->list);
+}
+
+int constant_tbl_json_create(struct constant_tbl * constant_tbl, struct json_node * node) {
+    int status = 0;
+
+    if( constant_tbl_add_map(constant_tbl, node, "announces", &constant_tbl->map_announces) ||
+        constant_tbl_add_map(constant_tbl, node, "classes", &constant_tbl->map_classes) ||
+        constant_tbl_add_map(constant_tbl, node, "effects", &constant_tbl->map_effects) ||
+        constant_tbl_add_map(constant_tbl, node, "elements", &constant_tbl->map_elements) ||
+        constant_tbl_add_map(constant_tbl, node, "gettimes", &constant_tbl->map_gettimes) ||
+        constant_tbl_add_map(constant_tbl, node, "itemgroups", &constant_tbl->map_itemgroups) ||
+        constant_tbl_add_map(constant_tbl, node, "jobs", &constant_tbl->map_jobs) ||
+        constant_tbl_add_map(constant_tbl, node, "locations", &constant_tbl->map_locations) ||
+        constant_tbl_add_map(constant_tbl, node, "mapflags", &constant_tbl->map_mapflags) ||
+        constant_tbl_add_map(constant_tbl, node, "options", &constant_tbl->map_options) ||
+        constant_tbl_add_map(constant_tbl, node, "races", &constant_tbl->map_races) ||
+        constant_tbl_add_map(constant_tbl, node, "readparam", &constant_tbl->map_readparam) ||
+        constant_tbl_add_map(constant_tbl, node, "sc_end", &constant_tbl->map_sc_end) ||
+        constant_tbl_add_map(constant_tbl, node, "sc_start", &constant_tbl->map_sc_start) ||
+        constant_tbl_add_map(constant_tbl, node, "sizes", &constant_tbl->map_sizes) ||
+        constant_tbl_add_map(constant_tbl, node, "vip_status", &constant_tbl->map_vip_status) )
+        status = panic("failed to add map constant table object");
+
+    return status;
 }
 
 int constant_tbl_add(struct constant_tbl * constant_tbl, struct list * record, struct pool * range_node_pool, struct sector_list * sector_list) {
@@ -1024,6 +1066,41 @@ int constant_tbl_add(struct constant_tbl * constant_tbl, struct list * record, s
         }
         if(status)
             pool_put(constant_tbl->pool, constant);
+    }
+
+    return status;
+}
+
+int constant_tbl_add_map(struct constant_tbl * constant_tbl, struct json_node * node, char * key, struct map * map) {
+    int status = 0;
+    struct json_node * array;
+    struct json_node * element;
+    char * string;
+    struct constant * constant;
+
+    array = json_object_get(node, key);
+    if(!array) {
+        status = panic("failed to get json object - %s", key);
+    } else if(map_create(map, string_compare, constant_tbl->map_macro.pool)) {
+        status = panic("failed to create map object");
+    } else {
+        element = json_array_start(array);
+        while(element && !status) {
+            string = json_string_get(element);
+            if(!string) {
+                status = panic("failed to get string object");
+            } else {
+                constant = map_search(&constant_tbl->map_macro, string);
+                if(!constant) {
+                    status = panic("failed to get constant object - %s", string);
+                } else if(map_insert(map, constant->macro, constant)) {
+                    status = panic("failed to insert map object");
+                }
+            }
+            element = json_array_next(array);
+        }
+        if(status)
+            map_destroy(map);
     }
 
     return status;
@@ -1223,14 +1300,21 @@ int db_constant_tbl_create_cb(struct list * record, void * data) {
     return status;
 }
 
-int db_constant_tbl_create(struct db * db, struct csv * csv) {
+int db_constant_tbl_create(struct db * db, struct csv * csv, struct json * json) {
     int status = 0;
 
     if(constant_tbl_create(&db->constant_tbl, db->pool_map)) {
         status = panic("failed to create constant table object");
     } else {
-        if(csv_parse(csv, "const_db.txt", db_constant_tbl_create_cb, db))
+        if(csv_parse(csv, "const_db.txt", db_constant_tbl_create_cb, db)) {
             status = panic("failed to parse csv object");
+        } else if(json_parse(json, "constants.json")) {
+            status = panic("failed to parse json object");
+        } else {
+            if(constant_tbl_json_create(&db->constant_tbl, json->root))
+                status = panic("failed to create json constant table object");
+            json_clear(json);
+        }
         if(status)
             constant_tbl_destroy(&db->constant_tbl);
     }
@@ -1260,7 +1344,7 @@ int db_create(struct db * db, struct pool_map * pool_map, struct sector_list * s
         status = panic("failed to create produce table object");
     } else if(db_mercenary_tbl_create(db, csv)) {
         status = panic("failed to create mercenary table object");
-    } else if(db_constant_tbl_create(db, csv)) {
+    } else if(db_constant_tbl_create(db, csv, json)) {
         status = panic("failed to create constant table object");
     }
 
