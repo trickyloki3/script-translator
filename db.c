@@ -686,7 +686,7 @@ int produce_create(struct produce * produce, struct list * record, struct sector
 
     memset(produce, 0, sizeof(*produce));
 
-    if(record->size < 7) {
+    if(record->size < 7 || (record->size - 5) % 2 != 0) {
         status = panic("row is missing columns");
     } else if(array_create(&produce->material, sizeof(long), record->size - 5)) {
         status = panic("failed to create array object");
