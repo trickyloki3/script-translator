@@ -38,7 +38,7 @@ void yyerror(JSONLTYPE *, struct json *, char const *);
 
 %%
 
-json : value
+json : value { json->root = $1; }
 
 object : BEGINOBJECT ENDOBJECT { if(json_pop_node(json, json_object)) YYABORT; }
        | BEGINOBJECT member ENDOBJECT { if(json_pop_node(json, json_object)) YYABORT; }

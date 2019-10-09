@@ -34,6 +34,7 @@ struct json {
     struct pool * json_node_pool;
     struct list list;
     struct list nest;
+    struct json_node * root;
     struct sector_list * sector_list;
 };
 

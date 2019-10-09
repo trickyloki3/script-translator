@@ -29,6 +29,7 @@ int json_create(struct json * json, struct pool_map * pool_map, struct sector_li
                     if(list_create(&json->nest, json->list_node_pool)) {
                         status = panic("failed to create list object");
                     } else {
+                        json->root = NULL;
                         json->sector_list = sector_list;
                     }
                     if(status)
@@ -111,8 +112,13 @@ int json_parse_loop(struct json * json, yyscan_t scanner, jsonpstate * parser) {
         }
     } while(token && state == YYPUSH_MORE && !status);
 
-    if(list_start(&json->nest))
-        status = panic("nest is non-empty");
+    if(!status) {
+        if(list_start(&json->nest)) {
+            status = panic("nest is not empty");
+        } else if(!json->root) {
+            status = panic("json is empty");
+        }
+    }
 
     return status;
 }
