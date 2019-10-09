@@ -319,6 +319,7 @@ int map_create(struct map * map, map_compare_cb compare, struct pool * pool) {
         map->compare = compare;
         map->pool = pool;
         map->root = NULL;
+        map->iter = NULL;
     }
 
     return status;
@@ -399,4 +400,21 @@ int map_delete(struct map * map, void * key) {
 void * map_search(struct map * map, void * key) {
     struct map_node * node = map_search_node(map, key);
     return node ? node->value : NULL;
+}
+
+struct map_pair map_start(struct map * map) {
+    map->iter = map->root;
+    return map_next(map);
+}
+
+struct map_pair map_next(struct map * map) {
+    struct map_pair pair = { NULL, NULL };
+
+    if(map->iter) {
+        pair.key = map->iter->key;
+        pair.value = map->iter->value;
+        map->iter = map->iter->next == map->root ? NULL : map->iter->next;
+    }
+
+    return pair;
 }

@@ -8,6 +8,11 @@ enum map_color {
     red
 };
 
+struct map_pair {
+    void * key;
+    void * value;
+};
+
 struct map_node {
     void * key;
     void * value;
@@ -25,6 +30,7 @@ struct map {
     map_compare_cb compare;
     struct pool * pool;
     struct map_node * root;
+    struct map_node * iter;
 };
 
 int map_create(struct map *, map_compare_cb, struct pool *);
@@ -33,5 +39,7 @@ int map_copy(struct map *, struct map *);
 int map_insert(struct map *, void *, void *);
 int map_delete(struct map *, void *);
 void * map_search(struct map *, void *);
+struct map_pair map_start(struct map *);
+struct map_pair map_next(struct map *);
 
 #endif
