@@ -1089,7 +1089,7 @@ int db_mercenary_tbl_create(struct db * db, struct csv * csv) {
     return status;
 }
 
-int db_create(struct db * db, struct pool_map * pool_map, struct sector_list * sector_list, struct csv * csv) {
+int db_create(struct db * db, struct pool_map * pool_map, struct sector_list * sector_list, struct csv * csv, struct json * json) {
     int status = 0;
 
     memset(db, 0, sizeof(*db));

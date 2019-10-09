@@ -36,7 +36,7 @@ int main(int argc, char ** argv) {
                             if(json_create(&json, &pool_map, &sector_list)) {
                                 status = panic("failed to create json object");
                             } else {
-                                if(db_create(&db, &pool_map, &sector_list, &csv)) {
+                                if(db_create(&db, &pool_map, &sector_list, &csv, &json)) {
                                     status = panic("failed to create db object");
                                 } else {
                                     db_destroy(&db);

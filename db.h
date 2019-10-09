@@ -5,6 +5,7 @@
 #include "sector_list.h"
 #include "aux.h"
 #include "csv.h"
+#include "json.h"
 
 struct item {
     long id;
@@ -197,7 +198,7 @@ struct db {
     struct mercenary_tbl mercenary_tbl;
 };
 
-int db_create(struct db *, struct pool_map *, struct sector_list *, struct csv *);
+int db_create(struct db *, struct pool_map *, struct sector_list *, struct csv *, struct json *);
 void db_destroy(struct db *);
 
 #endif
