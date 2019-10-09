@@ -306,3 +306,23 @@ void json_node_print(struct json_node * node) {
         }
     }
 }
+
+struct json_node * json_object_get(struct json_node * node, char * key) {
+    return node->type == json_object ? map_search(&node->map, key) : NULL;
+}
+
+struct json_node * json_array_start(struct json_node * node) {
+    return node->type == json_array ? list_start(&node->list) : NULL;
+}
+
+struct json_node * json_array_next(struct json_node * node) {
+    return node->type == json_array ? list_next(&node->list) : NULL;
+}
+
+char * json_string_get(struct json_node * node) {
+    return node->type == json_string ? node->string : NULL;
+}
+
+double json_number_get(struct json_node * node) {
+    return node->type == json_number ? node->number : 0;
+}
