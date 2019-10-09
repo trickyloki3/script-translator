@@ -214,6 +214,7 @@ struct constant_tbl {
     struct map map_sc_start;
     struct map map_sizes;
     struct map map_vip_status;
+    struct map map_mob_race2;
 };
 
 struct db {

@@ -58,6 +58,7 @@ void constant_tbl_destroy(struct constant_tbl *);
 int constant_tbl_json_create(struct constant_tbl *, struct json_node *);
 int constant_tbl_add(struct constant_tbl *, struct list *, struct pool *, struct sector_list *);
 int constant_tbl_add_map(struct constant_tbl *, struct json_node *, char *, struct map *);
+int constant_tbl_add_mob_race2_map(struct constant_tbl *, struct mob_race2_tbl *);
 
 int db_item_tbl_create_cb(struct list *, void *);
 int db_item_tbl_create(struct db *, struct csv *);
@@ -998,6 +999,7 @@ void constant_tbl_destroy(struct constant_tbl * constant_tbl) {
         constant = list_pop(&constant_tbl->list);
     }
 
+    map_destroy(&constant_tbl->map_mob_race2);
     map_destroy(&constant_tbl->map_vip_status);
     map_destroy(&constant_tbl->map_sizes);
     map_destroy(&constant_tbl->map_sc_start);
@@ -1101,6 +1103,31 @@ int constant_tbl_add_map(struct constant_tbl * constant_tbl, struct json_node * 
         }
         if(status)
             map_destroy(map);
+    }
+
+    return status;
+}
+
+int constant_tbl_add_mob_race2_map(struct constant_tbl * constant_tbl, struct mob_race2_tbl * mob_race2_tbl) {
+    int status = 0;
+    struct mob_race2 * mob_race2;
+    struct constant * constant;
+
+    if(map_create(&constant_tbl->map_mob_race2, string_compare, constant_tbl->map_macro.pool)) {
+        status = panic("failed to create map object");
+    } else {
+        mob_race2 = list_start(&mob_race2_tbl->list);
+        while(mob_race2 && !status) {
+            constant = map_search(&constant_tbl->map_macro, mob_race2->race);
+            if(!constant) {
+                status = panic("failed to get constant object - %s", mob_race2->race);
+            } else if(map_insert(&constant_tbl->map_mob_race2, constant->macro, constant)) {
+                status = panic("failed to insert map object");
+            }
+            mob_race2 = list_next(&mob_race2_tbl->list);
+        }
+        if(status)
+            map_destroy(&constant_tbl->map_mob_race2);
     }
 
     return status;
@@ -1311,8 +1338,11 @@ int db_constant_tbl_create(struct db * db, struct csv * csv, struct json * json)
         } else if(json_parse(json, "constants.json")) {
             status = panic("failed to parse json object");
         } else {
-            if(constant_tbl_json_create(&db->constant_tbl, json->root))
+            if(constant_tbl_json_create(&db->constant_tbl, json->root)) {
                 status = panic("failed to create json constant table object");
+            } else if(constant_tbl_add_mob_race2_map(&db->constant_tbl, &db->mob_race2_tbl)) {
+                status = panic("failed to add mob race2 constant table object");
+            }
             json_clear(json);
         }
         if(status)
