@@ -44,11 +44,11 @@ UNICODE         {ESCAPE}\x75{HEXDIG}{HEXDIG}{HEXDIG}{HEXDIG}
 %%
 
 {BEGINARRAY} {
-    return JSON_BEGINARRAY;
+    return json_add_node(yyextra, json_array, NULL, 0, yylval) ? -1 : JSON_BEGINARRAY;
 }
 
 {BEGINOBJECT} {
-    return JSON_BEGINOBJECT;
+    return json_add_node(yyextra, json_object, NULL, 0, yylval) ? -1 : JSON_BEGINOBJECT;
 }
 
 {ENDARRAY} {
@@ -72,23 +72,23 @@ UNICODE         {ESCAPE}\x75{HEXDIG}{HEXDIG}{HEXDIG}{HEXDIG}
 }
 
 {FALSE} {
-    return JSON_FALSE;
+    return json_add_node(yyextra, json_false, NULL, 0, yylval) ? -1 : JSON_FALSE;
 }
 
 {NULL} {
-    return JSON_NULL;
+    return json_add_node(yyextra, json_null, NULL, 0, yylval) ? -1 : JSON_NULL;
 }
 
 {TRUE} {
-    return JSON_TRUE;
+    return json_add_node(yyextra, json_true, NULL, 0, yylval) ? -1 : JSON_TRUE;
 }
 
 {MINUS}?{INT}{FRAC}?{EXP}? {
-    return JSON_NUMBER;
+    return json_add_node(yyextra, json_number, yytext, yyleng, yylval) ? -1 : JSON_NUMBER;
 }
 
 {QUOTATIONMARK}{CHAR}*{QUOTATIONMARK} {
-    return JSON_STRING;
+    return json_add_node(yyextra, json_string, yytext, yyleng, yylval) ? -1 : JSON_STRING;
 }
 
 . {

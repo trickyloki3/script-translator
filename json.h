@@ -6,6 +6,7 @@
 #include "list.h"
 #include "pool_map.h"
 #include "sector_list.h"
+#include "aux.h"
 
 enum json_type {
     json_false,
@@ -39,5 +40,6 @@ struct json {
 int json_create(struct json *, struct pool_map *, struct sector_list *);
 void json_destroy(struct json *);
 int json_parse(struct json *, const char *);
+int json_add_node(struct json *, enum json_type, char *, size_t, struct json_node **);
 
 #endif
