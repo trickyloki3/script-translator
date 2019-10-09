@@ -47,4 +47,6 @@ int json_pop_node(struct json *, enum json_type);
 int json_insert_object(struct json *, struct json_node *, struct json_node *);
 int json_insert_array(struct json *, struct json_node *);
 
+void json_node_print(struct json_node *);
+
 #endif

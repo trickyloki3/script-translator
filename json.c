@@ -258,3 +258,47 @@ int json_insert_array(struct json * json, struct json_node * value) {
 
     return status;
 }
+
+void json_node_print(struct json_node * node) {
+    struct json_node * iter;
+    struct map_pair pair;
+
+    if(node) {
+        switch(node->type) {
+            case json_false:  fprintf(stdout, "false"); break;
+            case json_null:   fprintf(stdout, "null"); break;
+            case json_true:   fprintf(stdout, "true"); break;
+            case json_object:
+                fprintf(stdout, "{\n");
+                pair = map_start(&node->map);
+                while(pair.key && pair.value) {
+                    fprintf(stdout, "%s : ", pair.key);
+                    json_node_print(pair.value);
+                    pair = map_next(&node->map);
+                    if(pair.key && pair.value)
+                        fprintf(stdout, ",\n");
+                    else
+                        fprintf(stdout, "\n");
+                }
+                fprintf(stdout, "}");
+                break;
+            case json_array:
+                fprintf(stdout, "[\n");
+                iter = list_start(&node->list);
+                while(iter) {
+                    json_node_print(iter);
+                    iter = list_next(&node->list);
+                    if(iter)
+                        fprintf(stdout, ",\n");
+                    else
+                        fprintf(stdout, "\n");
+                }
+                fprintf(stdout, "]");
+                break;
+            case json_number: fprintf(stdout, "%ld", (long) node->number); break;
+            case json_string: fprintf(stdout, "%s", node->string); break;
+            default:
+                break;
+        }
+    }
+}
