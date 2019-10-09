@@ -3,6 +3,7 @@
 
 #include "pool_map.h"
 #include "sector_list.h"
+#include "aux.h"
 #include "csv.h"
 
 struct item {

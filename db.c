@@ -1,11 +1,5 @@
 #include "db.h"
 
-int long_compare(void *, void *);
-int string_compare(void *, void *);
-
-int char_create(struct sector_list *, struct string *, char **);
-void char_destroy(char *);
-
 int item_create(struct item *, struct list *, struct pool *, struct sector_list *);
 void item_destroy(struct item *);
 
@@ -70,34 +64,6 @@ int db_produce_tbl_create_cb(struct list *, void *);
 int db_produce_tbl_create(struct db *, struct csv *);
 int db_mercenary_tbl_create_cb(struct list *, void *);
 int db_mercenary_tbl_create(struct db *, struct csv *);
-
-int long_compare(void * x, void * y) {
-    long l = *((long *) x);
-    long r = *((long *) y);
-    return l < r ? -1 : l > r ? 1 : 0;
-}
-
-int string_compare(void * x, void * y) {
-    return strcmp(x, y);
-}
-
-int char_create(struct sector_list * sector_list, struct string * string, char ** result) {
-    int status = 0;
-    char * object;
-
-    object = sector_list_malloc(sector_list, string->offset + 1);
-    if(!object) {
-        status = panic("out of memory");
-    } else {
-        *result = memcpy(object, string->string, string->offset + 1);
-    }
-
-    return status;
-}
-
-void char_destroy(char * object) {
-    sector_list_free(object);
-}
 
 int item_create(struct item * item, struct list * record, struct pool * list_node_pool, struct sector_list * sector_list) {
     int status = 0;

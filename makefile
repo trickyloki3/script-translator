@@ -7,6 +7,7 @@ OBJECT+=sector.o
 OBJECT+=range.o
 OBJECT+=pool_map.o
 OBJECT+=sector_list.o
+OBJECT+=aux.o
 OBJECT+=csv_parser.o
 OBJECT+=csv_scanner.o
 OBJECT+=csv.o
