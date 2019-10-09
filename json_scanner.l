@@ -104,7 +104,7 @@ UNICODE         {ESCAPE}\x75{HEXDIG}{HEXDIG}{HEXDIG}{HEXDIG}
 }
 
 {QUOTATIONMARK}{CHAR}*{QUOTATIONMARK} {
-    return json_add_node(yyextra, json_string, yytext, yyleng, yylval) ? -1 : JSON_STRING;
+    return json_add_node(yyextra, json_string, yytext + 1, yyleng - 2, yylval) ? -1 : JSON_STRING;
 }
 
 . {
