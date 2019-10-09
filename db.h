@@ -1,6 +1,7 @@
 #ifndef db_h
 #define db_h
 
+#include "range.h"
 #include "pool_map.h"
 #include "sector_list.h"
 #include "aux.h"
@@ -186,9 +187,23 @@ struct mercenary_tbl {
     struct map map_id;
 };
 
+struct constant {
+    char * macro;
+    long value;
+    char * name;
+    struct range range;
+};
+
+struct constant_tbl {
+    struct pool * pool;
+    struct list list;
+    struct map map_macro;
+};
+
 struct db {
     struct pool_map * pool_map;
     struct sector_list * sector_list;
+    struct pool * range_node_pool;
     struct item_tbl item_tbl;
     struct item_combo_tbl item_combo_tbl;
     struct skill_tbl skill_tbl;
@@ -196,6 +211,7 @@ struct db {
     struct mob_race2_tbl mob_race2_tbl;
     struct produce_tbl produce_tbl;
     struct mercenary_tbl mercenary_tbl;
+    struct constant_tbl constant_tbl;
 };
 
 int db_create(struct db *, struct pool_map *, struct sector_list *, struct csv *, struct json *);

@@ -50,6 +50,13 @@ int mercenary_tbl_create(struct mercenary_tbl *, struct pool_map *);
 void mercenary_tbl_destroy(struct mercenary_tbl *);
 int mercenary_tbl_add(struct mercenary_tbl *, struct list *, struct sector_list *);
 
+int constant_create(struct constant *, struct list *, struct pool *, struct sector_list *);
+void constant_destroy(struct constant *);
+
+int constant_tbl_create(struct constant_tbl *, struct pool_map *);
+void constant_tbl_destroy(struct constant_tbl *);
+int constant_tbl_add(struct constant_tbl *, struct list *, struct pool *, struct sector_list *);
+
 int db_item_tbl_create_cb(struct list *, void *);
 int db_item_tbl_create(struct db *, struct csv *);
 int db_item_combo_tbl_create_cb(struct list *, void *);
@@ -64,6 +71,8 @@ int db_produce_tbl_create_cb(struct list *, void *);
 int db_produce_tbl_create(struct db *, struct csv *);
 int db_mercenary_tbl_create_cb(struct list *, void *);
 int db_mercenary_tbl_create(struct db *, struct csv *);
+int db_constant_tbl_create_cb(struct list *, void *);
+int db_constant_tbl_create(struct db *, struct csv *);
 
 int item_create(struct item * item, struct list * record, struct pool * list_node_pool, struct sector_list * sector_list) {
     int status = 0;
@@ -905,6 +914,121 @@ int mercenary_tbl_add(struct mercenary_tbl * mercenary_tbl, struct list * record
     return status;
 }
 
+int constant_create(struct constant * constant, struct list * record, struct pool * range_node_pool, struct sector_list * sector_list) {
+    int status = 0;
+    size_t field;
+    struct string * string;
+
+    int toggle = 0;
+    long min;
+    long max;
+
+    memset(constant, 0, sizeof(*constant));
+
+    if(record->size < 3 || (record->size - 3) % 2 != 0) {
+        status = panic("row is missing columns");
+    } else if(range_create(&constant->range, range_node_pool)) {
+        status = panic("failed to create range object");
+    } else {
+        field = 0;
+        string = list_start(record);
+        while(string && !status) {
+            if(field < record->size - 3) {
+                if(string_strtol(string, 10, toggle ? &min : &max)) {
+                    status = panic("failed to strtol string object");
+                } else if(toggle && range_add(&constant->range, min, max)) {
+                    status = panic("failed to add range object");
+                } else {
+                    toggle = !toggle;
+                }
+            } else {
+                switch(record->size - field) {
+                    case 3: char_create(sector_list, string, &constant->name); break;
+                    case 2: string_strtol(string, 10, &constant->value); break;
+                    case 1: char_create(sector_list, string, &constant->macro); break;
+                    default: status = panic("row has too many columns"); break;
+                }
+            }
+            field++;
+            string = list_next(record);
+        }
+    }
+
+    if(status)
+        constant_destroy(constant);
+
+    return status;
+}
+
+void constant_destroy(struct constant * constant) {
+    range_destroy(&constant->range);
+    char_destroy(constant->name);
+    char_destroy(constant->macro);
+}
+
+int constant_tbl_create(struct constant_tbl * constant_tbl, struct pool_map * pool_map) {
+    int status = 0;
+
+    constant_tbl->pool = pool_map_get(pool_map, sizeof(struct constant));
+    if(!constant_tbl->pool) {
+        status = panic("failed to get pool map object");
+    } else {
+        if(list_create(&constant_tbl->list, pool_map_get(pool_map, sizeof(struct list_node)))) {
+            status = panic("failed to create list object");
+        } else {
+            if(map_create(&constant_tbl->map_macro, string_compare, pool_map_get(pool_map, sizeof(struct map_node))))
+                status = panic("failed to create map object");
+            if(status)
+                list_destroy(&constant_tbl->list);
+        }
+    }
+
+    return status;
+}
+
+void constant_tbl_destroy(struct constant_tbl * constant_tbl) {
+    struct constant * constant;
+
+    constant = list_pop(&constant_tbl->list);
+    while(constant) {
+        constant_destroy(constant);
+        pool_put(constant_tbl->pool, constant);
+        constant = list_pop(&constant_tbl->list);
+    }
+
+    map_destroy(&constant_tbl->map_macro);
+    list_destroy(&constant_tbl->list);
+}
+
+int constant_tbl_add(struct constant_tbl * constant_tbl, struct list * record, struct pool * range_node_pool, struct sector_list * sector_list) {
+    int status = 0;
+    struct constant * constant;
+
+    constant = pool_get(constant_tbl->pool);
+    if(!constant) {
+        status = panic("out of memory");
+    } else {
+        if(constant_create(constant, record, range_node_pool, sector_list)) {
+            status = panic("failed to create constant object");
+        } else {
+            if(list_push(&constant_tbl->list, constant)) {
+                status = panic("failed to push list object");
+            } else {
+                if(map_insert(&constant_tbl->map_macro, constant->macro, constant))
+                    status = panic("failed insert map object");
+                if(status)
+                    list_pop(&constant_tbl->list);
+            }
+            if(status)
+                constant_destroy(constant);
+        }
+        if(status)
+            pool_put(constant_tbl->pool, constant);
+    }
+
+    return status;
+}
+
 int db_item_tbl_create_cb(struct list * record, void * data) {
     int status = 0;
     struct db * db = data;
@@ -1089,6 +1213,31 @@ int db_mercenary_tbl_create(struct db * db, struct csv * csv) {
     return status;
 }
 
+int db_constant_tbl_create_cb(struct list * record, void * data) {
+    int status = 0;
+    struct db * db = data;
+
+    if(constant_tbl_add(&db->constant_tbl, record, db->range_node_pool, db->sector_list))
+        status = panic("failed to add constant table object");
+
+    return status;
+}
+
+int db_constant_tbl_create(struct db * db, struct csv * csv) {
+    int status = 0;
+
+    if(constant_tbl_create(&db->constant_tbl, db->pool_map)) {
+        status = panic("failed to create constant table object");
+    } else {
+        if(csv_parse(csv, "const_db.txt", db_constant_tbl_create_cb, db))
+            status = panic("failed to parse csv object");
+        if(status)
+            constant_tbl_destroy(&db->constant_tbl);
+    }
+
+    return status;
+}
+
 int db_create(struct db * db, struct pool_map * pool_map, struct sector_list * sector_list, struct csv * csv, struct json * json) {
     int status = 0;
 
@@ -1096,6 +1245,7 @@ int db_create(struct db * db, struct pool_map * pool_map, struct sector_list * s
 
     db->pool_map = pool_map;
     db->sector_list = sector_list;
+    db->range_node_pool = pool_map_get(db->pool_map, sizeof(struct range_node));
     if(db_item_tbl_create(db, csv)) {
         status = panic("failed to create item table object");
     } else if(db_item_combo_tbl_create(db, csv)) {
@@ -1110,6 +1260,8 @@ int db_create(struct db * db, struct pool_map * pool_map, struct sector_list * s
         status = panic("failed to create produce table object");
     } else if(db_mercenary_tbl_create(db, csv)) {
         status = panic("failed to create mercenary table object");
+    } else if(db_constant_tbl_create(db, csv)) {
+        status = panic("failed to create constant table object");
     }
 
     if(status)
@@ -1119,6 +1271,7 @@ int db_create(struct db * db, struct pool_map * pool_map, struct sector_list * s
 }
 
 void db_destroy(struct db * db) {
+    constant_tbl_destroy(&db->constant_tbl);
     mercenary_tbl_destroy(&db->mercenary_tbl);
     produce_tbl_destroy(&db->produce_tbl);
     mob_race2_tbl_destroy(&db->mob_race2_tbl);
