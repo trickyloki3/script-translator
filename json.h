@@ -43,5 +43,7 @@ int json_parse(struct json *, const char *);
 int json_add_node(struct json *, enum json_type, char *, size_t, struct json_node **);
 int json_push_node(struct json *, struct json_node *);
 int json_pop_node(struct json *, enum json_type);
+int json_insert_object(struct json *, struct json_node *, struct json_node *);
+int json_insert_array(struct json *, struct json_node *);
 
 #endif

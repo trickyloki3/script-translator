@@ -220,3 +220,35 @@ int json_pop_node(struct json * json, enum json_type type) {
 
     return status;
 }
+
+int json_insert_object(struct json * json, struct json_node * string, struct json_node * value) {
+    int status = 0;
+    struct json_node * node;
+
+    node = list_start(&json->nest);
+    if(!node) {
+        status = panic("list is empty");
+    } else if(node->type != json_object) {
+        status = panic("invalid object");
+    } else if(map_insert(&node->map, string->string, value)) {
+        status = panic("failed to insert map object");
+    }
+
+    return status;
+}
+
+int json_insert_array(struct json * json, struct json_node * value) {
+    int status = 0;
+    struct json_node * node;
+
+    node = list_start(&json->nest);
+    if(!node) {
+        status = panic("list is empty");
+    } else if(node->type != json_array) {
+        status = panic("invalid array");
+    } else if(list_push(&node->list, value)) {
+        status = panic("failed to push list object");
+    }
+
+    return status;
+}

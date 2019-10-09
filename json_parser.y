@@ -40,19 +40,19 @@ void yyerror(JSONLTYPE *, struct json *, char const *);
 
 json : value
 
-object : BEGINOBJECT ENDOBJECT
-       | BEGINOBJECT member ENDOBJECT
+object : BEGINOBJECT ENDOBJECT { if(json_pop_node(json, json_object)) YYABORT; }
+       | BEGINOBJECT member ENDOBJECT { if(json_pop_node(json, json_object)) YYABORT; }
 
 member : field
        | member VALUESEPARATOR field
 
-field : STRING NAMESEPARATOR value
+field : STRING NAMESEPARATOR value { if(json_insert_object(json, $1, $3)) YYABORT; }
 
-array : BEGINARRAY ENDARRAY
-      | BEGINARRAY element ENDARRAY
+array : BEGINARRAY ENDARRAY { if(json_pop_node(json, json_array)) YYABORT; }
+      | BEGINARRAY element ENDARRAY { if(json_pop_node(json, json_array)) YYABORT; }
 
-element : value
-        | element VALUESEPARATOR value
+element : value { if(json_insert_array(json, $1)) YYABORT; }
+        | element VALUESEPARATOR value { if(json_insert_array(json, $3)) YYABORT; }
 
 value : FALSE
       | NULL

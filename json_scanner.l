@@ -68,11 +68,11 @@ UNICODE         {ESCAPE}\x75{HEXDIG}{HEXDIG}{HEXDIG}{HEXDIG}
 }
 
 {ENDARRAY} {
-    return json_pop_node(yyextra, json_array) ? -1 : JSON_ENDARRAY;
+    return JSON_ENDARRAY;
 }
 
 {ENDOBJECT} {
-    return json_pop_node(yyextra, json_object) ? -1 : JSON_ENDOBJECT;
+    return JSON_ENDOBJECT;
 }
 
 {NAMESEPARATOR} {
