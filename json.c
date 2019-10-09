@@ -43,6 +43,12 @@ int json_create(struct json * json, struct pool_map * pool_map, struct sector_li
 }
 
 void json_destroy(struct json * json) {
+    json_clear(json);
+    list_destroy(&json->nest);
+    list_destroy(&json->list);
+}
+
+void json_clear(struct json * json) {
     struct json_node * node;
 
     node = list_pop(&json->list);
@@ -51,9 +57,7 @@ void json_destroy(struct json * json) {
         pool_put(json->json_node_pool, node);
         node = list_pop(&json->list);
     }
-
-    list_destroy(&json->nest);
-    list_destroy(&json->list);
+    json->root = NULL;
 }
 
 int json_parse(struct json * json, const char * path) {
