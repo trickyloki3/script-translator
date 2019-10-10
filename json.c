@@ -311,6 +311,16 @@ struct json_node * json_object_get(struct json_node * node, char * key) {
     return node->type == json_object ? map_search(&node->map, key) : NULL;
 }
 
+struct map_pair json_object_start(struct json_node * node) {
+    struct map_pair zero = { NULL, NULL };
+    return node->type == json_object ? map_start(&node->map) : zero;
+}
+
+struct map_pair json_object_next(struct json_node * node) {
+    struct map_pair zero = { NULL, NULL };
+    return node->type == json_object ? map_next(&node->map) : zero;
+}
+
 struct json_node * json_array_start(struct json_node * node) {
     return node->type == json_array ? list_start(&node->list) : NULL;
 }

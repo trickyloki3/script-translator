@@ -47,6 +47,8 @@ int json_insert_array(struct json *, struct json_node *);
 
 void json_node_print(struct json_node *);
 struct json_node * json_object_get(struct json_node *, char *);
+struct map_pair json_object_start(struct json_node *);
+struct map_pair json_object_next(struct json_node *);
 struct json_node * json_array_start(struct json_node *);
 struct json_node * json_array_next(struct json_node *);
 char * json_string_get(struct json_node *);
