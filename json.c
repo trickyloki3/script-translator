@@ -7,6 +7,7 @@ int json_parse_loop(struct json *, yyscan_t, jsonpstate *);
 
 int json_node_create(struct json_node *, enum json_type type, struct pool *, struct pool *, struct sector_list *, char *, size_t);
 void json_node_destroy(struct json_node *);
+int json_node_print_recursive(struct json_node *, int);
 
 int json_create(struct json * json, struct pool_map * pool_map, struct sector_list * sector_list) {
     int status = 0;
@@ -264,6 +265,11 @@ int json_insert_array(struct json * json, struct json_node * value) {
 }
 
 void json_node_print(struct json_node * node) {
+    json_node_print_recursive(node, 1);
+}
+
+int json_node_print_recursive(struct json_node * node, int indent) {
+    int i;
     struct json_node * iter;
     struct map_pair pair;
 
@@ -276,31 +282,39 @@ void json_node_print(struct json_node * node) {
                 fprintf(stdout, "{\n");
                 pair = map_start(&node->map);
                 while(pair.key && pair.value) {
-                    fprintf(stdout, "%s : ", pair.key);
-                    json_node_print(pair.value);
+                    for(i = 0; i < indent; i++)
+                        fputs("    ", stdout);
+                    fprintf(stdout, "\"%s\" : ", pair.key);
+                    json_node_print_recursive(pair.value, indent + 1);
                     pair = map_next(&node->map);
                     if(pair.key && pair.value)
                         fprintf(stdout, ",\n");
                     else
                         fprintf(stdout, "\n");
                 }
+                for(i = 0; i < indent - 1; i++)
+                    fputs("    ", stdout);
                 fprintf(stdout, "}");
                 break;
             case json_array:
                 fprintf(stdout, "[\n");
                 iter = list_start(&node->list);
                 while(iter) {
-                    json_node_print(iter);
+                    for(i = 0; i < indent; i++)
+                        fputs("    ", stdout);
+                    json_node_print_recursive(iter, indent + 1);
                     iter = list_next(&node->list);
                     if(iter)
                         fprintf(stdout, ",\n");
                     else
                         fprintf(stdout, "\n");
                 }
+                for(i = 0; i < indent - 1; i++)
+                    fputs("    ", stdout);
                 fprintf(stdout, "]");
                 break;
             case json_number: fprintf(stdout, "%ld", (long) node->number); break;
-            case json_string: fprintf(stdout, "%s", node->string); break;
+            case json_string: fprintf(stdout, "\"%s\"", node->string); break;
             default:
                 break;
         }
