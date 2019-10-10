@@ -198,6 +198,23 @@ struct constant_tbl {
     struct pool * pool;
     struct list list;
     struct map map_macro;
+    struct map map_announces;
+    struct map map_classes;
+    struct map map_effects;
+    struct map map_elements;
+    struct map map_gettimes;
+    struct map map_itemgroups;
+    struct map map_jobs;
+    struct map map_locations;
+    struct map map_mapflags;
+    struct map map_options;
+    struct map map_races;
+    struct map map_readparam;
+    struct map map_sc_end;
+    struct map map_sc_start;
+    struct map map_sizes;
+    struct map map_vip_status;
+    struct map map_mob_race2;
 };
 
 struct db {

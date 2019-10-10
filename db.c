@@ -56,6 +56,8 @@ void constant_destroy(struct constant *);
 int constant_tbl_create(struct constant_tbl *, struct pool_map *);
 void constant_tbl_destroy(struct constant_tbl *);
 int constant_tbl_load(struct constant_tbl *, struct json_node *, struct pool *, struct sector_list *);
+int constant_tbl_add_map(struct constant_tbl *, struct json_node *, char *, struct map *);
+int constant_tbl_add_mob_race2_map(struct constant_tbl *, struct mob_race2_tbl *);
 
 int db_item_tbl_create_cb(struct list *, void *);
 int db_item_tbl_create(struct db *, struct csv *);
@@ -1014,6 +1016,23 @@ void constant_tbl_destroy(struct constant_tbl * constant_tbl) {
         constant = list_pop(&constant_tbl->list);
     }
 
+    map_destroy(&constant_tbl->map_mob_race2);
+    map_destroy(&constant_tbl->map_vip_status);
+    map_destroy(&constant_tbl->map_sizes);
+    map_destroy(&constant_tbl->map_sc_start);
+    map_destroy(&constant_tbl->map_sc_end);
+    map_destroy(&constant_tbl->map_readparam);
+    map_destroy(&constant_tbl->map_races);
+    map_destroy(&constant_tbl->map_options);
+    map_destroy(&constant_tbl->map_mapflags);
+    map_destroy(&constant_tbl->map_locations);
+    map_destroy(&constant_tbl->map_jobs);
+    map_destroy(&constant_tbl->map_itemgroups);
+    map_destroy(&constant_tbl->map_gettimes);
+    map_destroy(&constant_tbl->map_elements);
+    map_destroy(&constant_tbl->map_effects);
+    map_destroy(&constant_tbl->map_classes);
+    map_destroy(&constant_tbl->map_announces);
     map_destroy(&constant_tbl->map_macro);
     list_destroy(&constant_tbl->list);
 }
@@ -1053,6 +1072,66 @@ int constant_tbl_load(struct constant_tbl * constant_tbl, struct json_node * nod
             }
             pair = json_object_next(constants);
         }
+    }
+
+    return status;
+}
+
+int constant_tbl_add_map(struct constant_tbl * constant_tbl, struct json_node * node, char * key, struct map * map) {
+    int status = 0;
+    struct json_node * array;
+    struct json_node * element;
+    char * string;
+    struct constant * constant;
+
+    array = json_object_get(node, key);
+    if(!array) {
+        status = panic("failed to get json object - %s", key);
+    } else if(map_create(map, string_compare, constant_tbl->map_macro.pool)) {
+        status = panic("failed to create map object");
+    } else {
+        element = json_array_start(array);
+        while(element && !status) {
+            string = json_string_get(element);
+            if(!string) {
+                status = panic("failed to get string object");
+            } else {
+                constant = map_search(&constant_tbl->map_macro, string);
+                if(!constant) {
+                    status = panic("failed to get constant object - %s", string);
+                } else if(map_insert(map, constant->macro, constant)) {
+                    status = panic("failed to insert map object");
+                }
+            }
+            element = json_array_next(array);
+        }
+        if(status)
+            map_destroy(map);
+    }
+
+    return status;
+}
+
+int constant_tbl_add_mob_race2_map(struct constant_tbl * constant_tbl, struct mob_race2_tbl * mob_race2_tbl) {
+    int status = 0;
+    struct mob_race2 * mob_race2;
+    struct constant * constant;
+
+    if(map_create(&constant_tbl->map_mob_race2, string_compare, constant_tbl->map_macro.pool)) {
+        status = panic("failed to create map object");
+    } else {
+        mob_race2 = list_start(&mob_race2_tbl->list);
+        while(mob_race2 && !status) {
+            constant = map_search(&constant_tbl->map_macro, mob_race2->race);
+            if(!constant) {
+                status = panic("failed to get constant object - %s", mob_race2->race);
+            } else if(map_insert(&constant_tbl->map_mob_race2, constant->macro, constant)) {
+                status = panic("failed to insert map object");
+            }
+            mob_race2 = list_next(&mob_race2_tbl->list);
+        }
+        if(status)
+            map_destroy(&constant_tbl->map_mob_race2);
     }
 
     return status;
@@ -1252,8 +1331,31 @@ int db_constant_tbl_create(struct db * db, struct json * json) {
         if(constant_tbl_create(&db->constant_tbl, db->pool_map)) {
             status = panic("failed to create constant table object");
         } else {
-            if(constant_tbl_load(&db->constant_tbl, node, db->range_node_pool, db->sector_list))
+            if(constant_tbl_load(&db->constant_tbl, node, db->range_node_pool, db->sector_list)) {
                 status = panic("failed to load constant table object");
+            } else {
+                if( constant_tbl_add_map(&db->constant_tbl, node, "announces", &db->constant_tbl.map_announces) ||
+                    constant_tbl_add_map(&db->constant_tbl, node, "classes", &db->constant_tbl.map_classes) ||
+                    constant_tbl_add_map(&db->constant_tbl, node, "effects", &db->constant_tbl.map_effects) ||
+                    constant_tbl_add_map(&db->constant_tbl, node, "elements", &db->constant_tbl.map_elements) ||
+                    constant_tbl_add_map(&db->constant_tbl, node, "gettimes", &db->constant_tbl.map_gettimes) ||
+                    constant_tbl_add_map(&db->constant_tbl, node, "itemgroups", &db->constant_tbl.map_itemgroups) ||
+                    constant_tbl_add_map(&db->constant_tbl, node, "jobs", &db->constant_tbl.map_jobs) ||
+                    constant_tbl_add_map(&db->constant_tbl, node, "locations", &db->constant_tbl.map_locations) ||
+                    constant_tbl_add_map(&db->constant_tbl, node, "mapflags", &db->constant_tbl.map_mapflags) ||
+                    constant_tbl_add_map(&db->constant_tbl, node, "options", &db->constant_tbl.map_options) ||
+                    constant_tbl_add_map(&db->constant_tbl, node, "races", &db->constant_tbl.map_races) ||
+                    constant_tbl_add_map(&db->constant_tbl, node, "readparam", &db->constant_tbl.map_readparam) ||
+                    constant_tbl_add_map(&db->constant_tbl, node, "sc_end", &db->constant_tbl.map_sc_end) ||
+                    constant_tbl_add_map(&db->constant_tbl, node, "sc_start", &db->constant_tbl.map_sc_start) ||
+                    constant_tbl_add_map(&db->constant_tbl, node, "sizes", &db->constant_tbl.map_sizes) ||
+                    constant_tbl_add_map(&db->constant_tbl, node, "vip_status", &db->constant_tbl.map_vip_status) ) {
+                    status = panic("failed to add map constant table object");
+                } else if(constant_tbl_add_mob_race2_map(&db->constant_tbl, &db->mob_race2_tbl)) {
+                    status = panic("failed to add mob race2 map constant table object");
+                }
+            }
+
             if(status)
                 constant_tbl_destroy(&db->constant_tbl);
         }
