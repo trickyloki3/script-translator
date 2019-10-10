@@ -1,7 +1,6 @@
 #ifndef sector_list_h
 #define sector_list_h
 
-#include "pool.h"
 #include "list.h"
 #include "sector.h"
 

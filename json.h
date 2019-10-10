@@ -1,9 +1,6 @@
 #ifndef json_h
 #define json_h
 
-#include "pool.h"
-#include "map.h"
-#include "list.h"
 #include "pool_map.h"
 #include "sector_list.h"
 #include "aux.h"

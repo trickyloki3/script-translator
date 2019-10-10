@@ -1,7 +1,6 @@
 #ifndef pool_map_h
 #define pool_map_h
 
-#include "pool.h"
 #include "list.h"
 #include "map.h"
 
