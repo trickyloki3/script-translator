@@ -5,9 +5,9 @@ void kv_destroy(struct kv *);
 
 int kv_map_create(struct kv_map *, struct pool_map *);
 void kv_map_destroy(struct kv_map *);
-int kv_map_load_json(struct kv_map *, struct json_node *, struct sector_list *);
+int kv_map_load(struct kv_map *, struct json_node *, struct sector_list *);
 
-int kv_map_json_create(struct kv_map *, struct json_node *, char *, struct pool_map *, struct sector_list *);
+int data_kv_map_create(struct kv_map *, struct json_node *, char *, struct pool_map *, struct sector_list *);
 
 int kv_create(struct kv * kv, char * key, struct json_node * value, struct sector_list * sector_list) {
     int status = 0;
@@ -68,7 +68,7 @@ void kv_map_destroy(struct kv_map * kv_map) {
     list_destroy(&kv_map->list);
 }
 
-int kv_map_load_json(struct kv_map * kv_map, struct json_node * node, struct sector_list * sector_list) {
+int kv_map_load(struct kv_map * kv_map, struct json_node * node, struct sector_list * sector_list) {
     int status = 0;
     struct map_pair pair;
     struct kv * kv;
@@ -102,7 +102,7 @@ int kv_map_load_json(struct kv_map * kv_map, struct json_node * node, struct sec
     return status;
 }
 
-int kv_map_json_create(struct kv_map * kv_map, struct json_node * node, char * key, struct pool_map * pool_map, struct sector_list * sector_list) {
+int data_kv_map_create(struct kv_map * kv_map, struct json_node * node, char * key, struct pool_map * pool_map, struct sector_list * sector_list) {
     int status = 0;
     struct json_node * object;
 
@@ -113,8 +113,8 @@ int kv_map_json_create(struct kv_map * kv_map, struct json_node * node, char * k
         if(kv_map_create(kv_map, pool_map)) {
             status = panic("failed to create kv map object");
         } else {
-            if(kv_map_load_json(kv_map, object, sector_list))
-                status = panic("failed to load json kv map object");
+            if(kv_map_load(kv_map, object, sector_list))
+                status = panic("failed to load kv map object");
             if(status)
                 kv_map_destroy(kv_map);
         }
@@ -130,22 +130,22 @@ int data_create(struct data * data, struct pool_map * pool_map, struct sector_li
     if(json_parse(json, "data.json", &node)) {
         status = panic("failed to parse json object");
     } else {
-        if( kv_map_json_create(&data->ammo_type, node, "ammo_type", pool_map, sector_list) ||
-            kv_map_json_create(&data->basejob, node, "basejob", pool_map, sector_list) ||
-            kv_map_json_create(&data->bonus_script_flag, node, "bonus_script_flag", pool_map, sector_list) ||
-            kv_map_json_create(&data->class, node, "class", pool_map, sector_list) ||
-            kv_map_json_create(&data->class_group, node, "class_group", pool_map, sector_list) ||
-            kv_map_json_create(&data->gender, node, "gender", pool_map, sector_list) ||
-            kv_map_json_create(&data->getiteminfo_type, node, "getiteminfo_type", pool_map, sector_list) ||
-            kv_map_json_create(&data->item_location, node, "item_location", pool_map, sector_list) ||
-            kv_map_json_create(&data->item_type, node, "item_type", pool_map, sector_list) ||
-            kv_map_json_create(&data->job, node, "job", pool_map, sector_list) ||
-            kv_map_json_create(&data->job_group, node, "job_group", pool_map, sector_list) ||
-            kv_map_json_create(&data->refineable, node, "refineable", pool_map, sector_list) ||
-            kv_map_json_create(&data->searchstore_effect, node, "searchstore_effect", pool_map, sector_list) ||
-            kv_map_json_create(&data->skill_flag, node, "skill_flag", pool_map, sector_list) ||
-            kv_map_json_create(&data->strcharinfo_type, node, "strcharinfo_type", pool_map, sector_list) ||
-            kv_map_json_create(&data->weapon_type, node, "weapon_type", pool_map, sector_list) )
+        if( data_kv_map_create(&data->ammo_type, node, "ammo_type", pool_map, sector_list) ||
+            data_kv_map_create(&data->basejob, node, "basejob", pool_map, sector_list) ||
+            data_kv_map_create(&data->bonus_script_flag, node, "bonus_script_flag", pool_map, sector_list) ||
+            data_kv_map_create(&data->class, node, "class", pool_map, sector_list) ||
+            data_kv_map_create(&data->class_group, node, "class_group", pool_map, sector_list) ||
+            data_kv_map_create(&data->gender, node, "gender", pool_map, sector_list) ||
+            data_kv_map_create(&data->getiteminfo_type, node, "getiteminfo_type", pool_map, sector_list) ||
+            data_kv_map_create(&data->item_location, node, "item_location", pool_map, sector_list) ||
+            data_kv_map_create(&data->item_type, node, "item_type", pool_map, sector_list) ||
+            data_kv_map_create(&data->job, node, "job", pool_map, sector_list) ||
+            data_kv_map_create(&data->job_group, node, "job_group", pool_map, sector_list) ||
+            data_kv_map_create(&data->refineable, node, "refineable", pool_map, sector_list) ||
+            data_kv_map_create(&data->searchstore_effect, node, "searchstore_effect", pool_map, sector_list) ||
+            data_kv_map_create(&data->skill_flag, node, "skill_flag", pool_map, sector_list) ||
+            data_kv_map_create(&data->strcharinfo_type, node, "strcharinfo_type", pool_map, sector_list) ||
+            data_kv_map_create(&data->weapon_type, node, "weapon_type", pool_map, sector_list) )
             status = panic("failed to json create kv map object");
         json_clear(json);
     }
