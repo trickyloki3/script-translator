@@ -15,7 +15,11 @@ int main(int argc, char ** argv) {
     struct db db;
     struct data data;
 
-    if(pool_create(&list_node_pool, sizeof(struct list_node), 64)) {
+    if(argc < 2) {
+        status = panic("missing working directory argument");
+    } else if(chdir(argv[1])) {
+        status = panic("failed to change directory - %s", argv[1]);
+    } else if(pool_create(&list_node_pool, sizeof(struct list_node), 64)) {
         status = panic("failed to create pool object");
     } else {
         if(pool_create(&map_node_pool, sizeof(struct map_node), 64)) {
