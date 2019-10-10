@@ -50,6 +50,13 @@ int mercenary_tbl_create(struct mercenary_tbl *, struct pool_map *);
 void mercenary_tbl_destroy(struct mercenary_tbl *);
 int mercenary_tbl_add(struct mercenary_tbl *, struct list *, struct sector_list *);
 
+int constant_create(struct constant *, char *, struct json_node *, struct pool *, struct sector_list *);
+void constant_destroy(struct constant *);
+
+int constant_tbl_create(struct constant_tbl *, struct pool_map *);
+void constant_tbl_destroy(struct constant_tbl *);
+int constant_tbl_load(struct constant_tbl *, struct json_node *, struct pool *, struct sector_list *);
+
 int db_item_tbl_create_cb(struct list *, void *);
 int db_item_tbl_create(struct db *, struct csv *);
 int db_item_combo_tbl_create_cb(struct list *, void *);
@@ -64,6 +71,7 @@ int db_produce_tbl_create_cb(struct list *, void *);
 int db_produce_tbl_create(struct db *, struct csv *);
 int db_mercenary_tbl_create_cb(struct list *, void *);
 int db_mercenary_tbl_create(struct db *, struct csv *);
+int db_constant_tbl_create(struct db *, struct json *);
 
 int item_create(struct item * item, struct list * record, struct pool * list_node_pool, struct sector_list * sector_list) {
     int status = 0;
@@ -905,6 +913,151 @@ int mercenary_tbl_add(struct mercenary_tbl * mercenary_tbl, struct list * record
     return status;
 }
 
+int constant_create(struct constant * constant, char * macro, struct json_node * node, struct pool * range_node_pool, struct sector_list * sector_list) {
+    int status = 0;
+
+    struct json_node * value;
+    struct json_node * name;
+    char * string;
+    struct json_node * range;
+    struct json_node * element;
+    struct json_node * min;
+    struct json_node * max;
+
+    memset(constant, 0, sizeof(*constant));
+
+    if(char_create2(sector_list, macro, strlen(macro), &constant->macro)) {
+        status = panic("failed to create char object");
+    } else {
+        value = json_object_get(node, "value");
+        if(!value) {
+            status = panic("failed to get json object - value");
+        } else {
+            constant->value = (long) json_number_get(value);
+
+            name = json_object_get(node, "name");
+            if(name) {
+                string = json_string_get(name);
+                if(!string) {
+                    status = panic("failed to get string object");
+                } else if(char_create2(sector_list, string, strlen(string), &constant->name)) {
+                    status = panic("failed to create char object");
+                }
+            }
+
+            range = json_object_get(node, "range");
+            if(range) {
+                if(range_create(&constant->range, range_node_pool)) {
+                    status = panic("failed to create range object");
+                } else {
+                    element = json_array_start(range);
+                    while(element && !status) {
+                        min = json_object_get(element, "min");
+                        if(!min) {
+                            status = panic("failed to get json object - min");
+                        } else {
+                            max = json_object_get(element, "max");
+                            if(!max) {
+                                status = panic("failed to get json object - max");
+                            } else if(range_add(&constant->range, json_number_get(min), json_number_get(max))) {
+                                status = panic("failed to add range object");
+                            }
+                        }
+                        element = json_array_next(range);
+                    }
+                    if(status)
+                        range_destroy(&constant->range);
+                }
+            }
+        }
+    }
+
+    if(status)
+        constant_destroy(constant);
+
+    return status;
+}
+
+void constant_destroy(struct constant * constant) {
+    range_destroy(&constant->range);
+    char_destroy(constant->name);
+    char_destroy(constant->macro);
+}
+
+int constant_tbl_create(struct constant_tbl * constant_tbl, struct pool_map * pool_map) {
+    int status = 0;
+
+    constant_tbl->pool = pool_map_get(pool_map, sizeof(struct constant));
+    if(!constant_tbl->pool) {
+        status = panic("failed to get pool map object");
+    } else {
+        if(list_create(&constant_tbl->list, pool_map_get(pool_map, sizeof(struct list_node)))) {
+            status = panic("failed to create list object");
+        } else {
+            if(map_create(&constant_tbl->map_macro, string_compare, pool_map_get(pool_map, sizeof(struct map_node))))
+                status = panic("failed to create map object");
+            if(status)
+                list_destroy(&constant_tbl->list);
+        }
+    }
+
+    return status;
+}
+
+void constant_tbl_destroy(struct constant_tbl * constant_tbl) {
+    struct constant * constant;
+
+    constant = list_pop(&constant_tbl->list);
+    while(constant) {
+        constant_destroy(constant);
+        pool_put(constant_tbl->pool, constant);
+        constant = list_pop(&constant_tbl->list);
+    }
+
+    map_destroy(&constant_tbl->map_macro);
+    list_destroy(&constant_tbl->list);
+}
+
+int constant_tbl_load(struct constant_tbl * constant_tbl, struct json_node * node, struct pool * range_node_pool, struct sector_list * sector_list) {
+    int status = 0;
+    struct json_node * constants;
+    struct map_pair pair;
+    struct constant * constant;
+
+    constants = json_object_get(node, "constants");
+    if(!constants) {
+        status = panic("failed to get json object - constants");
+    } else {
+        pair = json_object_start(constants);
+        while(pair.key && pair.value && !status) {
+            constant = pool_get(constant_tbl->pool);
+            if(!constant) {
+                status = panic("out of memory");
+            } else {
+                if(constant_create(constant, pair.key, pair.value, range_node_pool, sector_list)) {
+                    status = panic("failed to create constant object");
+                } else {
+                    if(list_push(&constant_tbl->list, constant)) {
+                        status = panic("failed to push list object");
+                    } else {
+                        if(map_insert(&constant_tbl->map_macro, constant->macro, constant))
+                            status = panic("failed to insert map object");
+                        if(status)
+                            list_pop(&constant_tbl->list);
+                    }
+                    if(status)
+                        constant_destroy(constant);
+                }
+                if(status)
+                    pool_put(constant_tbl->pool, constant);
+            }
+            pair = json_object_next(constants);
+        }
+    }
+
+    return status;
+}
+
 int db_item_tbl_create_cb(struct list * record, void * data) {
     int status = 0;
     struct db * db = data;
@@ -1089,6 +1242,27 @@ int db_mercenary_tbl_create(struct db * db, struct csv * csv) {
     return status;
 }
 
+int db_constant_tbl_create(struct db * db, struct json * json) {
+    int status = 0;
+    struct json_node * node;
+
+    if(json_parse(json, "constants.json", &node)) {
+        status = panic("failed to parse json object");
+    } else {
+        if(constant_tbl_create(&db->constant_tbl, db->pool_map)) {
+            status = panic("failed to create constant table object");
+        } else {
+            if(constant_tbl_load(&db->constant_tbl, node, db->range_node_pool, db->sector_list))
+                status = panic("failed to load constant table object");
+            if(status)
+                constant_tbl_destroy(&db->constant_tbl);
+        }
+        json_clear(json);
+    }
+
+    return status;
+}
+
 int db_create(struct db * db, struct pool_map * pool_map, struct sector_list * sector_list, struct csv * csv, struct json * json) {
     int status = 0;
 
@@ -1111,6 +1285,8 @@ int db_create(struct db * db, struct pool_map * pool_map, struct sector_list * s
         status = panic("failed to create produce table object");
     } else if(db_mercenary_tbl_create(db, csv)) {
         status = panic("failed to create mercenary table object");
+    } else if(db_constant_tbl_create(db, json)) {
+        status = panic("failed to create constant table object");
     }
 
     if(status)
@@ -1120,6 +1296,7 @@ int db_create(struct db * db, struct pool_map * pool_map, struct sector_list * s
 }
 
 void db_destroy(struct db * db) {
+    constant_tbl_destroy(&db->constant_tbl);
     mercenary_tbl_destroy(&db->mercenary_tbl);
     produce_tbl_destroy(&db->produce_tbl);
     mob_race2_tbl_destroy(&db->mob_race2_tbl);
