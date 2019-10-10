@@ -61,7 +61,7 @@ void json_clear(struct json * json) {
     json->root = NULL;
 }
 
-int json_parse(struct json * json, const char * path) {
+int json_parse(struct json * json, const char * path, struct json_node ** result) {
     int status = 0;
 
     FILE * file;
@@ -85,7 +85,11 @@ int json_parse(struct json * json, const char * path) {
                     status = panic("faield to create buffer state object");
                 } else {
                     jsonpush_buffer_state(buffer, scanner);
-                    status = json_parse_loop(json, scanner, parser);
+                    if(json_parse_loop(json, scanner, parser)) {
+                        status = panic("failed to parse loop json object");
+                    } else {
+                        *result = json->root;
+                    }
                     jsonpop_buffer_state(scanner);
                 }
                 jsonpstate_delete(parser);

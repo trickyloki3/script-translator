@@ -38,7 +38,7 @@ struct json {
 int json_create(struct json *, struct pool_map *, struct sector_list *);
 void json_destroy(struct json *);
 void json_clear(struct json *);
-int json_parse(struct json *, const char *);
+int json_parse(struct json *, const char *, struct json_node **);
 int json_add_node(struct json *, enum json_type, char *, size_t, struct json_node **);
 int json_push_node(struct json *, struct json_node *);
 int json_pop_node(struct json *, enum json_type);
@@ -46,6 +46,7 @@ int json_insert_object(struct json *, struct json_node *, struct json_node *);
 int json_insert_array(struct json *, struct json_node *);
 
 void json_node_print(struct json_node *);
+
 struct json_node * json_object_get(struct json_node *, char *);
 struct map_pair json_object_start(struct json_node *);
 struct map_pair json_object_next(struct json_node *);

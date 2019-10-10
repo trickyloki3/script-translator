@@ -1329,16 +1329,17 @@ int db_constant_tbl_create_cb(struct list * record, void * data) {
 
 int db_constant_tbl_create(struct db * db, struct csv * csv, struct json * json) {
     int status = 0;
+    struct json_node * node;
 
     if(constant_tbl_create(&db->constant_tbl, db->pool_map)) {
         status = panic("failed to create constant table object");
     } else {
         if(csv_parse(csv, "const_db.txt", db_constant_tbl_create_cb, db)) {
             status = panic("failed to parse csv object");
-        } else if(json_parse(json, "constants.json")) {
+        } else if(json_parse(json, "constants.json", &node)) {
             status = panic("failed to parse json object");
         } else {
-            if(constant_tbl_json_create(&db->constant_tbl, json->root)) {
+            if(constant_tbl_json_create(&db->constant_tbl, node)) {
                 status = panic("failed to create json constant table object");
             } else if(constant_tbl_add_mob_race2_map(&db->constant_tbl, &db->mob_race2_tbl)) {
                 status = panic("failed to add mob race2 constant table object");
