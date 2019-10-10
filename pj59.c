@@ -1,8 +1,7 @@
-#include "pool_map.h"
-#include "sector_list.h"
 #include "csv.h"
 #include "json.h"
 #include "db.h"
+#include "data.h"
 
 int main(int argc, char ** argv) {
     int status = 0;
@@ -14,6 +13,7 @@ int main(int argc, char ** argv) {
     struct csv csv;
     struct json json;
     struct db db;
+    struct data data;
 
     if(pool_create(&list_node_pool, sizeof(struct list_node), 64)) {
         status = panic("failed to create pool object");
@@ -39,6 +39,11 @@ int main(int argc, char ** argv) {
                                 if(db_create(&db, &pool_map, &sector_list, &csv, &json)) {
                                     status = panic("failed to create db object");
                                 } else {
+                                    if(data_create(&data, &pool_map, &sector_list, &json)) {
+                                        status = panic("failed to create data object");
+                                    } else {
+                                        data_destroy(&data);
+                                    }
                                     db_destroy(&db);
                                 }
                                 json_destroy(&json);

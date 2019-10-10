@@ -15,6 +15,7 @@ OBJECT+=json_parser.o
 OBJECT+=json_scanner.o
 OBJECT+=json.o
 OBJECT+=db.o
+OBJECT+=data.o
 
 all: clean pj59
 
