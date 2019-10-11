@@ -40,6 +40,10 @@ int char_create2(struct sector_list * sector_list, char * string, size_t length,
     return status;
 }
 
+size_t char_size(char * object) {
+    return sector_size(object) - 1;
+}
+
 void char_destroy(char * object) {
     sector_list_free(object);
 }

@@ -362,7 +362,7 @@ int json_string_copy(struct json_node * node, struct sector_list * sector_list, 
     string = json_string_get(node);
     if(!string) {
         status = panic("failed to get string object");
-    } else if(char_create2(sector_list, string, strlen(string), result)) {
+    } else if(char_create2(sector_list, string, char_size(string), result)) {
         status = panic("failed to create char object");
     }
 

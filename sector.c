@@ -261,6 +261,11 @@ void sector_free(void * object) {
     }
 }
 
+size_t sector_size(void * object) {
+    struct sector_header * header = sector_get_header(object);
+    return header->max - header->min - sector_header_size + 1;
+}
+
 void sector_print(struct sector * sector) {
     struct sector_node * root;
     struct sector_node * node;

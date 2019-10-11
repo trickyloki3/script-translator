@@ -20,6 +20,7 @@ int sector_create(struct sector *, size_t, struct pool *);
 void sector_destroy(struct sector *);
 void * sector_malloc(struct sector *, size_t);
 void sector_free(void *);
+size_t sector_size(void *);
 void sector_print(struct sector *);
 
 #endif

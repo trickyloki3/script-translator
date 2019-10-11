@@ -923,7 +923,7 @@ int constant_create(struct constant * constant, char * macro, struct json_node *
 
     memset(constant, 0, sizeof(*constant));
 
-    if(char_create2(sector_list, macro, strlen(macro), &constant->macro)) {
+    if(char_create2(sector_list, macro, char_size(macro), &constant->macro)) {
         status = panic("failed to create char object");
     } else {
         value = json_object_get(node, "value");
