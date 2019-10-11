@@ -917,14 +917,9 @@ int mercenary_tbl_add(struct mercenary_tbl * mercenary_tbl, struct list * record
 
 int constant_create(struct constant * constant, char * macro, struct json_node * node, struct pool * range_node_pool, struct sector_list * sector_list) {
     int status = 0;
-
     struct json_node * value;
     struct json_node * name;
-    char * string;
     struct json_node * range;
-    struct json_node * element;
-    struct json_node * min;
-    struct json_node * max;
 
     memset(constant, 0, sizeof(*constant));
 
@@ -939,12 +934,8 @@ int constant_create(struct constant * constant, char * macro, struct json_node *
 
             name = json_object_get(node, "name");
             if(name) {
-                string = json_string_get(name);
-                if(!string) {
-                    status = panic("failed to get string object");
-                } else if(char_create2(sector_list, string, strlen(string), &constant->name)) {
-                    status = panic("failed to create char object");
-                }
+                if(json_string_copy(name, sector_list, &constant->name))
+                    status = panic("failed to string copy json object");
             }
 
             range = json_object_get(node, "range");
@@ -952,21 +943,8 @@ int constant_create(struct constant * constant, char * macro, struct json_node *
                 if(range_create(&constant->range, range_node_pool)) {
                     status = panic("failed to create range object");
                 } else {
-                    element = json_array_start(range);
-                    while(element && !status) {
-                        min = json_object_get(element, "min");
-                        if(!min) {
-                            status = panic("failed to get json object - min");
-                        } else {
-                            max = json_object_get(element, "max");
-                            if(!max) {
-                                status = panic("failed to get json object - max");
-                            } else if(range_add(&constant->range, json_number_get(min), json_number_get(max))) {
-                                status = panic("failed to add range object");
-                            }
-                        }
-                        element = json_array_next(range);
-                    }
+                    if(json_range_add(range, &constant->range))
+                        status = panic("failed to range add json object");
                     if(status)
                         range_destroy(&constant->range);
                 }

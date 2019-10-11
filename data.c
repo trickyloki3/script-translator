@@ -11,20 +11,14 @@ int data_kv_map_create(struct kv_map *, struct json_node *, char *, struct pool_
 
 int kv_create(struct kv * kv, char * key, struct json_node * value, struct sector_list * sector_list) {
     int status = 0;
-    char * string;
     char * end;
 
-    string = json_string_get(value);
-    if(!string) {
-        status = panic("failed to get string object");
+    kv->number = strtol(key, &end, 10);
+    if(*end) {
+        status = panic("invalid string '%s' in '%s'", end, key);
     } else {
-        kv->number = strtol(key, &end, 10);
-        if(*end) {
-            status = panic("invalid string '%s' in '%s'", end, key);
-        } else {
-            if(char_create2(sector_list, string, strlen(string), &kv->string))
-                status = panic("failed to create char object");
-        }
+        if(json_string_copy(value, sector_list, &kv->string))
+            status = panic("failed to create char object");
     }
 
     return status;
