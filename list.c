@@ -71,6 +71,27 @@ void list_destroy(struct list * list) {
     }
 }
 
+int list_copy(struct list * result, struct list * copy) {
+    int status = 0;
+    void * object;
+
+    if(list_create(result, copy->pool)) {
+        status = panic("failed to create list object");
+    } else {
+        object = list_start(copy);
+        while(object && !status) {
+            if(list_push(result, object))
+                status = panic("failed to push list object");
+            object = list_next(copy);
+        }
+
+        if(status)
+            list_destroy(result);
+    }
+
+    return status;
+}
+
 int list_push(struct list * list, void * object) {
     int status = 0;
     struct list_node * node;
