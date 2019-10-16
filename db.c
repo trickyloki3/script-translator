@@ -50,7 +50,7 @@ int mercenary_tbl_create(struct mercenary_tbl *, struct pool_map *);
 void mercenary_tbl_destroy(struct mercenary_tbl *);
 int mercenary_tbl_add(struct mercenary_tbl *, struct list *, struct sector_list *);
 
-int constant_create(struct constant *, char *, struct json_node *, struct pool *, struct sector_list *);
+int constant_create(struct constant *, sstring, struct json_node *, struct pool *, struct sector_list *);
 void constant_destroy(struct constant *);
 
 int constant_tbl_create(struct constant_tbl *, struct pool_map *);
@@ -91,9 +91,9 @@ int item_create(struct item * item, struct list * record, struct pool * list_nod
         string = list_start(record);
         while(string && !status) {
             switch(field) {
-                case 0: status = char_create(sector_list, string, &item->onunequip); break;
-                case 1: status = char_create(sector_list, string, &item->onequip); break;
-                case 2: status = char_create(sector_list, string, &item->bonus); break;
+                case 0: status = sstring_create2(&item->onunequip, string, sector_list); break;
+                case 1: status = sstring_create2(&item->onequip, string, sector_list); break;
+                case 2: status = sstring_create2(&item->bonus, string, sector_list); break;
                 case 3: status = string_strtol(string, 10, &item->view); break;
                 case 4: status = string_strtol(string, 10, &item->refineable); break;
                 case 5: status = string_strtol_splitv(string, 10, ':', &item->base_level, &item->max_level, NULL); break;
@@ -110,8 +110,8 @@ int item_create(struct item * item, struct list * record, struct pool * list_nod
                 case 16: status = string_strtol(string, 10, &item->sell); break;
                 case 17: status = string_strtol(string, 10, &item->buy); break;
                 case 18: status = string_strtol(string, 10, &item->type); break;
-                case 19: status = char_create(sector_list, string, &item->name); break;
-                case 20: status = char_create(sector_list, string, &item->aegis); break;
+                case 19: status = sstring_create2(&item->name, string, sector_list); break;
+                case 20: status = sstring_create2(&item->aegis, string, sector_list); break;
                 case 21: status = string_strtol(string, 10, &item->id); break;
                 default: status = panic("row has too many columns"); break;
             }
@@ -128,11 +128,11 @@ int item_create(struct item * item, struct list * record, struct pool * list_nod
 
 void item_destroy(struct item * item) {
     list_destroy(&item->combo);
-    char_destroy(item->onunequip);
-    char_destroy(item->onequip);
-    char_destroy(item->bonus);
-    char_destroy(item->name);
-    char_destroy(item->aegis);
+    sstring_destroy(item->onunequip);
+    sstring_destroy(item->onequip);
+    sstring_destroy(item->bonus);
+    sstring_destroy(item->name);
+    sstring_destroy(item->aegis);
 }
 
 int item_tbl_create(struct item_tbl * item_tbl, struct pool_map * pool_map) {
@@ -244,7 +244,7 @@ int item_combo_create(struct item_combo * item_combo, struct list * record, stru
         string = list_start(record);
         while(string && !status) {
             switch(field) {
-                case 0: status = char_create(sector_list, string, &item_combo->bonus); break;
+                case 0: status = sstring_create2(&item_combo->bonus, string, sector_list); break;
                 case 1: status = string_strtol_split(string, 10, ':', &item_combo->id); break;
                 default: status = panic("row has too many columns"); break;
             }
@@ -260,7 +260,7 @@ int item_combo_create(struct item_combo * item_combo, struct list * record, stru
 }
 
 void item_combo_destroy(struct item_combo * item_combo) {
-    char_destroy(item_combo->bonus);
+    sstring_destroy(item_combo->bonus);
     array_destroy(&item_combo->id);
 }
 
@@ -328,15 +328,15 @@ int skill_create(struct skill * skill, struct list * record, struct sector_list 
         string = list_start(record);
         while(string && !status) {
             switch(field) {
-                case 0: status = char_create(sector_list, string, &skill->name); break;
-                case 1: status = char_create(sector_list, string, &skill->macro); break;
+                case 0: status = sstring_create2(&skill->name, string, sector_list); break;
+                case 1: status = sstring_create2(&skill->macro, string, sector_list); break;
                 case 2: status = string_strtol(string, 16, &skill->inf3); break;
                 case 3: status = string_strtol_split(string, 10, ':', &skill->blow_count); break;
-                case 4: status = char_create(sector_list, string, &skill->type); break;
+                case 4: status = sstring_create2(&skill->type, string, sector_list); break;
                 case 5: status = string_strtol_split(string, 10, ':', &skill->max_count); break;
                 case 6: status = string_strtol(string, 16, &skill->inf2); break;
                 case 7: status = string_strtol(string, 10, &skill->cast_def_reduce_rate); break;
-                case 8: status = char_create(sector_list, string, &skill->cast_cancel); break;
+                case 8: status = sstring_create2(&skill->cast_cancel, string, sector_list); break;
                 case 9: status = string_strtol_split(string, 10, ':', &skill->hit_amount); break;
                 case 10: status = string_strtol(string, 10, &skill->maxlv); break;
                 case 11: status = string_strtol_split(string, 10, ':', &skill->splash); break;
@@ -360,12 +360,12 @@ int skill_create(struct skill * skill, struct list * record, struct sector_list 
 }
 
 void skill_destroy(struct skill * skill) {
-    char_destroy(skill->name);
-    char_destroy(skill->macro);
+    sstring_destroy(skill->name);
+    sstring_destroy(skill->macro);
     array_destroy(&skill->blow_count);
-    char_destroy(skill->type);
+    sstring_destroy(skill->type);
     array_destroy(&skill->max_count);
-    char_destroy(skill->cast_cancel);
+    sstring_destroy(skill->cast_cancel);
     array_destroy(&skill->hit_amount);
     array_destroy(&skill->splash);
     array_destroy(&skill->element);
@@ -515,9 +515,9 @@ int mob_create(struct mob * mob, struct list * record, struct sector_list * sect
                 case 50: status = string_strtol(string, 10, &mob->sp); break;
                 case 51: status = string_strtol(string, 10, &mob->hp); break;
                 case 52: status = string_strtol(string, 10, &mob->level); break;
-                case 53: status = char_create(sector_list, string, &mob->iro); break;
-                case 54: status = char_create(sector_list, string, &mob->kro); break;
-                case 55: status = char_create(sector_list, string, &mob->sprite); break;
+                case 53: status = sstring_create2(&mob->iro, string, sector_list); break;
+                case 54: status = sstring_create2(&mob->kro, string, sector_list); break;
+                case 55: status = sstring_create2(&mob->sprite, string, sector_list); break;
                 case 56: status = string_strtol(string, 10, &mob->id); break;
                 default: status = panic("row has too many columns"); break;
             }
@@ -533,9 +533,9 @@ int mob_create(struct mob * mob, struct list * record, struct sector_list * sect
 }
 
 void mob_destroy(struct mob * mob) {
-    char_destroy(mob->iro);
-    char_destroy(mob->kro);
-    char_destroy(mob->sprite);
+    sstring_destroy(mob->iro);
+    sstring_destroy(mob->kro);
+    sstring_destroy(mob->sprite);
 }
 
 int mob_tbl_create(struct mob_tbl * mob_tbl, struct pool_map * pool_map) {
@@ -619,7 +619,7 @@ int mob_race2_create(struct mob_race2 * mob_race2, struct list * record, struct 
             if(field < record->size - 1) {
                 status = string_strtol(string, 10, array_index(&mob_race2->id, field));
             } else if(field == record->size - 1) {
-                status = char_create(sector_list, string, &mob_race2->race);
+                status = sstring_create2(&mob_race2->race, string, sector_list);
             } else {
                 status = panic("row has too many columns");
             }
@@ -636,7 +636,7 @@ int mob_race2_create(struct mob_race2 * mob_race2, struct list * record, struct 
 
 void mob_race2_destroy(struct mob_race2 * mob_race2) {
     array_destroy(&mob_race2->id);
-    char_destroy(mob_race2->race);
+    sstring_destroy(mob_race2->race);
 }
 
 int mob_race2_tbl_create(struct mob_race2_tbl * mob_race2_tbl, struct pool_map * pool_map) {
@@ -831,8 +831,8 @@ int mercenary_create(struct mercenary * mercenary, struct list * record, struct 
                 case 20: status = string_strtol(string, 10, &mercenary->sp); break;
                 case 21: status = string_strtol(string, 10, &mercenary->hp); break;
                 case 22: status = string_strtol(string, 10, &mercenary->level); break;
-                case 23: status = char_create(sector_list, string, &mercenary->name); break;
-                case 24: status = char_create(sector_list, string, &mercenary->sprite); break;
+                case 23: status = sstring_create2(&mercenary->name, string, sector_list); break;
+                case 24: status = sstring_create2(&mercenary->sprite, string, sector_list); break;
                 case 25: status = string_strtol(string, 10, &mercenary->id); break;
                 default: status = panic("row has too many columns"); break;
             }
@@ -848,8 +848,8 @@ int mercenary_create(struct mercenary * mercenary, struct list * record, struct 
 }
 
 void mercenary_destroy(struct mercenary * mercenary) {
-    char_destroy(mercenary->name);
-    char_destroy(mercenary->sprite);
+    sstring_destroy(mercenary->name);
+    sstring_destroy(mercenary->sprite);
 }
 
 int mercenary_tbl_create(struct mercenary_tbl * mercenary_tbl, struct pool_map * pool_map) {
@@ -915,7 +915,7 @@ int mercenary_tbl_add(struct mercenary_tbl * mercenary_tbl, struct list * record
     return status;
 }
 
-int constant_create(struct constant * constant, char * macro, struct json_node * node, struct pool * range_node_pool, struct sector_list * sector_list) {
+int constant_create(struct constant * constant, sstring macro, struct json_node * node, struct pool * range_node_pool, struct sector_list * sector_list) {
     int status = 0;
     struct json_node * value;
     struct json_node * name;
@@ -923,7 +923,7 @@ int constant_create(struct constant * constant, char * macro, struct json_node *
 
     memset(constant, 0, sizeof(*constant));
 
-    if(char_create2(sector_list, macro, char_size(macro), &constant->macro)) {
+    if(sstring_create(&constant->macro, macro, sstring_size(macro), sector_list)) {
         status = panic("failed to create char object");
     } else {
         value = json_object_get(node, "value");
@@ -960,8 +960,8 @@ int constant_create(struct constant * constant, char * macro, struct json_node *
 
 void constant_destroy(struct constant * constant) {
     range_destroy(&constant->range);
-    char_destroy(constant->name);
-    char_destroy(constant->macro);
+    sstring_destroy(constant->name);
+    sstring_destroy(constant->macro);
 }
 
 int constant_tbl_create(struct constant_tbl * constant_tbl, struct pool_map * pool_map) {

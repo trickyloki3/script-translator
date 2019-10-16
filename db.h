@@ -10,8 +10,8 @@
 
 struct item {
     long id;
-    char * aegis;
-    char * name;
+    sstring aegis;
+    sstring name;
     long type;
     long buy;
     long sell;
@@ -30,9 +30,9 @@ struct item {
     long max_level;
     long refineable;
     long view;
-    char * bonus;
-    char * onequip;
-    char * onunequip;
+    sstring bonus;
+    sstring onequip;
+    sstring onunequip;
     struct list combo;
 };
 
@@ -45,7 +45,7 @@ struct item_tbl {
 
 struct item_combo {
     struct array id;
-    char * bonus;
+    sstring bonus;
 };
 
 struct item_combo_tbl {
@@ -63,15 +63,15 @@ struct skill {
     struct array splash;
     long maxlv;
     struct array hit_amount;
-    char * cast_cancel;
+    sstring cast_cancel;
     long cast_def_reduce_rate;
     long inf2;
     struct array max_count;
-    char * type;
+    sstring type;
     struct array blow_count;
     long inf3;
-    char * macro;
-    char * name;
+    sstring macro;
+    sstring name;
 };
 
 struct skill_tbl {
@@ -83,9 +83,9 @@ struct skill_tbl {
 
 struct mob {
     long id;
-    char * sprite;
-    char * kro;
-    char * iro;
+    sstring sprite;
+    sstring kro;
+    sstring iro;
     long level;
     long hp;
     long sp;
@@ -128,7 +128,7 @@ struct mob_tbl {
 };
 
 struct mob_race2 {
-    char * race;
+    sstring race;
     struct array id;
 };
 
@@ -154,8 +154,8 @@ struct produce_tbl {
 
 struct mercenary {
     long id;
-    char * sprite;
-    char * name;
+    sstring sprite;
+    sstring name;
     long level;
     long hp;
     long sp;
@@ -188,9 +188,9 @@ struct mercenary_tbl {
 };
 
 struct constant {
-    char * macro;
+    sstring macro;
     long value;
-    char * name;
+    sstring name;
     struct range range;
 };
 

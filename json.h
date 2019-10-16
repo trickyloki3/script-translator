@@ -22,7 +22,7 @@ struct json_node {
         struct map map;
         struct list list;
         double number;
-        char * string;
+        sstring string;
     };
 };
 
@@ -53,10 +53,10 @@ struct map_pair json_object_start(struct json_node *);
 struct map_pair json_object_next(struct json_node *);
 struct json_node * json_array_start(struct json_node *);
 struct json_node * json_array_next(struct json_node *);
-char * json_string_get(struct json_node *);
+sstring json_string_get(struct json_node *);
 double json_number_get(struct json_node *);
 
-int json_string_copy(struct json_node *, struct sector_list *, char **);
+int json_string_copy(struct json_node *, struct sector_list *, sstring *);
 int json_range_add(struct json_node *, struct range *);
 
 #endif

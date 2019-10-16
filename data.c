@@ -25,7 +25,7 @@ int kv_create(struct kv * kv, char * key, struct json_node * value, struct secto
 }
 
 void kv_destroy(struct kv * kv) {
-    char_destroy(kv->string);
+    sstring_destroy(kv->string);
 }
 
 int kv_map_create(struct kv_map * kv_map, struct pool_map * pool_map) {

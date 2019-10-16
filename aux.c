@@ -10,24 +10,9 @@ int string_compare(void * x, void * y) {
     return strcmp(x, y);
 }
 
-int char_create(struct sector_list * sector_list, struct string * string, char ** result) {
+int sstring_create(sstring * result, char * string, size_t length, struct sector_list * sector_list) {
     int status = 0;
-    char * object;
-
-    object = sector_list_malloc(sector_list, string->offset + 1);
-    if(!object) {
-        status = panic("out of memory");
-    } else {
-        object[string->offset] = 0;
-        *result = memcpy(object, string->string, string->offset);
-    }
-
-    return status;
-}
-
-int char_create2(struct sector_list * sector_list, char * string, size_t length, char ** result) {
-    int status = 0;
-    char * object;
+    sstring object;
 
     object = sector_list_malloc(sector_list, length + 1);
     if(!object) {
@@ -40,10 +25,14 @@ int char_create2(struct sector_list * sector_list, char * string, size_t length,
     return status;
 }
 
-size_t char_size(char * object) {
-    return sector_size(object) - 1;
+int sstring_create2(sstring * result, struct string * string, struct sector_list * sector_list) {
+    return sstring_create(result, string->string, string->offset, sector_list);
 }
 
-void char_destroy(char * object) {
-    sector_list_free(object);
+void sstring_destroy(sstring string) {
+    sector_list_free(string);
+}
+
+size_t sstring_size(sstring string) {
+    return sector_size(string) - 1;
 }

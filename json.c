@@ -156,8 +156,8 @@ int json_node_create(struct json_node * node, enum json_type type, struct pool *
                 status = panic("invalid string '%s' in '%s'", end, string);
             break;
         case json_string:
-            if(char_create2(sector_list, string, length, &node->string))
-                status = panic("failed to create char object");
+            if(sstring_create(&node->string, string, length, sector_list))
+                status = panic("failed to create sstring object");
             break;
         default:
             status = panic("invalid type - %d", node->type);
@@ -176,7 +176,7 @@ void json_node_destroy(struct json_node * node) {
             list_destroy(&node->list);
             break;
         case json_string:
-            char_destroy(node->string);
+            sstring_destroy(node->string);
             break;
         default:
             break;
@@ -347,7 +347,7 @@ struct json_node * json_array_next(struct json_node * node) {
     return node->type == json_array ? list_next(&node->list) : NULL;
 }
 
-char * json_string_get(struct json_node * node) {
+sstring json_string_get(struct json_node * node) {
     return node->type == json_string ? node->string : NULL;
 }
 
@@ -355,14 +355,14 @@ double json_number_get(struct json_node * node) {
     return node->type == json_number ? node->number : 0;
 }
 
-int json_string_copy(struct json_node * node, struct sector_list * sector_list, char ** result) {
+int json_string_copy(struct json_node * node, struct sector_list * sector_list, sstring * result) {
     int status = 0;
-    char * string;
+    sstring string;
 
     string = json_string_get(node);
     if(!string) {
         status = panic("failed to get string object");
-    } else if(char_create2(sector_list, string, char_size(string), result)) {
+    } else if(sstring_create(result, string, sstring_size(string), sector_list)) {
         status = panic("failed to create char object");
     }
 

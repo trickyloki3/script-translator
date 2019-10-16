@@ -7,7 +7,7 @@
 
 struct kv {
     long number;
-    char * string;
+    sstring string;
 };
 
 struct kv_map {
