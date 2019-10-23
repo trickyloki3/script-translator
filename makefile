@@ -16,6 +16,7 @@ OBJECT+=json_scanner.o
 OBJECT+=json.o
 OBJECT+=db.o
 OBJECT+=data.o
+OBJECT+=logic.o
 
 all: clean pj59
 
