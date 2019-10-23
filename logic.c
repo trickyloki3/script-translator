@@ -7,6 +7,7 @@ int logic_var_merge(struct logic_var *, enum logic_type, struct range *);
 int logic_node_var_create(struct logic *, void *, sstring, struct range *, struct logic_node **);
 int logic_node_create(struct logic *, enum logic_type, struct logic_node **);
 void logic_node_destroy(struct logic *, struct logic_node *);
+int logic_node_copy(struct logic *, struct logic_node *, struct logic_node **);
 struct logic_node * logic_node_search(struct logic_node *, sstring);
 void logic_node_print(struct logic_node *, int);
 
@@ -123,6 +124,53 @@ void logic_node_destroy(struct logic * logic, struct logic_node * node) {
     }
 
     pool_put(logic->pool, node);
+}
+
+int logic_node_copy(struct logic * logic, struct logic_node * node, struct logic_node ** result) {
+    int status = 0;
+    struct logic_node * op;
+    struct logic_node * var;
+    struct logic_node * iter;
+
+    switch(node->type) {
+        case logic_var:
+            if(logic_node_var_create(logic, node->var.data, node->var.name, &node->var.range, &var)) {
+                status = panic("failed to create logic node var object");
+            } else {
+                *result = var;
+            }
+            break;
+        case logic_and:
+        case logic_or:
+        case logic_and_or:
+            if(logic_node_create(logic, node->type, &op)) {
+                status = panic("failed to create logic node object");
+            } else {
+                iter = list_start(&node->list);
+                while(iter && !status) {
+                    if(logic_node_copy(logic, iter, &var)) {
+                        status = panic("failed to copy logic node object");
+                    } else {
+                        if(list_push(&op->list, var))
+                            status = panic("failed to push list object");
+                        if(status)
+                            logic_node_destroy(logic, var);
+                    }
+                    iter = list_next(&node->list);
+                }
+                if(status) {
+                    logic_node_destroy(logic, op);
+                } else {
+                    *result = op;
+                }
+            }
+            break;
+        default:
+            status = panic("invalid type - %d", node->type);
+            break;
+    }
+
+    return status;
 }
 
 struct logic_node * logic_node_search(struct logic_node * node, sstring name) {
