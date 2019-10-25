@@ -17,6 +17,8 @@ int logic_add_var_all(struct logic *, struct logic_node *, void *, sstring, stru
 int logic_merge_var(struct logic *, struct logic_node *, struct logic_node *);
 int logic_merge_and_re(struct logic *, struct logic_node *, struct logic_node *);
 int logic_merge_and(struct logic *, struct logic_node *, struct logic_node *);
+int logic_merge_or_re(struct logic *, struct logic_node *, struct logic_node *);
+int logic_merge_or(struct logic *, struct logic_node *, struct logic_node *);
 
 int logic_var_create(struct logic_var * var, void * data, sstring name, struct range * range, struct sector_list * sector_list) {
     int status = 0;
@@ -445,6 +447,63 @@ int logic_merge_and(struct logic * logic, struct logic_node * parent, struct log
                 logic_node_destroy(logic, child);
             break;
         default:
+            logic_node_destroy(logic, parent);
+            logic_node_destroy(logic, child);
+            status = panic("invalid type - %d", child->type);
+            break;
+    }
+
+    return status;
+}
+
+int logic_merge_or_re(struct logic * logic, struct logic_node * parent, struct logic_node * child) {
+    int status = 0;
+
+    switch(child->type) {
+        case logic_var:
+            return logic_merge_var(logic, parent, child);
+        case logic_and:
+            if(list_push(&parent->list, child))
+                status = panic("failed to push list object");
+            break;
+        default:
+            status = panic("invalid type - %d", child->type);
+            break;
+    }
+    if(status)
+        logic_node_destroy(logic, child);
+
+    return status;
+}
+
+int logic_merge_or(struct logic * logic, struct logic_node * parent, struct logic_node * child) {
+    int status = 0;
+    struct logic_node * node;
+
+    switch(child->type) {
+        case logic_and:
+            if(logic_merge_or_re(logic, parent, child))
+                status = panic("failed to merge or logic object");
+            if(status || list_push(&logic->list, parent))
+                logic_node_destroy(logic, parent);
+            break;
+        case logic_or:
+        case logic_and_or:
+            node = list_pop(&child->list);
+            while(node && !status) {
+                if(logic_merge_or_re(logic, parent, node)) {
+                    status = panic("failed to merge or logic object");
+                } else {
+                    node = list_pop(&child->list);
+                }
+            }
+            logic_node_destroy(logic, child);
+            if(status || list_push(&logic->list, parent))
+                logic_node_destroy(logic, parent);
+            break;
+        default:
+            logic_node_destroy(logic, parent);
+            logic_node_destroy(logic, child);
             status = panic("invalid type - %d", child->type);
             break;
     }
@@ -474,10 +533,14 @@ int logic_pop_op(struct logic * logic) {
                         status = panic("failed to merge and logic object");
                     break;
                 case logic_or:
+                    if(logic_merge_or(logic, parent, child))
+                        status = panic("failed to merge or logic object");
                     break;
                 case logic_and_or:
                     break;
                 default:
+                    logic_node_destroy(logic, parent);
+                    logic_node_destroy(logic, child);
                     status = panic("invalid type - %d", parent->type);
                     break;
             }
