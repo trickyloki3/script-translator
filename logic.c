@@ -14,6 +14,10 @@ void logic_node_print(struct logic_node *, int);
 int logic_add_var_one(struct logic *, struct logic_node *, void *, sstring, struct range *);
 int logic_add_var_all(struct logic *, struct logic_node *, void *, sstring, struct range *);
 
+int logic_merge_var(struct logic *, struct logic_node *, struct logic_node *);
+int logic_merge_and_re(struct logic *, struct logic_node *, struct logic_node *);
+int logic_merge_and(struct logic *, struct logic_node *, struct logic_node *);
+
 int logic_var_create(struct logic_var * var, void * data, sstring name, struct range * range, struct sector_list * sector_list) {
     int status = 0;
 
@@ -332,8 +336,153 @@ int logic_push_op(struct logic * logic, enum logic_type type) {
     return status;
 }
 
+int logic_merge_var(struct logic * logic, struct logic_node * op, struct logic_node * var) {
+    int status = 0;
+    struct logic_node * node;
+
+    node = logic_node_search(op, var->var.name);
+    if(node) {
+        if(logic_var_merge(&node->var, op->type, &var->var.range))
+            status = panic("failed to merge logic var object");
+        logic_node_destroy(logic, var);
+    } else {
+        if(list_push(&op->list, var))
+            status = panic("failed to push list object");
+        if(status)
+            logic_node_destroy(logic, var);
+    }
+
+    return status;
+}
+
+int logic_merge_and_re(struct logic * logic, struct logic_node * parent, struct logic_node * child) {
+    int status = 0;
+    struct logic_node * node;
+
+    switch(child->type) {
+        case logic_var:
+            return logic_merge_var(logic, parent, child);
+        case logic_and:
+            node = list_pop(&child->list);
+            while(node && !status) {
+                if(logic_merge_and_re(logic, parent, node)) {
+                    status = panic("failed to merge and logic object");
+                } else {
+                    node = list_pop(&child->list);
+                }
+            }
+            break;
+        default:
+            status = panic("invalid type - %d", child->type);
+            break;
+    }
+    logic_node_destroy(logic, child);
+
+    return status;
+}
+
+int logic_merge_and(struct logic * logic, struct logic_node * parent, struct logic_node * child) {
+    int status = 0;
+    struct logic_node * node;
+    struct logic_node * copy;
+    struct logic_node * var;
+    struct logic_node * op;
+
+    switch(child->type) {
+        case logic_and:
+            if(logic_merge_and_re(logic, parent, child))
+                status = panic("failed to merge and logic object");
+            if(status || list_push(&logic->list, parent))
+                logic_node_destroy(logic, parent);
+            break;
+        case logic_or:
+            if(logic_node_create(logic, logic_and_or, &op)) {
+                status = panic("failed to create logic node object");
+            } else {
+                node = list_pop(&child->list);
+                while(node && !status) {
+                    if(logic_node_copy(logic, parent, &copy)) {
+                        status = panic("failed to copy logic node object");
+                    } else {
+                        if(logic_merge_and_re(logic, copy, node)) {
+                            status = panic("failed to merge and logic object");
+                        } else if(list_push(&op->list, copy)) {
+                            status = panic("failed to push list object");
+                        } else {
+                            node = list_pop(&child->list);
+                        }
+                        if(status)
+                            logic_node_destroy(logic, copy);
+                        continue;
+                    }
+                    if(status)
+                        logic_node_destroy(logic, node);
+                }
+                if(status || list_push(&logic->list, op))
+                    logic_node_destroy(logic, op);
+            }
+            logic_node_destroy(logic, parent);
+            logic_node_destroy(logic, child);
+            break;
+        case logic_and_or:
+            var = list_start(&parent->list);
+            while(var && !status) {
+                op = list_start(&child->list);
+                while(op && !status) {
+                    if(op->type != logic_and) {
+                        status = panic("invalid type - %d", op->type);
+                    } else if(logic_node_copy(logic, var, &copy)) {
+                        status = panic("failed to copy logic node object");
+                    } else if(logic_merge_and_re(logic, op, copy)) {
+                        status = panic("failed to merge and logic object");
+                    }
+                    op = list_next(&child->list);
+                }
+                var = list_next(&parent->list);
+            }
+            logic_node_destroy(logic, parent);
+            if(status || list_push(&logic->list, child))
+                logic_node_destroy(logic, child);
+            break;
+        default:
+            status = panic("invalid type - %d", child->type);
+            break;
+    }
+
+    return status;
+}
+
 int logic_pop_op(struct logic * logic) {
     int status = 0;
+    struct logic_node * child;
+    struct logic_node * parent;
+
+    child = list_pop(&logic->list);
+    if(!child) {
+        status = panic("missing operator");
+    } else {
+        parent = list_pop(&logic->list);
+        if(!parent) {
+            if(list_push(&logic->list, child))
+                status = panic("failed to push list object");
+            if(status)
+                logic_node_destroy(logic, child);
+        } else {
+            switch(parent->type) {
+                case logic_and:
+                    if(logic_merge_and(logic, parent, child))
+                        status = panic("failed to merge and logic object");
+                    break;
+                case logic_or:
+                    break;
+                case logic_and_or:
+                    break;
+                default:
+                    status = panic("invalid type - %d", parent->type);
+                    break;
+            }
+        }
+    }
 
     return status;
 }
