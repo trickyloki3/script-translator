@@ -11,7 +11,8 @@ int logic_node_copy(struct logic *, struct logic_node *, struct logic_node **);
 struct logic_node * logic_node_search(struct logic_node *, sstring);
 void logic_node_print(struct logic_node *, int);
 
-int logic_add_var(struct logic *, struct logic_node *, void *, sstring, struct range *);
+int logic_add_var_one(struct logic *, struct logic_node *, void *, sstring, struct range *);
+int logic_add_var_all(struct logic *, struct logic_node *, void *, sstring, struct range *);
 
 int logic_var_create(struct logic_var * var, void * data, sstring name, struct range * range, struct sector_list * sector_list) {
     int status = 0;
@@ -249,7 +250,7 @@ void logic_destroy(struct logic * logic) {
     list_destroy(&logic->list);
 }
 
-int logic_add_var(struct logic * logic, struct logic_node * op, void * data, sstring name, struct range * range) {
+int logic_add_var_one(struct logic * logic, struct logic_node * op, void * data, sstring name, struct range * range) {
     int status = 0;
     struct logic_node * var;
 
@@ -271,10 +272,26 @@ int logic_add_var(struct logic * logic, struct logic_node * op, void * data, sst
     return status;
 }
 
+int logic_add_var_all(struct logic * logic, struct logic_node * op, void * data, sstring name, struct range * range) {
+    int status = 0;
+    struct logic_node * node;
+
+    node = list_start(&op->list);
+    while(node && !status) {
+        if(node->type != logic_and) {
+            status = panic("invalid type - %d", node->type);
+        } else if(logic_add_var_one(logic, node, data, name, range)) {
+            status = panic("failed to add var logic object");
+        }
+        node = list_next(&op->list);
+    }
+
+    return status;
+}
+
 int logic_push_var(struct logic * logic, void * data, sstring name, struct range * range) {
     int status = 0;
     struct logic_node * op;
-    struct logic_node * and;
 
     op = list_start(&logic->list);
     if(!op) {
@@ -283,19 +300,12 @@ int logic_push_var(struct logic * logic, void * data, sstring name, struct range
         switch(op->type) {
             case logic_and:
             case logic_or:
-                if(logic_add_var(logic, op, data, name, range))
+                if(logic_add_var_one(logic, op, data, name, range))
                     status = panic("failed to add var logic object");
                 break;
             case logic_and_or:
-                and = list_start(&op->list);
-                while(and && !status) {
-                    if(and->type != logic_and) {
-                        status = panic("invalid type - %d", and->type);
-                    } else if(logic_add_var(logic, and, data, name, range)) {
-                        status = panic("failed to add var logic object");
-                    }
-                    and = list_next(&op->list);
-                }
+                if(logic_add_var_all(logic, op, data, name, range))
+                    status = panic("failed to add var all logic object");
                 break;
             default:
                 status = panic("invalid type - %d", op->type);
