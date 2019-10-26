@@ -247,6 +247,11 @@ int logic_create(struct logic * logic, struct pool_map * pool_map, struct sector
 }
 
 void logic_destroy(struct logic * logic) {
+    logic_clear(logic);
+    list_destroy(&logic->list);
+}
+
+void logic_clear(struct logic * logic) {
     struct logic_node * iter;
 
     iter = list_pop(&logic->list);
@@ -254,8 +259,6 @@ void logic_destroy(struct logic * logic) {
         logic_node_destroy(logic, iter);
         iter = list_pop(&logic->list);
     }
-
-    list_destroy(&logic->list);
 }
 
 int logic_add_var_one(struct logic * logic, struct logic_node * op, void * data, sstring name, struct range * range) {
