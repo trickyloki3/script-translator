@@ -18,6 +18,9 @@ int logic_merge_and(struct logic *, struct logic_node *, struct logic_node *);
 int logic_merge_or(struct logic *, struct logic_node *, struct logic_node *);
 int logic_merge_and_or(struct logic *, struct logic_node *, struct logic_node *);
 
+int range_and_merge(struct range *, struct range *);
+int range_or_merge(struct range *, struct range *);
+
 int logic_var_create(struct logic_var * var, void * data, sstring name, struct range * range, struct sector_list * sector_list) {
     int status = 0;
 
@@ -574,6 +577,86 @@ int logic_pop_op(struct logic * logic) {
                 logic_node_destroy(logic, parent);
             }
             logic_node_destroy(logic, child);
+        }
+    }
+
+    return status;
+}
+
+int range_and_merge(struct range * result, struct range * range) {
+    int status = 0;
+    struct range merge;
+
+    if(range_and(&merge, result, range)) {
+        status = panic("failed to and range object");
+    } else {
+        range_destroy(result);
+        *result = merge;
+    }
+
+    return status;
+}
+
+int range_or_merge(struct range * result, struct range * range) {
+    int status = 0;
+    struct range merge;
+
+    if(range_or(&merge, result, range)) {
+        status = panic("failed to or range object");
+    } else {
+        range_destroy(result);
+        *result = merge;
+    }
+
+    return status;
+}
+
+int logic_search(struct logic * logic, sstring name, struct range * range) {
+    int status = 0;
+    struct logic_node * root;
+    struct logic_node * node;
+    struct logic_node * iter;
+    struct range result;
+
+    root = list_start(&logic->list);
+    if(root) {
+        switch(root->type) {
+            case logic_and:
+                node = logic_node_search(root, name);
+                if(node && range_and_merge(range, &node->var.range))
+                    status = panic("failed to and merge range object");
+                break;
+            case logic_or:
+            case logic_and_or:
+                if(range_create(&result, range->pool)) {
+                    status = panic("failed to create range object");
+                } else {
+                    iter = list_start(&root->list);
+                    while(iter && !status) {
+                        switch(iter->type) {
+                            case logic_var:
+                                if(!strcmp(iter->var.name, name) && range_or_merge(&result, &iter->var.range))
+                                    status = panic("failed to or merge range object");
+                                break;
+                            case logic_and:
+                                node = logic_node_search(iter, name);
+                                if(node && range_or_merge(&result, &node->var.range))
+                                    status = panic("failed to or merge range object");
+                                break;
+                            default:
+                                status = panic("invalid type - %d", iter->type);
+                                break;
+                        }
+                        iter = list_next(&root->list);
+                    }
+                    if(!status && result.root && range_and_merge(range, &result))
+                        status = panic("failed to and merge range object");
+                    range_destroy(&result);
+                }
+                break;
+            default:
+                status = panic("invalid type - %d", root->type);
+                break;
         }
     }
 

@@ -39,6 +39,7 @@ void logic_clear(struct logic *);
 int logic_push_var(struct logic *, void *, sstring, struct range *);
 int logic_push_op(struct logic *, enum logic_type);
 int logic_pop_op(struct logic *);
+int logic_search(struct logic *, sstring, struct range *);
 void logic_print(struct logic *);
 
 #endif
