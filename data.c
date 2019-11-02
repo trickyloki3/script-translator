@@ -19,15 +19,10 @@ int data_long_compare(void * x, void * y) {
 
 int kv_create(struct kv * kv, char * key, struct json_node * value, struct sector_list * sector_list) {
     int status = 0;
-    char * end;
 
-    kv->number = strtol(key, &end, 10);
-    if(*end) {
-        status = panic("invalid string '%s' in '%s'", end, key);
-    } else {
-        if(json_string_copy(value, sector_list, &kv->string))
-            status = panic("failed to create char object");
-    }
+    kv->number = json_number_get(value);
+    if(sstring_create(&kv->string, key, sstring_size(key), sector_list))
+        status = panic("failed to create string object");
 
     return status;
 }
