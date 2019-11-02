@@ -1,0 +1,47 @@
+%language "C"
+%output "yaml_parser.c"
+%defines "yaml_parser.h"
+%verbose
+%locations
+
+%define api.prefix {yaml}
+%define api.token.prefix {yaml_}
+%define api.pure full
+%define api.push-pull push
+
+%define lr.type lalr
+%define lr.default-reduction accepting
+%define lr.keep-unreachable-state false
+
+%define parse.lac full
+%define parse.error verbose
+%define parse.trace true
+
+%token s_white
+%start yaml
+
+%code requires {
+#include "yaml.h"
+}
+
+%code provides {
+#define YYSTYPE YAMLSTYPE
+#define YYLTYPE YAMLLTYPE
+}
+
+%code {
+void yyerror(YAMLLTYPE *, struct yaml *, char const *);
+}
+
+%define api.value.type {struct yaml_node *}
+%parse-param {struct yaml * yaml}
+
+%%
+
+yaml : %empty
+
+%%
+
+void yyerror(YAMLLTYPE * location, struct yaml * yaml, char const * message) {
+    panic("%s (line %d)", message, location->first_line);
+}
