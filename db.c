@@ -3,6 +3,9 @@
 int db_long_compare(void *, void *);
 int db_string_compare(void *, void *);
 
+int db_json_string_copy(struct json_node *, struct sector_list *, sstring *);
+int db_json_range_add(struct json_node *, struct range *);
+
 int item_create(struct item *, struct list *, struct pool *, struct sector_list *);
 void item_destroy(struct item *);
 
@@ -86,6 +89,45 @@ int db_long_compare(void * x, void * y) {
 
 int db_string_compare(void * x, void * y) {
     return strcmp(x, y);
+}
+
+int db_json_string_copy(struct json_node * node, struct sector_list * sector_list, sstring * result) {
+    int status = 0;
+    sstring string;
+
+    string = json_string_get(node);
+    if(!string) {
+        status = panic("failed to get string object");
+    } else if(sstring_create(result, string, sstring_size(string), sector_list)) {
+        status = panic("failed to create char object");
+    }
+
+    return status;
+}
+
+int db_json_range_add(struct json_node * node, struct range * range) {
+    int status = 0;
+    struct json_node * element;
+    struct json_node * min;
+    struct json_node * max;
+
+    element = json_array_start(node);
+    while(element && !status) {
+        min = json_object_get(element, "min");
+        if(!min) {
+            status = panic("failed to get json object - min");
+        } else {
+            max = json_object_get(element, "max");
+            if(!max) {
+                status = panic("failed to get json object - max");
+            } else if(range_add(range, json_number_get(min), json_number_get(max))) {
+                status = panic("failed to add range object");
+            }
+        }
+        element = json_array_next(node);
+    }
+
+    return status;
 }
 
 int item_create(struct item * item, struct list * record, struct pool * list_node_pool, struct sector_list * sector_list) {
@@ -947,7 +989,7 @@ int constant_create(struct constant * constant, sstring macro, struct json_node 
 
             name = json_object_get(node, "name");
             if(name) {
-                if(json_string_copy(name, sector_list, &constant->name))
+                if(db_json_string_copy(name, sector_list, &constant->name))
                     status = panic("failed to string copy json object");
             }
 
@@ -956,7 +998,7 @@ int constant_create(struct constant * constant, sstring macro, struct json_node 
                 if(range_create(&constant->range, range_node_pool)) {
                     status = panic("failed to create range object");
                 } else {
-                    if(json_range_add(range, &constant->range))
+                    if(db_json_range_add(range, &constant->range))
                         status = panic("failed to range add json object");
                     if(status)
                         range_destroy(&constant->range);
