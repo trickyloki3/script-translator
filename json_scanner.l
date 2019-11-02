@@ -9,6 +9,7 @@
 %option bison-bridge bison-locations reentrant pointer prefix="json"
 %option align read full
 %option backup warn
+%option noinput nounput
 
 BEGINARRAY      \x5B
 BEGINOBJECT     \x7B

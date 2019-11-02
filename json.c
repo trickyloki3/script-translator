@@ -9,7 +9,7 @@ int json_parse_loop(struct json *, yyscan_t, jsonpstate *);
 
 int json_node_create(struct json_node *, enum json_type type, struct pool *, struct pool *, struct sector_list *, char *, size_t);
 void json_node_destroy(struct json_node *);
-int json_node_print_recursive(struct json_node *, int);
+void json_node_print_recursive(struct json_node *, int);
 
 int json_string_compare(void * x, void * y) {
     return strcmp(x, y);
@@ -278,7 +278,7 @@ void json_node_print(struct json_node * node) {
     json_node_print_recursive(node, 1);
 }
 
-int json_node_print_recursive(struct json_node * node, int indent) {
+void json_node_print_recursive(struct json_node * node, int indent) {
     int i;
     struct json_node * iter;
     struct map_pair pair;
@@ -294,7 +294,7 @@ int json_node_print_recursive(struct json_node * node, int indent) {
                 while(pair.key && pair.value) {
                     for(i = 0; i < indent; i++)
                         fputs("    ", stdout);
-                    fprintf(stdout, "\"%s\" : ", pair.key);
+                    fprintf(stdout, "\"%s\" : ", (sstring) pair.key);
                     json_node_print_recursive(pair.value, indent + 1);
                     pair = map_next(&node->map);
                     if(pair.key && pair.value)

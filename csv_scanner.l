@@ -9,6 +9,7 @@
 %option bison-bridge bison-locations reentrant pointer prefix="csv"
 %option align read full
 %option backup warn
+%option nounput
 
 COMMA       \x2C
 CR          \xD
