@@ -4,7 +4,7 @@
 #include "range.h"
 #include "pool_map.h"
 #include "sector_list.h"
-#include "aux.h"
+#include "sector_string.h"
 
 enum logic_type {
     logic_var,

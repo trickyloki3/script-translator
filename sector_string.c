@@ -1,4 +1,4 @@
-#include "aux.h"
+#include "sector_string.h"
 
 int sstring_create(sstring * result, char * string, size_t length, struct sector_list * sector_list) {
     int status = 0;

@@ -1,5 +1,5 @@
-#ifndef aux_h
-#define aux_h
+#ifndef sector_string_h
+#define sector_string_h
 
 #include "sector_list.h"
 
