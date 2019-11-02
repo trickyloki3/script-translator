@@ -1,5 +1,7 @@
 #include "data.h"
 
+int data_long_compare(void *, void *);
+
 int kv_create(struct kv *, char *, struct json_node *, struct sector_list *);
 void kv_destroy(struct kv *);
 
@@ -8,6 +10,12 @@ void kv_map_destroy(struct kv_map *);
 int kv_map_load(struct kv_map *, struct json_node *, struct sector_list *);
 
 int data_kv_map_create(struct kv_map *, struct json_node *, char *, struct pool_map *, struct sector_list *);
+
+int data_long_compare(void * x, void * y) {
+    long l = *((long *) x);
+    long r = *((long *) y);
+    return l < r ? -1 : l > r ? 1 : 0;
+}
 
 int kv_create(struct kv * kv, char * key, struct json_node * value, struct sector_list * sector_list) {
     int status = 0;
@@ -38,7 +46,7 @@ int kv_map_create(struct kv_map * kv_map, struct pool_map * pool_map) {
         if(list_create(&kv_map->list, pool_map_get(pool_map, sizeof(struct list_node)))) {
             status = panic("failed to create list object");
         } else {
-            if(map_create(&kv_map->map, long_compare, pool_map_get(pool_map, sizeof(struct map_node))))
+            if(map_create(&kv_map->map, data_long_compare, pool_map_get(pool_map, sizeof(struct map_node))))
                 status = panic("failed to create map object");
             if(status)
                 list_destroy(&kv_map->list);

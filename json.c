@@ -3,11 +3,17 @@
 #include "json_parser.h"
 #include "json_scanner.h"
 
+int json_string_compare(void *, void *);
+
 int json_parse_loop(struct json *, yyscan_t, jsonpstate *);
 
 int json_node_create(struct json_node *, enum json_type type, struct pool *, struct pool *, struct sector_list *, char *, size_t);
 void json_node_destroy(struct json_node *);
 int json_node_print_recursive(struct json_node *, int);
+
+int json_string_compare(void * x, void * y) {
+    return strcmp(x, y);
+}
 
 int json_create(struct json * json, struct pool_map * pool_map, struct sector_list * sector_list) {
     int status = 0;
@@ -143,7 +149,7 @@ int json_node_create(struct json_node * node, enum json_type type, struct pool *
         case json_true:
             break;
         case json_object:
-            if(map_create(&node->map, string_compare, map_node_pool))
+            if(map_create(&node->map, json_string_compare, map_node_pool))
                 status = panic("failed to create map object");
             break;
         case json_array:

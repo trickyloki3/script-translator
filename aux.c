@@ -1,15 +1,5 @@
 #include "aux.h"
 
-int long_compare(void * x, void * y) {
-    long l = *((long *) x);
-    long r = *((long *) y);
-    return l < r ? -1 : l > r ? 1 : 0;
-}
-
-int string_compare(void * x, void * y) {
-    return strcmp(x, y);
-}
-
 int sstring_create(sstring * result, char * string, size_t length, struct sector_list * sector_list) {
     int status = 0;
     sstring object;

@@ -3,9 +3,6 @@
 
 #include "sector_list.h"
 
-int long_compare(void *, void *);
-int string_compare(void *, void *);
-
 typedef char * sstring;
 
 int sstring_create(sstring *, char *, size_t, struct sector_list *);

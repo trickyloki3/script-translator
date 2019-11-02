@@ -1,5 +1,8 @@
 #include "db.h"
 
+int db_long_compare(void *, void *);
+int db_string_compare(void *, void *);
+
 int item_create(struct item *, struct list *, struct pool *, struct sector_list *);
 void item_destroy(struct item *);
 
@@ -75,6 +78,16 @@ int db_mercenary_tbl_create_cb(struct list *, void *);
 int db_mercenary_tbl_create(struct db *, struct csv *);
 int db_constant_tbl_create(struct db *, struct json *);
 
+int db_long_compare(void * x, void * y) {
+    long l = *((long *) x);
+    long r = *((long *) y);
+    return l < r ? -1 : l > r ? 1 : 0;
+}
+
+int db_string_compare(void * x, void * y) {
+    return strcmp(x, y);
+}
+
 int item_create(struct item * item, struct list * record, struct pool * list_node_pool, struct sector_list * sector_list) {
     int status = 0;
     size_t field;
@@ -145,10 +158,10 @@ int item_tbl_create(struct item_tbl * item_tbl, struct pool_map * pool_map) {
         if(list_create(&item_tbl->list, pool_map_get(pool_map, sizeof(struct list_node)))) {
             status = panic("failed to create list object");
         } else {
-            if(map_create(&item_tbl->map_id, long_compare, pool_map_get(pool_map, sizeof(struct map_node)))) {
+            if(map_create(&item_tbl->map_id, db_long_compare, pool_map_get(pool_map, sizeof(struct map_node)))) {
                 status = panic("failed to create map object");
             } else {
-                if(map_create(&item_tbl->map_name, string_compare, pool_map_get(pool_map, sizeof(struct map_node))))
+                if(map_create(&item_tbl->map_name, db_string_compare, pool_map_get(pool_map, sizeof(struct map_node))))
                     status = panic("failed to create map object");
                 if(status)
                     map_destroy(&item_tbl->map_id);
@@ -382,10 +395,10 @@ int skill_tbl_create(struct skill_tbl * skill_tbl, struct pool_map * pool_map) {
         if(list_create(&skill_tbl->list, pool_map_get(pool_map, sizeof(struct list_node)))) {
             status = panic("failed to create list object");
         } else {
-            if(map_create(&skill_tbl->map_id, long_compare, pool_map_get(pool_map, sizeof(struct map_node)))) {
+            if(map_create(&skill_tbl->map_id, db_long_compare, pool_map_get(pool_map, sizeof(struct map_node)))) {
                 status = panic("failed to create map object");
             } else {
-                if(map_create(&skill_tbl->map_macro, string_compare, pool_map_get(pool_map, sizeof(struct map_node))))
+                if(map_create(&skill_tbl->map_macro, db_string_compare, pool_map_get(pool_map, sizeof(struct map_node))))
                     status = panic("failed to create map object");
                 if(status)
                     map_destroy(&skill_tbl->map_id);
@@ -548,7 +561,7 @@ int mob_tbl_create(struct mob_tbl * mob_tbl, struct pool_map * pool_map) {
         if(list_create(&mob_tbl->list, pool_map_get(pool_map, sizeof(struct list_node)))) {
             status = panic("failed to create list object");
         } else {
-            if(map_create(&mob_tbl->map_id, long_compare, pool_map_get(pool_map, sizeof(struct map_node))))
+            if(map_create(&mob_tbl->map_id, db_long_compare, pool_map_get(pool_map, sizeof(struct map_node))))
                 status = panic("failed to create map object");
             if(status)
                 list_destroy(&mob_tbl->list);
@@ -741,7 +754,7 @@ int produce_tbl_create(struct produce_tbl * produce_tbl, struct pool_map * pool_
         if(list_create(&produce_tbl->list, pool_map_get(pool_map, sizeof(struct list_node)))) {
             status = panic("failed to create list object");
         } else {
-            if(map_create(&produce_tbl->map_id, long_compare, pool_map_get(pool_map, sizeof(struct map_node))))
+            if(map_create(&produce_tbl->map_id, db_long_compare, pool_map_get(pool_map, sizeof(struct map_node))))
                 status = panic("failed to create map object");
             if(status)
                 list_destroy(&produce_tbl->list);
@@ -862,7 +875,7 @@ int mercenary_tbl_create(struct mercenary_tbl * mercenary_tbl, struct pool_map *
         if(list_create(&mercenary_tbl->list, pool_map_get(pool_map, sizeof(struct list_node)))) {
             status = panic("failed to create list object");
         } else {
-            if(map_create(&mercenary_tbl->map_id, long_compare, pool_map_get(pool_map, sizeof(struct map_node))))
+            if(map_create(&mercenary_tbl->map_id, db_long_compare, pool_map_get(pool_map, sizeof(struct map_node))))
                 status = panic("failed to create map object");
             if(status)
                 list_destroy(&mercenary_tbl->list);
@@ -974,7 +987,7 @@ int constant_tbl_create(struct constant_tbl * constant_tbl, struct pool_map * po
         if(list_create(&constant_tbl->list, pool_map_get(pool_map, sizeof(struct list_node)))) {
             status = panic("failed to create list object");
         } else {
-            if(map_create(&constant_tbl->map_macro, string_compare, pool_map_get(pool_map, sizeof(struct map_node))))
+            if(map_create(&constant_tbl->map_macro, db_string_compare, pool_map_get(pool_map, sizeof(struct map_node))))
                 status = panic("failed to create map object");
             if(status)
                 list_destroy(&constant_tbl->list);
@@ -1065,7 +1078,7 @@ int constant_tbl_add_map(struct constant_tbl * constant_tbl, struct json_node * 
     array = json_object_get(node, key);
     if(!array) {
         status = panic("failed to get json object - %s", key);
-    } else if(map_create(map, string_compare, constant_tbl->map_macro.pool)) {
+    } else if(map_create(map, db_string_compare, constant_tbl->map_macro.pool)) {
         status = panic("failed to create map object");
     } else {
         element = json_array_start(array);
@@ -1095,7 +1108,7 @@ int constant_tbl_add_mob_race2_map(struct constant_tbl * constant_tbl, struct mo
     struct mob_race2 * mob_race2;
     struct constant * constant;
 
-    if(map_create(&constant_tbl->map_mob_race2, string_compare, constant_tbl->map_macro.pool)) {
+    if(map_create(&constant_tbl->map_mob_race2, db_string_compare, constant_tbl->map_macro.pool)) {
         status = panic("failed to create map object");
     } else {
         mob_race2 = list_start(&mob_race2_tbl->list);
