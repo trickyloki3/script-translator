@@ -7,8 +7,8 @@ int json_string_compare(void *, void *);
 
 int json_parse_loop(struct json *, yyscan_t, jsonpstate *);
 
-int json_node_create(struct json_node *, enum json_type type, struct pool *, struct pool *, struct sector_list *, char *, size_t);
-void json_node_destroy(struct json_node *);
+int json_node_create(struct json *, enum json_type, char *, size_t, struct json_node **);
+void json_node_destroy(struct json *, struct json_node *);
 void json_node_print_recursive(struct json_node *, int);
 
 int json_string_compare(void * x, void * y) {
@@ -60,8 +60,7 @@ void json_clear(struct json * json) {
 
     node = list_pop(&json->list);
     while(node) {
-        json_node_destroy(node);
-        pool_put(json->json_node_pool, node);
+        json_node_destroy(json, node);
         node = list_pop(&json->list);
     }
     json->root = NULL;
@@ -138,42 +137,54 @@ int json_parse_loop(struct json * json, yyscan_t scanner, jsonpstate * parser) {
     return status;
 }
 
-int json_node_create(struct json_node * node, enum json_type type, struct pool * map_node_pool, struct pool * list_node_pool, struct sector_list * sector_list, char * string, size_t length) {
+int json_node_create(struct json * json, enum json_type type, char * string, size_t length, struct json_node ** result) {
     int status = 0;
+    struct json_node * node;
     char * end;
 
-    node->type = type;
-    switch(node->type) {
-        case json_false:
-        case json_null:
-        case json_true:
-            break;
-        case json_object:
-            if(map_create(&node->map, json_string_compare, map_node_pool))
-                status = panic("failed to create map object");
-            break;
-        case json_array:
-            if(list_create(&node->list, list_node_pool))
-                status = panic("failed to create list object");
-            break;
-        case json_number:
-            node->number = strtod(string, &end);
-            if(*end)
-                status = panic("invalid string '%s' in '%s'", end, string);
-            break;
-        case json_string:
-            if(sstring_create(&node->string, string, length, sector_list))
-                status = panic("failed to create sstring object");
-            break;
-        default:
-            status = panic("invalid type - %d", node->type);
-            break;
+    node = pool_get(json->json_node_pool);
+    if(!node) {
+        status = panic("out of memory");
+    } else {
+        node->type = type;
+        switch(node->type) {
+            case json_false:
+            case json_null:
+            case json_true:
+                break;
+            case json_object:
+                if(map_create(&node->map, json_string_compare, json->map_node_pool))
+                    status = panic("failed to create map object");
+                break;
+            case json_array:
+                if(list_create(&node->list, json->list_node_pool))
+                    status = panic("failed to create list object");
+                break;
+            case json_number:
+                node->number = strtod(string, &end);
+                if(*end)
+                    status = panic("invalid string '%s' in '%s'", end, string);
+                break;
+            case json_string:
+                if(sstring_create(&node->string, string, length, json->sector_list))
+                    status = panic("failed to create sstring object");
+                break;
+            default:
+                status = panic("invalid type - %d", node->type);
+                break;
+        }
+
+        if(status) {
+            pool_put(json->json_node_pool, node);
+        } else {
+            *result = node;
+        }
     }
 
     return status;
 }
 
-void json_node_destroy(struct json_node * node) {
+void json_node_destroy(struct json * json, struct json_node * node) {
     switch(node->type) {
         case json_object:
             map_destroy(&node->map);
@@ -184,32 +195,25 @@ void json_node_destroy(struct json_node * node) {
         case json_string:
             sstring_destroy(node->string);
             break;
-        default:
-            break;
     }
+
+    pool_put(json->json_node_pool, node);
 }
 
 int json_add_node(struct json * json, enum json_type type, char * string, size_t length, struct json_node ** result) {
     int status = 0;
     struct json_node * node;
 
-    node = pool_get(json->json_node_pool);
-    if(!node) {
-        status = panic("out of memory");
+    if(json_node_create(json, type, string, length, &node)) {
+        status = panic("failed to create json node object");
     } else {
-        if(json_node_create(node, type, json->map_node_pool, json->list_node_pool, json->sector_list, string, length)) {
-            status = panic("failed to create json node object");
+        if(list_push(&json->list, node)) {
+            status = panic("failed to push list object");
         } else {
-            if(list_push(&json->list, node)) {
-                status = panic("failed to push list object");
-            } else {
-                *result = node;
-            }
-            if(status)
-                json_node_destroy(node);
+            *result = node;
         }
         if(status)
-            pool_put(json->json_node_pool, node);
+            json_node_destroy(json, node);
     }
 
 
