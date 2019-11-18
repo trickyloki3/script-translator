@@ -188,6 +188,8 @@ void yaml_token_print(int token) {
         case yaml_ns_yaml_directive:    fprintf(stderr, "ns_yaml_directive "); break;
         case yaml_ns_tag_directive:     fprintf(stderr, "ns_tag_directive "); break;
         case yaml_ns_reserve_directive: fprintf(stderr, "ns_reserve_directive "); break;
+        case yaml_c_ns_tag_property:    fprintf(stderr, "c_ns_tag_property "); break;
+        case yaml_c_ns_anchor_property: fprintf(stderr, "c_ns_anchor_property "); break;
         default:                        fprintf(stderr, "<%d> ", token); break;
     }
 }

@@ -38,6 +38,15 @@ c-tag-handle            {c-primary-tag-handle}|{c-secondary-tag-handle}|{c-named
 c-ns-local-tag-prefix   {c-tag}{ns-uri-char}*
 ns-global-tag-prefix    {ns-tag-char}{ns-uri-char}*
 ns-tag-prefix           {c-ns-local-tag-prefix}|{ns-global-tag-prefix}
+c-verbatim-tag          {c-tag}\x3C{ns-uri-char}+\x3E
+c-ns-shorthand-tag      {c-tag-handle}{ns-tag-char}+
+c-non-specific-tag      {c-tag}
+c-ns-tag-property       {c-verbatim-tag}|{c-ns-shorthand-tag}|{c-non-specific-tag}
+c-flow-indicator        [\x2C\x5B\x5D\x7B\x7D]
+c-anchor                \x26
+/* ns-anchor-char       {ns-char}{-}{c-flow-indicator} */
+ns-anchor-char          [\x21-\x7E]{-}[\x2C\x5B\x5D\x7B\x7D]
+c-ns-anchor-property    {c-anchor}{ns-anchor-char}+
 
 %%
 
@@ -51,6 +60,14 @@ ns-tag-prefix           {c-ns-local-tag-prefix}|{ns-global-tag-prefix}
 
 {c-mapping-value} {
     return yaml_c_mapping_value;
+}
+
+{c-ns-tag-property} {
+    return yaml_c_ns_tag_property;
+}
+
+{c-ns-anchor-property} {
+    return yaml_c_ns_anchor_property;
 }
 
 {s-indent} {
