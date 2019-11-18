@@ -185,6 +185,9 @@ void yaml_token_print(int token) {
         case yaml_s_separate_in_line:   fprintf(stderr, "s_separate_in_line "); break;
         case yaml_b_break:              fprintf(stderr, "b_break\n"); break;
         case yaml_l_empty:              fprintf(stderr, "l_empty "); break;
+        case yaml_ns_yaml_directive:    fprintf(stderr, "ns_yaml_directive "); break;
+        case yaml_ns_tag_directive:     fprintf(stderr, "ns_tag_directive "); break;
+        case yaml_ns_reserve_directive: fprintf(stderr, "ns_reserve_directive "); break;
         default:                        fprintf(stderr, "<%d> ", token); break;
     }
 }

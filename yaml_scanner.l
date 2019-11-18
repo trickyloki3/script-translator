@@ -11,17 +11,33 @@
 %option backup warn
 %option noinput nounput
 
-c-sequence-entry    \x2D
-c-mapping-key       \x3F
-c-mapping-value     \x3A
-s-space             \x20
-s-indent            ^{s-space}*
-s-white             [\x20\x9]
-s-separate-in-line  {s-white}+
-c-comment           \x23
-nb-char             [\x9\x20-\x7E]
-c-nb-comment-text   {c-comment}{nb-char}*
-b-break             \xD\xA|\xD|\xA
+c-sequence-entry        \x2D
+c-mapping-key           \x3F
+c-mapping-value         \x3A
+s-space                 \x20
+s-indent                ^{s-space}*
+s-white                 [\x20\x9]
+s-separate-in-line      {s-white}+
+c-comment               \x23
+nb-char                 [\x9\x20-\x7E]
+c-nb-comment-text       {c-comment}{nb-char}*
+b-break                 \xD\xA|\xD|\xA
+c-directive             \x25
+ns-char                 [\x21-\x7E]
+ns-dec-digit            [\x30-\x39]
+ns-hex-digit            [\x30-\x39\x41-\x46\x61-\x66]
+ns-ascii-letter         [\x41-\x5A\x61-\x7A]
+ns-word-char            {ns-dec-digit}|{ns-ascii-letter}|\x2D
+ns-uri-char             \x25{ns-hex-digit}{ns-hex-digit}|{ns-word-char}|[\x23\x3B\x2F\x3F\x3A\x40\x26\x3D\x2B\x24\x2C\x5F\x2E\x21\x7E\x2A\x27\x28\x29\x5B\x5D]
+ns-tag-char             \x25{ns-hex-digit}{ns-hex-digit}|{ns-word-char}|[\x23\x3B\x2F\x3F\x3A\x40\x26\x3D\x2B\x24\x5F\x2E\x7E\x2A\x27\x28\x29]
+c-tag                   \x21
+c-primary-tag-handle    {c-tag}
+c-secondary-tag-handle  {c-tag}{c-tag}
+c-named-tag-handle      {c-tag}{ns-word-char}+{c-tag}
+c-tag-handle            {c-primary-tag-handle}|{c-secondary-tag-handle}|{c-named-tag-handle}
+c-ns-local-tag-prefix   {c-tag}{ns-uri-char}*
+ns-global-tag-prefix    {ns-tag-char}{ns-uri-char}*
+ns-tag-prefix           {c-ns-local-tag-prefix}|{ns-global-tag-prefix}
 
 %%
 
@@ -51,6 +67,18 @@ b-break             \xD\xA|\xD|\xA
 
 {s-indent}{s-separate-in-line}?{c-nb-comment-text}?{b-break} {
     return yaml_l_empty;
+}
+
+^{c-directive}\x59\x41\x4D\x4C{s-separate-in-line}{ns-dec-digit}+\x2E{ns-dec-digit}+ {
+    return yaml_ns_yaml_directive;
+}
+
+^{c-directive}\x54\x41\x47{s-separate-in-line}{c-tag-handle}{s-separate-in-line}{ns-tag-prefix} {
+    return yaml_ns_tag_directive;
+}
+
+^{c-directive}{ns-char}+({s-separate-in-line}{ns-char}+)* {
+    return yaml_ns_reserve_directive;
 }
 
 . {

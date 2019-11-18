@@ -20,6 +20,7 @@
 %token c_sequence_entry c_mapping_key c_mapping_value
 %token s_indent s_separate_in_line
 %token b_break l_empty
+%token ns_yaml_directive ns_tag_directive ns_reserve_directive
 %start yaml
 
 %code requires {
@@ -40,7 +41,14 @@ void yyerror(YAMLLTYPE *, struct yaml *, char const *);
 
 %%
 
-yaml : %empty
+yaml : l_directive_document
+
+l_directive_document  : l_directive
+                      | l_directive_document l_directive
+
+l_directive : ns_yaml_directive b_break
+            | ns_tag_directive b_break
+            | ns_reserve_directive b_break
 
 %%
 
