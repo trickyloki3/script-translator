@@ -1,9 +1,11 @@
 #include "csv.h"
 #include "json.h"
+#include "yaml.h"
 #include "db.h"
 #include "data.h"
 
 int load_test(struct pool_map *, struct sector_list *);
+int yaml_test(struct pool_map *, struct sector_list *);
 
 int main(int argc, char ** argv) {
     int status = 0;
@@ -32,9 +34,8 @@ int main(int argc, char ** argv) {
                     if(sector_list_create(&sector_list, 524288, &sector_node_pool, &list_node_pool)) {
                         status = panic("failed to create sector list object");
                     } else {
-                        if(load_test(&pool_map, &sector_list)) {
-                            status = panic("failed load test");
-                        }
+                        status = yaml_test(&pool_map, &sector_list);
+
                         sector_list_destroy(&sector_list);
                     }
                     pool_map_destroy(&pool_map);
@@ -75,6 +76,21 @@ int load_test(struct pool_map * pool_map, struct sector_list * sector_list) {
             json_destroy(&json);
         }
         csv_destroy(&csv);
+    }
+
+    return status;
+}
+
+int yaml_test(struct pool_map * pool_map, struct sector_list * sector_list) {
+    int status = 0;
+    struct yaml yaml;
+
+    if(yaml_create(&yaml, pool_map, sector_list)) {
+        status = panic("failed to create yaml object");
+    } else {
+        if(yaml_parse(&yaml, "yaml.yml"))
+            status = panic("failed to parse yaml object");
+        yaml_destroy(&yaml);
     }
 
     return status;

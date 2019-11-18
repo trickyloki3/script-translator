@@ -17,7 +17,9 @@
 %define parse.error verbose
 %define parse.trace true
 
-%token s_white
+%token c_sequence_entry c_mapping_key c_mapping_value
+%token s_indent s_separate_in_line
+%token b_break l_empty
 %start yaml
 
 %code requires {

@@ -11,7 +11,6 @@ enum yaml_type {
     yaml_scalar
 };
 
-
 struct yaml_node {
     enum yaml_type type;
     union {

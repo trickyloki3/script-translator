@@ -9,6 +9,7 @@ int yaml_node_create(struct yaml *, enum yaml_type, char *, size_t, struct yaml_
 void yaml_node_destroy(struct yaml *, struct yaml_node *);
 
 int yaml_parse_loop(struct yaml * yaml, yyscan_t, yamlpstate *);
+void yaml_token_print(int);
 
 int yaml_ptr_compare(void * x, void * y) {
     uintptr_t l = (uintptr_t) x;
@@ -173,4 +174,17 @@ int yaml_parse_loop(struct yaml * yaml, yyscan_t scanner, yamlpstate * parser) {
     } while(token && state == YYPUSH_MORE && !status);
 
     return status;
+}
+
+void yaml_token_print(int token) {
+    switch(token) {
+        case yaml_c_sequence_entry:     fprintf(stderr, "c_sequence_entry "); break;
+        case yaml_c_mapping_key:        fprintf(stderr, "c_mapping_key "); break;
+        case yaml_c_mapping_value:      fprintf(stderr, "c_mapping_value "); break;
+        case yaml_s_indent:             fprintf(stderr, "s_indent "); break;
+        case yaml_s_separate_in_line:   fprintf(stderr, "s_separate_in_line "); break;
+        case yaml_b_break:              fprintf(stderr, "b_break\n"); break;
+        case yaml_l_empty:              fprintf(stderr, "l_empty "); break;
+        default:                        fprintf(stderr, "<%d> ", token); break;
+    }
 }
