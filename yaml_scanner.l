@@ -47,6 +47,8 @@ c-anchor                \x26
 /* ns-anchor-char       {ns-char}{-}{c-flow-indicator} */
 ns-anchor-char          [\x21-\x7E]{-}[\x2C\x5B\x5D\x7B\x7D]
 c-ns-anchor-property    {c-anchor}{ns-anchor-char}+
+c-alias                 \x2A
+c-ns-alias-node         {c-alias}{ns-anchor-char}+
 
 %%
 
@@ -68,6 +70,10 @@ c-ns-anchor-property    {c-anchor}{ns-anchor-char}+
 
 {c-ns-anchor-property} {
     return yaml_c_ns_anchor_property;
+}
+
+{c-ns-alias-node} {
+    return yaml_c_ns_alias_node;
 }
 
 {s-indent} {

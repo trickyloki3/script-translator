@@ -21,7 +21,7 @@
 %token s_indent s_separate_in_line
 %token b_break l_empty
 %token ns_yaml_directive ns_tag_directive ns_reserve_directive
-%token c_ns_tag_property c_ns_anchor_property
+%token c_ns_tag_property c_ns_anchor_property c_ns_alias_node
 %start yaml
 
 %code requires {
