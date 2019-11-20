@@ -23,6 +23,8 @@
 %token ns_yaml_directive ns_tag_directive ns_reserve_directive
 %token c_ns_tag_property c_ns_anchor_property c_ns_alias_node
 %token nb_double_one_line
+%token double_quote_start double_quote_next double_quote_end
+%token s_flow_line_prefix
 %start yaml
 
 %code requires {
@@ -43,7 +45,7 @@ void yyerror(YAMLLTYPE *, struct yaml *, char const *);
 
 %%
 
-yaml : l_directive_document
+yaml : l_directive_document c_double_quoted m_l_empty
 
 l_directive_document  : l_directive
                       | l_directive_document l_directive
@@ -51,6 +53,25 @@ l_directive_document  : l_directive
 l_directive : ns_yaml_directive b_break
             | ns_tag_directive b_break
             | ns_reserve_directive b_break
+
+c_double_quoted : nb_double_one_line b_break
+                | nb_double_multi_line b_break
+
+nb_double_multi_line    :   double_quote_start double_quote_end
+                        |   double_quote_start s_separate_in_line double_quote_end
+                        |   double_quote_start s_double_next_line double_quote_end
+
+s_double_next_line  : s_double_break
+                    | s_double_break double_quote_next
+                    | s_double_break double_quote_next s_separate_in_line
+                    | s_double_break double_quote_next s_double_next_line
+
+s_double_break :    b_break m_l_empty
+               |    b_break m_l_empty s_flow_line_prefix
+
+m_l_empty   :   %empty
+            |   l_empty
+            |   m_l_empty l_empty
 
 %%
 

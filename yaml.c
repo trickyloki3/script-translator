@@ -192,6 +192,10 @@ void yaml_token_print(int token) {
         case yaml_c_ns_anchor_property: fprintf(stderr, "c_ns_anchor_property "); break;
         case yaml_c_ns_alias_node:      fprintf(stderr, "c_ns_alias_node "); break;
         case yaml_nb_double_one_line:   fprintf(stderr, "nb_double_one_line "); break;
+        case yaml_double_quote_start:   fprintf(stderr, "double_quote_start "); break;
+        case yaml_double_quote_next:    fprintf(stderr, "double_quote_next "); break;
+        case yaml_double_quote_end:     fprintf(stderr, "double_quote_end "); break;
+        case yaml_s_flow_line_prefix:   fprintf(stderr, "s_flow_line_prefix "); break;
         default:                        fprintf(stderr, "<%d> ", token); break;
     }
 }

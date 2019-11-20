@@ -52,7 +52,10 @@ c-ns-alias-node         {c-alias}{ns-anchor-char}+
 c-double-quote          \x22
 c-ns-esc-char           \x5C[\x30\x61\x62\x74\x9\x6E\x76\x66\x72\x65\x20\x22\x2F\x5C]
 nb-double-char          {c-ns-esc-char}|[\x9\x20-\x7E]{-}[\x5C\x22]
+ns-double-char          {c-ns-esc-char}|[\x9\x20-\x7E]{-}[\x5C\x22\x20\x9]
 nb-double-one-line      {c-double-quote}{nb-double-char}*{c-double-quote}
+
+%x double_quote
 
 %%
 
@@ -84,6 +87,36 @@ nb-double-one-line      {c-double-quote}{nb-double-char}*{c-double-quote}
     return yaml_nb_double_one_line;
 }
 
+{c-double-quote}({s-white}*{ns-double-char})* {
+    BEGIN(double_quote);
+    return yaml_double_quote_start;
+}
+
+<double_quote>{ns-double-char}({s-white}*{ns-double-char})* {
+    return yaml_double_quote_next;
+}
+
+<double_quote>{c-double-quote} {
+    BEGIN(INITIAL);
+    return yaml_double_quote_end;
+}
+
+<double_quote>{s-indent}{s-separate-in-line}? {
+    return yaml_s_flow_line_prefix;
+}
+
+<double_quote>{s-separate-in-line} {
+    return yaml_s_separate_in_line;
+}
+
+<double_quote>{s-indent}{s-separate-in-line}?{b-break} {
+    return yaml_l_empty;
+}
+
+<double_quote>{s-separate-in-line}?(\x5C)?{b-break} {
+    return yaml_b_break;
+}
+
 {s-indent} {
     return yaml_s_indent;
 }
@@ -92,12 +125,12 @@ nb-double-one-line      {c-double-quote}{nb-double-char}*{c-double-quote}
     return yaml_s_separate_in_line;
 }
 
-({s-separate-in-line}{c-nb-comment-text}?)?{b-break} {
-    return yaml_b_break;
-}
-
 {s-indent}{s-separate-in-line}?{c-nb-comment-text}?{b-break} {
     return yaml_l_empty;
+}
+
+({s-separate-in-line}{c-nb-comment-text}?)?{b-break} {
+    return yaml_b_break;
 }
 
 ^{c-directive}\x59\x41\x4D\x4C{s-separate-in-line}{ns-dec-digit}+\x2E{ns-dec-digit}+ {
