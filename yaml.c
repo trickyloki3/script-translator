@@ -191,6 +191,7 @@ void yaml_token_print(int token) {
         case yaml_c_ns_tag_property:    fprintf(stderr, "c_ns_tag_property "); break;
         case yaml_c_ns_anchor_property: fprintf(stderr, "c_ns_anchor_property "); break;
         case yaml_c_ns_alias_node:      fprintf(stderr, "c_ns_alias_node "); break;
+        case yaml_nb_double_one_line:   fprintf(stderr, "nb_double_one_line "); break;
         default:                        fprintf(stderr, "<%d> ", token); break;
     }
 }

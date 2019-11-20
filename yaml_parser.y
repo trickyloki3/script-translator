@@ -22,6 +22,7 @@
 %token b_break l_empty
 %token ns_yaml_directive ns_tag_directive ns_reserve_directive
 %token c_ns_tag_property c_ns_anchor_property c_ns_alias_node
+%token nb_double_one_line
 %start yaml
 
 %code requires {

@@ -49,6 +49,10 @@ ns-anchor-char          [\x21-\x7E]{-}[\x2C\x5B\x5D\x7B\x7D]
 c-ns-anchor-property    {c-anchor}{ns-anchor-char}+
 c-alias                 \x2A
 c-ns-alias-node         {c-alias}{ns-anchor-char}+
+c-double-quote          \x22
+c-ns-esc-char           \x5C[\x30\x61\x62\x74\x9\x6E\x76\x66\x72\x65\x20\x22\x2F\x5C]
+nb-double-char          {c-ns-esc-char}|[\x9\x20-\x7E]{-}[\x5C\x22]
+nb-double-one-line      {c-double-quote}{nb-double-char}*{c-double-quote}
 
 %%
 
@@ -74,6 +78,10 @@ c-ns-alias-node         {c-alias}{ns-anchor-char}+
 
 {c-ns-alias-node} {
     return yaml_c_ns_alias_node;
+}
+
+{nb-double-one-line} {
+    return yaml_nb_double_one_line;
 }
 
 {s-indent} {
