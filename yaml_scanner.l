@@ -54,8 +54,14 @@ c-ns-esc-char           \x5C[\x30\x61\x62\x74\x9\x6E\x76\x66\x72\x65\x20\x22\x2F
 nb-double-char          {c-ns-esc-char}|[\x9\x20-\x7E]{-}[\x5C\x22]
 ns-double-char          {c-ns-esc-char}|[\x9\x20-\x7E]{-}[\x5C\x22\x20\x9]
 nb-double-one-line      {c-double-quote}{nb-double-char}*{c-double-quote}
+c-single-quote          \x27
+c-quoted-quote          {c-single-quote}{c-single-quote}
+nb-single-char          {c-quoted-quote}|[\x9\x20-\x7E]{-}[\x27]
+ns-single-char          {c-quoted-quote}|[\x9\x20-\x7E]{-}[\x27\x20\x9]
+nb-single-one-line      {c-single-quote}{nb-single-char}*{c-single-quote}
 
 %x double_quote
+%x single_quote
 
 %%
 
@@ -114,6 +120,40 @@ nb-double-one-line      {c-double-quote}{nb-double-char}*{c-double-quote}
 }
 
 <double_quote>{s-separate-in-line}?(\x5C)?{b-break} {
+    return yaml_b_break;
+}
+
+{nb-single-one-line} {
+    return yaml_nb_single_one_line;
+}
+
+{c-single-quote}({s-white}*{ns-single-char})* {
+    BEGIN(single_quote);
+    return yaml_single_quote_start;
+}
+
+<single_quote>{ns-single-char}({s-white}*{ns-single-char})* {
+    return yaml_single_quote_next;
+}
+
+<single_quote>{c-single-quote} {
+    BEGIN(INITIAL);
+    return yaml_single_quote_end;
+}
+
+<single_quote>{s-indent}{s-separate-in-line}? {
+    return yaml_s_flow_line_prefix;
+}
+
+<single_quote>{s-separate-in-line} {
+    return yaml_s_separate_in_line;
+}
+
+<single_quote>{s-indent}{s-separate-in-line}?{b-break} {
+    return yaml_l_empty;
+}
+
+<single_quote>{s-separate-in-line}?{b-break} {
     return yaml_b_break;
 }
 

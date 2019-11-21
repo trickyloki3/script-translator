@@ -196,6 +196,10 @@ void yaml_token_print(int token) {
         case yaml_double_quote_next:    fprintf(stderr, "double_quote_next "); break;
         case yaml_double_quote_end:     fprintf(stderr, "double_quote_end "); break;
         case yaml_s_flow_line_prefix:   fprintf(stderr, "s_flow_line_prefix "); break;
+        case yaml_nb_single_one_line:   fprintf(stderr, "nb_single_one_line "); break;
+        case yaml_single_quote_start:   fprintf(stderr, "single_quote_start "); break;
+        case yaml_single_quote_next:    fprintf(stderr, "single_quote_next "); break;
+        case yaml_single_quote_end:     fprintf(stderr, "single_quote_end "); break;
         default:                        fprintf(stderr, "<%d> ", token); break;
     }
 }

@@ -25,6 +25,8 @@
 %token nb_double_one_line
 %token double_quote_start double_quote_next double_quote_end
 %token s_flow_line_prefix
+%token nb_single_one_line
+%token single_quote_start single_quote_next single_quote_end
 %start yaml
 
 %code requires {
@@ -46,6 +48,8 @@ void yyerror(YAMLLTYPE *, struct yaml *, char const *);
 %%
 
 yaml : l_directive_document c_double_quoted m_l_empty
+     | l_directive_document c_single_quoted m_l_empty
+
 
 l_directive_document  : l_directive
                       | l_directive_document l_directive
@@ -65,6 +69,18 @@ s_double_next_line  : s_double_break
                     | s_double_break double_quote_next
                     | s_double_break double_quote_next s_separate_in_line
                     | s_double_break double_quote_next s_double_next_line
+
+c_single_quoted :   nb_single_one_line b_break
+                |   nb_single_multi_line b_break
+
+nb_single_multi_line :  single_quote_start single_quote_end
+                     |  single_quote_start s_separate_in_line single_quote_end
+                     |  single_quote_start s_single_next_line single_quote_end
+
+s_single_next_line  :   s_double_break
+                    |   s_double_break single_quote_next
+                    |   s_double_break single_quote_next s_separate_in_line
+                    |   s_double_break single_quote_next s_single_next_line
 
 s_double_break :    b_break m_l_empty
                |    b_break m_l_empty s_flow_line_prefix
