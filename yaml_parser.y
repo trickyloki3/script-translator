@@ -42,8 +42,11 @@ void yyerror(YAMLLTYPE *, struct yaml *, char const *);
 
 %%
 
-yaml : s_indent s_l_block_node
-     | yaml s_indent s_l_block_node
+yaml : l_empty_r l_bare_document
+
+
+l_bare_document : s_indent s_l_block_node
+                | l_bare_document s_indent s_l_block_node
 
 s_l_block_node : ns_plain_one_line s_l_comments
                | c_literal s_separate nb_char s_l_comments
