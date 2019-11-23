@@ -14,54 +14,19 @@
 c-sequence-entry        \x2D
 c-mapping-key           \x3F
 c-mapping-value         \x3A
+c-comment               \x23
+c-literal               \x7C
+c-folded                \x3E
 s-space                 \x20
 s-indent                ^{s-space}*
-s-white                 [\x20\x9]
-s-separate-in-line      {s-white}+
-c-comment               \x23
+s-separate-in-line      {s-space}+
+b-break                 \xD\xA|\xD|\xA
 nb-char                 [\x9\x20-\x7E]
 c-nb-comment-text       {c-comment}{nb-char}*
-b-break                 \xD\xA|\xD|\xA
-c-directive             \x25
 ns-char                 [\x21-\x7E]
-ns-dec-digit            [\x30-\x39]
-ns-hex-digit            [\x30-\x39\x41-\x46\x61-\x66]
-ns-ascii-letter         [\x41-\x5A\x61-\x7A]
-ns-word-char            {ns-dec-digit}|{ns-ascii-letter}|\x2D
-ns-uri-char             \x25{ns-hex-digit}{ns-hex-digit}|{ns-word-char}|[\x23\x3B\x2F\x3F\x3A\x40\x26\x3D\x2B\x24\x2C\x5F\x2E\x21\x7E\x2A\x27\x28\x29\x5B\x5D]
-ns-tag-char             \x25{ns-hex-digit}{ns-hex-digit}|{ns-word-char}|[\x23\x3B\x2F\x3F\x3A\x40\x26\x3D\x2B\x24\x5F\x2E\x7E\x2A\x27\x28\x29]
-c-tag                   \x21
-c-primary-tag-handle    {c-tag}
-c-secondary-tag-handle  {c-tag}{c-tag}
-c-named-tag-handle      {c-tag}{ns-word-char}+{c-tag}
-c-tag-handle            {c-primary-tag-handle}|{c-secondary-tag-handle}|{c-named-tag-handle}
-c-ns-local-tag-prefix   {c-tag}{ns-uri-char}*
-ns-global-tag-prefix    {ns-tag-char}{ns-uri-char}*
-ns-tag-prefix           {c-ns-local-tag-prefix}|{ns-global-tag-prefix}
-c-verbatim-tag          {c-tag}\x3C{ns-uri-char}+\x3E
-c-ns-shorthand-tag      {c-tag-handle}{ns-tag-char}+
-c-non-specific-tag      {c-tag}
-c-ns-tag-property       {c-verbatim-tag}|{c-ns-shorthand-tag}|{c-non-specific-tag}
-c-flow-indicator        [\x2C\x5B\x5D\x7B\x7D]
-c-anchor                \x26
-/* ns-anchor-char       {ns-char}{-}{c-flow-indicator} */
-ns-anchor-char          [\x21-\x7E]{-}[\x2C\x5B\x5D\x7B\x7D]
-c-ns-anchor-property    {c-anchor}{ns-anchor-char}+
-c-alias                 \x2A
-c-ns-alias-node         {c-alias}{ns-anchor-char}+
-c-double-quote          \x22
-c-ns-esc-char           \x5C[\x30\x61\x62\x74\x9\x6E\x76\x66\x72\x65\x20\x22\x2F\x5C]
-nb-double-char          {c-ns-esc-char}|[\x9\x20-\x7E]{-}[\x5C\x22]
-ns-double-char          {c-ns-esc-char}|[\x9\x20-\x7E]{-}[\x5C\x22\x20\x9]
-nb-double-one-line      {c-double-quote}{nb-double-char}*{c-double-quote}
-c-single-quote          \x27
-c-quoted-quote          {c-single-quote}{c-single-quote}
-nb-single-char          {c-quoted-quote}|[\x9\x20-\x7E]{-}[\x27]
-ns-single-char          {c-quoted-quote}|[\x9\x20-\x7E]{-}[\x27\x20\x9]
-nb-single-one-line      {c-single-quote}{nb-single-char}*{c-single-quote}
-
-%x double_quote
-%x single_quote
+ns-plain-first          [\x21-\x7E]{-}[\x2D\x3F\x3A\x23\x7C\x3E]|(\x2D|\x3F|\x3A){ns-char}
+ns-plain-char           [\x21-\x7E]{-}[\x3A\x23]|{ns-char}{c-comment}|{c-mapping-value}{ns-char}
+ns-plain-one-line       {ns-plain-first}({s-space}*{ns-plain-char})*
 
 %%
 
@@ -77,84 +42,12 @@ nb-single-one-line      {c-single-quote}{nb-single-char}*{c-single-quote}
     return yaml_c_mapping_value;
 }
 
-{c-ns-tag-property} {
-    return yaml_c_ns_tag_property;
+{c-literal} {
+    return yaml_c_literal;
 }
 
-{c-ns-anchor-property} {
-    return yaml_c_ns_anchor_property;
-}
-
-{c-ns-alias-node} {
-    return yaml_c_ns_alias_node;
-}
-
-{nb-double-one-line} {
-    return yaml_nb_double_one_line;
-}
-
-{c-double-quote}({s-white}*{ns-double-char})* {
-    BEGIN(double_quote);
-    return yaml_double_quote_start;
-}
-
-<double_quote>{ns-double-char}({s-white}*{ns-double-char})* {
-    return yaml_double_quote_next;
-}
-
-<double_quote>{c-double-quote} {
-    BEGIN(INITIAL);
-    return yaml_double_quote_end;
-}
-
-<double_quote>{s-indent}{s-separate-in-line}? {
-    return yaml_s_flow_line_prefix;
-}
-
-<double_quote>{s-separate-in-line} {
-    return yaml_s_separate_in_line;
-}
-
-<double_quote>{s-indent}{s-separate-in-line}?{b-break} {
-    return yaml_l_empty;
-}
-
-<double_quote>{s-separate-in-line}?(\x5C)?{b-break} {
-    return yaml_b_break;
-}
-
-{nb-single-one-line} {
-    return yaml_nb_single_one_line;
-}
-
-{c-single-quote}({s-white}*{ns-single-char})* {
-    BEGIN(single_quote);
-    return yaml_single_quote_start;
-}
-
-<single_quote>{ns-single-char}({s-white}*{ns-single-char})* {
-    return yaml_single_quote_next;
-}
-
-<single_quote>{c-single-quote} {
-    BEGIN(INITIAL);
-    return yaml_single_quote_end;
-}
-
-<single_quote>{s-indent}{s-separate-in-line}? {
-    return yaml_s_flow_line_prefix;
-}
-
-<single_quote>{s-separate-in-line} {
-    return yaml_s_separate_in_line;
-}
-
-<single_quote>{s-indent}{s-separate-in-line}?{b-break} {
-    return yaml_l_empty;
-}
-
-<single_quote>{s-separate-in-line}?{b-break} {
-    return yaml_b_break;
+{c-folded} {
+    return yaml_c_folded;
 }
 
 {s-indent} {
@@ -165,7 +58,7 @@ nb-single-one-line      {c-single-quote}{nb-single-char}*{c-single-quote}
     return yaml_s_separate_in_line;
 }
 
-{s-indent}{s-separate-in-line}?{c-nb-comment-text}?{b-break} {
+{s-indent}{c-nb-comment-text}?{b-break} {
     return yaml_l_empty;
 }
 
@@ -173,16 +66,8 @@ nb-single-one-line      {c-single-quote}{nb-single-char}*{c-single-quote}
     return yaml_b_break;
 }
 
-^{c-directive}\x59\x41\x4D\x4C{s-separate-in-line}{ns-dec-digit}+\x2E{ns-dec-digit}+ {
-    return yaml_ns_yaml_directive;
-}
-
-^{c-directive}\x54\x41\x47{s-separate-in-line}{c-tag-handle}{s-separate-in-line}{ns-tag-prefix} {
-    return yaml_ns_tag_directive;
-}
-
-^{c-directive}{ns-char}+({s-separate-in-line}{ns-char}+)* {
-    return yaml_ns_reserve_directive;
+{ns-plain-one-line} {
+    return yaml_ns_plain_one_line;
 }
 
 . {

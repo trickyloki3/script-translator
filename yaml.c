@@ -181,25 +181,13 @@ void yaml_token_print(int token) {
         case yaml_c_sequence_entry:     fprintf(stderr, "c_sequence_entry "); break;
         case yaml_c_mapping_key:        fprintf(stderr, "c_mapping_key "); break;
         case yaml_c_mapping_value:      fprintf(stderr, "c_mapping_value "); break;
+        case yaml_c_literal:            fprintf(stderr, "c_literal "); break;
+        case yaml_c_folded:             fprintf(stderr, "c_folded "); break;
         case yaml_s_indent:             fprintf(stderr, "s_indent "); break;
         case yaml_s_separate_in_line:   fprintf(stderr, "s_separate_in_line "); break;
+        case yaml_l_empty:              fprintf(stderr, "l_empty\n"); break;
         case yaml_b_break:              fprintf(stderr, "b_break\n"); break;
-        case yaml_l_empty:              fprintf(stderr, "l_empty "); break;
-        case yaml_ns_yaml_directive:    fprintf(stderr, "ns_yaml_directive "); break;
-        case yaml_ns_tag_directive:     fprintf(stderr, "ns_tag_directive "); break;
-        case yaml_ns_reserve_directive: fprintf(stderr, "ns_reserve_directive "); break;
-        case yaml_c_ns_tag_property:    fprintf(stderr, "c_ns_tag_property "); break;
-        case yaml_c_ns_anchor_property: fprintf(stderr, "c_ns_anchor_property "); break;
-        case yaml_c_ns_alias_node:      fprintf(stderr, "c_ns_alias_node "); break;
-        case yaml_nb_double_one_line:   fprintf(stderr, "nb_double_one_line "); break;
-        case yaml_double_quote_start:   fprintf(stderr, "double_quote_start "); break;
-        case yaml_double_quote_next:    fprintf(stderr, "double_quote_next "); break;
-        case yaml_double_quote_end:     fprintf(stderr, "double_quote_end "); break;
-        case yaml_s_flow_line_prefix:   fprintf(stderr, "s_flow_line_prefix "); break;
-        case yaml_nb_single_one_line:   fprintf(stderr, "nb_single_one_line "); break;
-        case yaml_single_quote_start:   fprintf(stderr, "single_quote_start "); break;
-        case yaml_single_quote_next:    fprintf(stderr, "single_quote_next "); break;
-        case yaml_single_quote_end:     fprintf(stderr, "single_quote_end "); break;
+        case yaml_ns_plain_one_line:    fprintf(stderr, "ns_plain_one_line "); break;
         default:                        fprintf(stderr, "<%d> ", token); break;
     }
 }
