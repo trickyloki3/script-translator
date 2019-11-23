@@ -71,14 +71,6 @@ ns-plain-one-line       {ns-plain-first}({s-space}*{ns-plain-char})*
     return yaml_s_indent;
 }
 
-<literal>{s-indent}{c-nb-comment-text}?{b-break} {
-    return yaml_l_empty;
-}
-
-<literal>({s-separate-in-line}{c-nb-comment-text}?)?{b-break} {
-    return yaml_b_break;
-}
-
 {s-indent} {
     return yaml_s_indent;
 }
@@ -87,11 +79,11 @@ ns-plain-one-line       {ns-plain-first}({s-space}*{ns-plain-char})*
     return yaml_s_separate_in_line;
 }
 
-{s-indent}{c-nb-comment-text}?{b-break} {
+<INITIAL,literal>{s-indent}{c-nb-comment-text}?{b-break} {
     return yaml_l_empty;
 }
 
-({s-separate-in-line}{c-nb-comment-text}?)?{b-break} {
+<INITIAL,literal>({s-separate-in-line}{c-nb-comment-text}?)?{b-break} {
     return yaml_b_break;
 }
 
