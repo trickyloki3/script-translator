@@ -42,7 +42,37 @@ void yyerror(YAMLLTYPE *, struct yaml *, char const *);
 
 %%
 
-yaml : %empty
+yaml : s_indent s_l_block_node
+     | yaml s_indent s_l_block_node
+
+s_l_block_node : ns_plain_one_line s_separate
+               | c_literal l_literal_content
+               | c_folded l_literal_content
+               | l_block_sequence
+               | l_block_mapping
+
+l_literal_content : s_separate ns_plain_one_line
+                  | l_literal_content s_separate ns_plain_one_line
+
+l_block_sequence : c_sequence_entry s_l_block_indented
+                 | l_block_sequence c_sequence_entry s_l_block_indented
+
+s_l_block_indented : s_separate_in_line l_block_mapping
+                   | s_l_block_node
+
+l_block_mapping : ns_l_block_map_implicit_entry
+                | l_block_mapping ns_l_block_map_implicit_entry
+
+ns_l_block_map_implicit_entry : ns_plain_one_line c_mapping_value s_separate s_l_block_node
+
+s_separate : s_separate_in_line
+           | s_l_comments s_indent
+
+s_l_comments : b_break
+             | b_break l_empty_r
+
+l_empty_r : l_empty
+          | l_empty_r l_empty
 
 %%
 
