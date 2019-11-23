@@ -159,14 +159,25 @@ int yaml_parse_loop(struct yaml * yaml, yyscan_t scanner, yamlpstate * parser) {
 
     YAMLSTYPE value;
     YAMLLTYPE location;
-    int token;
+    int token = yaml_l_empty;
     int state;
 
     do {
-        token = yamllex(&value, &location, scanner);
-        if(token < 0) {
-            status = panic("failed to get the next token");
+        if(token == yaml_b_break || token == yaml_l_empty) {
+            token = yamllex(&value, &location, scanner);
+            if(token < 0) {
+                status = panic("failed to get the next token");
+            } else if(token && token != yaml_s_indent && token != yaml_l_empty) {
+                state = yamlpush_parse(parser, yaml_s_indent, NULL, &location, yaml);
+                if(state && state != YYPUSH_MORE)
+                    status = panic("failed to parse the current token");
+            }
         } else {
+            token = yamllex(&value, &location, scanner);
+            if(token < 0)
+                status = panic("failed to get the next token");
+        }
+        if(!status) {
             state = yamlpush_parse(parser, token, &value, &location, yaml);
             if(state && state != YYPUSH_MORE)
                 status = panic("failed to parse the current token");
