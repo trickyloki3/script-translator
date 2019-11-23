@@ -21,7 +21,7 @@
 %token c_literal c_folded
 %token s_indent s_separate_in_line
 %token l_empty b_break
-%token ns_plain_one_line
+%token nb_char ns_plain_one_line
 %start yaml
 
 %code requires {
@@ -45,14 +45,12 @@ void yyerror(YAMLLTYPE *, struct yaml *, char const *);
 yaml : s_indent s_l_block_node
      | yaml s_indent s_l_block_node
 
-s_l_block_node : ns_plain_one_line s_separate
-               | c_literal l_literal_content
-               | c_folded l_literal_content
+s_l_block_node : ns_plain_one_line s_l_comments
+               | c_literal s_separate nb_char s_l_comments
+               | c_folded s_separate nb_char s_l_comments
+               | nb_char s_l_comments
                | l_block_sequence
                | l_block_mapping
-
-l_literal_content : s_separate ns_plain_one_line
-                  | l_literal_content s_separate ns_plain_one_line
 
 l_block_sequence : c_sequence_entry s_l_block_indented
                  | l_block_sequence c_sequence_entry s_l_block_indented

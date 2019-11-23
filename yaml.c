@@ -83,9 +83,10 @@ int yaml_create(struct yaml * yaml, struct pool_map * pool_map, struct sector_li
                 if(list_create(&yaml->list, yaml->list_node_pool)) {
                     status = panic("failed to create list object");
                 } else {
-                    if(list_create(&yaml->nest, yaml->list_node_pool)) {
+                    if(list_create(&yaml->stack, yaml->list_node_pool)) {
                         status = panic("failed to create list object");
                     } else {
+                        yaml->indent = 0;
                         yaml->root = NULL;
                         yaml->sector_list = sector_list;
                     }
@@ -101,7 +102,7 @@ int yaml_create(struct yaml * yaml, struct pool_map * pool_map, struct sector_li
 
 void yaml_destroy(struct yaml * yaml) {
     yaml_clear(yaml);
-    list_destroy(&yaml->nest);
+    list_destroy(&yaml->stack);
     list_destroy(&yaml->list);
 }
 
@@ -198,6 +199,7 @@ void yaml_token_print(int token) {
         case yaml_s_separate_in_line:   fprintf(stderr, "s_separate_in_line "); break;
         case yaml_l_empty:              fprintf(stderr, "l_empty\n"); break;
         case yaml_b_break:              fprintf(stderr, "b_break\n"); break;
+        case yaml_nb_char:              fprintf(stderr, "nb_char "); break;
         case yaml_ns_plain_one_line:    fprintf(stderr, "ns_plain_one_line "); break;
         default:                        fprintf(stderr, "<%d> ", token); break;
     }

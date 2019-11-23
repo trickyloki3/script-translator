@@ -25,7 +25,8 @@ struct yaml {
     struct pool * map_node_pool;
     struct pool * yaml_node_pool;
     struct list list;
-    struct list nest;
+    struct list stack;
+    int indent;
     struct yaml_node * root;
     struct sector_list * sector_list;
 };
