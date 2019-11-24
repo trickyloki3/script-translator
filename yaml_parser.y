@@ -48,12 +48,16 @@ yaml : l_bare_document
 l_bare_document : s_indent s_l_block_node
                 | l_bare_document s_indent s_l_block_node
 
-s_l_block_node : ns_plain_one_line s_l_comments
-               | c_literal s_separate nb_char s_l_comments
-               | c_folded s_separate nb_char s_l_comments
-               | nb_char s_l_comments
+s_l_block_node : ns_plain
+               | l_block_scalar
                | l_block_sequence
                | l_block_mapping
+
+ns_plain : ns_plain_one_line s_l_comments
+
+l_block_scalar : c_literal s_separate nb_char s_l_comments
+               | c_folded s_separate nb_char s_l_comments
+               | nb_char s_l_comments
 
 l_block_sequence : c_sequence_entry s_separate s_l_block_node
 
