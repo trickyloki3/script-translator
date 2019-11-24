@@ -91,7 +91,7 @@ ns-plain-one-line       {ns-plain-first}({s-space}*{ns-plain-char})*
     return yaml_ns_plain_one_line;
 }
 
-. {
+<INITIAL,literal>. {
     panic("invalid character (line %d)", yylineno);
     return -1;
 }
