@@ -141,7 +141,16 @@ int csv_put_string(struct csv * csv, struct string * string) {
     return status;
 }
 
-struct string * csv_strdup_string(struct csv * csv, char * buffer, size_t length) {
+int csv_push_field_string(struct csv * csv, struct string * string) {
+    int status = 0;
+
+    if(list_push(&csv->record, string))
+        status = panic("failed to push list object");
+
+    return status;
+}
+
+int csv_push_field_strdup(struct csv * csv, char * buffer, size_t length) {
     int status = 0;
     struct string * string;
 
@@ -149,21 +158,15 @@ struct string * csv_strdup_string(struct csv * csv, char * buffer, size_t length
     if(!string) {
         status = panic("failed to get string object");
     } else {
-        if(string_strdup(string, buffer, length))
+        if(string_strdup(string, buffer, length)) {
             status = panic("failed to strdup string object");
+        } else if(csv_push_field_string(csv, string)) {
+            status = panic("failed to push field csv object");
+        }
         if(status)
             if(csv_put_string(csv, string))
                 status = panic("failed to put string object");
     }
-
-    return status ? NULL : string;
-}
-
-int csv_push_field(struct csv * csv, struct string * string) {
-    int status = 0;
-
-    if(list_push(&csv->record, string))
-        status = panic("failed to push list object");
 
     return status;
 }
@@ -176,7 +179,7 @@ int csv_push_field_empty(struct csv * csv) {
     if(!string) {
         status = panic("failed to get string object");
     } else {
-        if(csv_push_field(csv, string))
+        if(csv_push_field_string(csv, string))
             status = panic("failed to push field on csv object");
         if(status)
             if(csv_put_string(csv, string))

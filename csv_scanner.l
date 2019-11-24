@@ -62,19 +62,18 @@ TEXTDATA    [\x9\x20-\x21\x23-\x2B\x2D-\x7A\x7C\x7E]
             }
         } while(count && !status);
 
-        if(status && csv_put_string(yyextra, string)) {
+        if(!status && csv_push_field_string(yyextra, string))
+            status = panic("failed to push field csv object");
+
+        if(status && csv_put_string(yyextra, string))
             status = panic("failed to put string object");
-        } else {
-            *yylval = string;
-        }
     }
 
     return status ? -1 : CSV_ESCAPED;
 }
 
 {DQUOTE}({TEXTDATA}|{COMMA})*{DQUOTE} {
-    *yylval = csv_strdup_string(yyextra, yytext, yyleng);
-    return *yylval ? CSV_ESCAPED : -1;
+    return csv_push_field_strdup(yyextra, yytext, yyleng) ? -1 : CSV_ESCAPED;
 }
 
 {DQUOTE}({TEXTDATA}|{COMMA})* {
@@ -83,8 +82,7 @@ TEXTDATA    [\x9\x20-\x21\x23-\x2B\x2D-\x7A\x7C\x7E]
 }
 
 {TEXTDATA}* {
-    *yylval = csv_strdup_string(yyextra, yytext, yyleng);
-    return *yylval ? CSV_NONESCAPED : -1;
+    return csv_push_field_strdup(yyextra, yytext, yyleng) ? -1 : CSV_NONESCAPED;
 }
 
 . {

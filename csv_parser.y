@@ -51,8 +51,8 @@ record : field
        | record COMMA field COMMENT
 
 field : %empty { if(csv_push_field_empty(csv)) YYABORT; }
-      | ESCAPED { if(csv_push_field(csv, $1)) YYABORT; }
-      | NONESCAPED { if(csv_push_field(csv, $1)) YYABORT; }
+      | ESCAPED
+      | NONESCAPED
 
 %%
 
