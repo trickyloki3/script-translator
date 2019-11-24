@@ -55,11 +55,7 @@ s_l_block_node : ns_plain_one_line s_l_comments
                | l_block_sequence
                | l_block_mapping
 
-l_block_sequence : c_sequence_entry s_l_block_indented
-
-s_l_block_indented : s_separate_in_line l_block_sequence
-                   | s_separate_in_line l_block_mapping
-                   | s_l_block_node
+l_block_sequence : c_sequence_entry s_separate s_l_block_node
 
 l_block_mapping : ns_plain_one_line c_mapping_value s_separate s_l_block_node
                 | c_mapping_key s_separate s_l_block_node s_indent c_mapping_value s_separate s_l_block_node
