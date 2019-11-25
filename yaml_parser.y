@@ -62,7 +62,7 @@ l_block_scalar : c_literal s_separate nb_char s_l_comments
 l_block_sequence : c_sequence_entry s_separate s_l_block_node
 
 l_block_mapping : ns_plain_one_line c_mapping_value s_separate s_l_block_node
-                | c_mapping_key s_separate s_l_block_node s_indent c_mapping_value s_separate s_l_block_node
+                | c_mapping_key s_separate ns_plain s_indent c_mapping_value s_separate s_l_block_node
 
 s_separate : s_separate_in_line
            | s_l_comments s_indent
