@@ -8,17 +8,17 @@ int size_compare(void * x, void * y) {
     return l < r ? -1 : l > r ? 1 : 0;
 }
 
-int pool_map_create(struct pool_map * pool_map, size_t granularity, struct pool * list_node_pool, struct pool * map_node_pool) {
+int pool_map_create(struct pool_map * pool_map, size_t size) {
     int status = 0;
 
-    if(!granularity) {
-        status = panic("granularity is zero");
+    if(!size) {
+        status = panic("size is zero");
     } else {
-        pool_map->granularity = granularity;
-        if(list_create(&pool_map->list, list_node_pool)) {
+        pool_map->size = size;
+        if(list_create(&pool_map->list, NULL)) {
             status = panic("failed to create list object");
         } else {
-            if(map_create(&pool_map->map, size_compare, map_node_pool))
+            if(map_create(&pool_map->map, size_compare, NULL))
                 status = panic("failed to create map object");
             if(status)
                 list_destroy(&pool_map->list);
@@ -52,7 +52,7 @@ struct pool * pool_map_get(struct pool_map * pool_map, size_t size) {
         if(!pool) {
             status = panic("out of memory");
         } else {
-            if(pool_create(pool, size, pool_map->granularity / size)) {
+            if(pool_create(pool, size, pool_map->size / size)) {
                 status = panic("failed to create pool object");
             } else {
                 if(list_push(&pool_map->list, pool)) {

@@ -5,12 +5,12 @@
 #include "map.h"
 
 struct pool_map {
-    size_t granularity;
+    size_t size;
     struct list list;
     struct map map;
 };
 
-int pool_map_create(struct pool_map *, size_t, struct pool *, struct pool *);
+int pool_map_create(struct pool_map *, size_t);
 void pool_map_destroy(struct pool_map *);
 struct pool * pool_map_get(struct pool_map *, size_t);
 

@@ -24,7 +24,7 @@ int map_node_create(struct map * map, void * key, void * value, struct map_node 
     int status = 0;
     struct map_node * node;
 
-    node = pool_get(map->pool);
+    node = map->pool ? pool_get(map->pool) : malloc(sizeof(*node));
     if(!node) {
         status = panic("out of memory");
     } else {
@@ -43,7 +43,12 @@ int map_node_create(struct map * map, void * key, void * value, struct map_node 
 }
 
 void map_node_destroy(struct map * map, struct map_node * node) {
-    pool_put(map->pool, node);
+    if(map->pool) {
+        pool_put(map->pool, node);
+    } else {
+        free(node);
+    }
+
 }
 
 static inline void map_node_attach(struct map_node * x, struct map_node * y) {
@@ -311,9 +316,7 @@ int map_create(struct map * map, map_compare_cb compare, struct pool * pool) {
 
     if(!compare) {
         status = panic("compare is zero");
-    } else if(!pool) {
-        status = panic("pool is zero");
-    } else if(pool->size != sizeof(struct map_node)) {
+    } else if(pool && pool->size != sizeof(struct map_node)) {
         status = panic("pool is invalid");
     } else {
         map->compare = compare;

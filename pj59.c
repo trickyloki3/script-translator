@@ -28,13 +28,13 @@ int main(int argc, char ** argv) {
             if(pool_create(&sector_node_pool, sizeof(struct sector_node), 64)) {
                 status = panic("failed to create pool object");
             } else {
-                if(pool_map_create(&pool_map, 524288, &list_node_pool, &map_node_pool)) {
+                if(pool_map_create(&pool_map, 524288)) {
                     status = panic("failed to create pool map object");
                 } else {
                     if(sector_list_create(&sector_list, 524288, &sector_node_pool, &list_node_pool)) {
                         status = panic("failed to create sector list object");
                     } else {
-                        status = yaml_test(&pool_map, &sector_list);
+                        status = load_test(&pool_map, &sector_list);
 
                         sector_list_destroy(&sector_list);
                     }

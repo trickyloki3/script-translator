@@ -9,7 +9,7 @@ int list_node_create(struct list * list, void * object, struct list_node ** resu
     int status = 0;
     struct list_node * node;
 
-    node = pool_get(list->pool);
+    node = list->pool ? pool_get(list->pool) : malloc(sizeof(*node));
     if(!node) {
         status = panic("out of memory");
     } else {
@@ -23,7 +23,11 @@ int list_node_create(struct list * list, void * object, struct list_node ** resu
 }
 
 void list_node_destroy(struct list * list, struct list_node * node) {
-    pool_put(list->pool, node);
+    if(list->pool) {
+        pool_put(list->pool, node);
+    } else {
+        free(node);
+    }
 }
 
 static inline void list_node_attach(struct list_node * x, struct list_node * y) {
@@ -43,9 +47,7 @@ static inline void list_node_detach(struct list_node * x) {
 int list_create(struct list * list, struct pool * pool) {
     int status = 0;
 
-    if(!pool) {
-        status = panic("pool is zero");
-    } else if(pool->size != sizeof(struct list_node)) {
+    if(pool && pool->size != sizeof(struct list_node)) {
         status = panic("pool is invalid");
     } else {
         list->size = 0;
