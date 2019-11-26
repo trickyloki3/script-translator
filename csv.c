@@ -3,7 +3,35 @@
 #include "csv_parser.h"
 #include "csv_scanner.h"
 
+int csv_string_create(struct string **);
+int csv_string_destroy(struct string *);
+
 int csv_parse_loop(struct csv *, yyscan_t, csvpstate *);
+
+int csv_string_create(struct string ** result) {
+    int status = 0;
+    struct string * string;
+
+    string = malloc(sizeof(*string));
+    if(!string) {
+        status = panic("out of memory");
+    } else {
+        if(string_create(string, 64))
+            status = panic("failed to create string object");
+        if(status) {
+            free(string);
+        } else {
+            *result = string;
+        }
+    }
+
+    return status;
+}
+
+int csv_string_destroy(struct string * string) {
+    string_destroy(string);
+    free(string);
+}
 
 int csv_create(struct csv * csv, size_t buffer_size, struct pool * list_node_pool) {
     int status = 0;
@@ -28,8 +56,7 @@ void csv_destroy(struct csv * csv) {
 
     string = list_pop(&csv->string);
     while(string) {
-        string_destroy(string);
-        free(string);
+        csv_string_destroy(string);
         string = list_pop(&csv->string);
     }
 
@@ -111,17 +138,8 @@ struct string * csv_get_string(struct csv * csv) {
     struct string * string;
 
     string = list_pop(&csv->string);
-    if(!string) {
-        string = malloc(sizeof(*string));
-        if(!string) {
-            status = panic("failed to get pool object");
-        } else {
-            if(string_create(string, 64))
-                status = panic("failed to create string object");
-            if(status)
-                free(string);
-        }
-    }
+    if(!string && csv_string_create(&string))
+        status = panic("failed to create string object");
 
     return status ? NULL : string;
 }
@@ -133,10 +151,8 @@ int csv_put_string(struct csv * csv, struct string * string) {
     if(list_push(&csv->string, string))
         status = panic("failed to push list object");
 
-    if(status) {
-        string_destroy(string);
-        free(string);
-    }
+    if(status)
+        csv_string_destroy(string);
 
     return status;
 }
