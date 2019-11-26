@@ -3,6 +3,9 @@
 #include "csv_parser.h"
 #include "csv_scanner.h"
 
+#define STRING_SIZE 64
+#define BUFFER_SIZE 32768
+
 int csv_string_create(struct string **);
 int csv_string_destroy(struct string *);
 
@@ -16,7 +19,7 @@ int csv_string_create(struct string ** result) {
     if(!string) {
         status = panic("out of memory");
     } else {
-        if(string_create(string, 64))
+        if(string_create(string, STRING_SIZE))
             status = panic("failed to create string object");
         if(status) {
             free(string);
@@ -33,17 +36,14 @@ int csv_string_destroy(struct string * string) {
     free(string);
 }
 
-int csv_create(struct csv * csv, size_t buffer_size, struct pool * list_node_pool) {
+int csv_create(struct csv * csv, struct pool * list_node_pool) {
     int status = 0;
 
     if(list_create(&csv->string, list_node_pool)) {
         status = panic("failed to create list object");
     } else {
-        if(list_create(&csv->record, list_node_pool)) {
+        if(list_create(&csv->record, list_node_pool))
             status = panic("failed to create list object");
-        } else {
-            csv->buffer_size = buffer_size;
-        }
         if(status)
             list_destroy(&csv->string);
     }
@@ -89,7 +89,7 @@ int csv_parse(struct csv * csv, const char * path, csv_process_cb process, void 
                 if(!parser) {
                     status = panic("failed to create parser object");
                 } else {
-                    buffer = csv_create_buffer(file, csv->buffer_size, scanner);
+                    buffer = csv_create_buffer(file, BUFFER_SIZE, scanner);
                     if(!buffer) {
                         status = panic("failed to create buffer state object");
                     } else {

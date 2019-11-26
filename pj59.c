@@ -57,7 +57,7 @@ int load_test(struct pool_map * pool_map, struct sector_list * sector_list) {
     struct db db;
     struct data data;
 
-    if(csv_create(&csv, 524288, pool_map_get(pool_map, sizeof(struct list_node)))) {
+    if(csv_create(&csv, pool_map_get(pool_map, sizeof(struct list_node)))) {
         status = panic("failed to create csv object");
     } else {
         if(json_create(&json, pool_map, sector_list)) {
