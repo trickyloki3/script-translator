@@ -1,12 +1,10 @@
 #ifndef pool_map_h
 #define pool_map_h
 
-#include "list.h"
 #include "map.h"
 
 struct pool_map {
     size_t size;
-    struct list list;
     struct map map;
 };
 

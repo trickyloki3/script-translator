@@ -15,31 +15,24 @@ int pool_map_create(struct pool_map * pool_map, size_t size) {
         status = panic("size is zero");
     } else {
         pool_map->size = size;
-        if(list_create(&pool_map->list, NULL)) {
-            status = panic("failed to create list object");
-        } else {
-            if(map_create(&pool_map->map, size_compare, NULL))
-                status = panic("failed to create map object");
-            if(status)
-                list_destroy(&pool_map->list);
-        }
+        if(map_create(&pool_map->map, size_compare, NULL))
+            status = panic("failed to create map object");
     }
 
     return status;
 }
 
 void pool_map_destroy(struct pool_map * pool_map) {
-    struct pool * pool;
+    struct map_pair map_pair;
 
-    pool = list_pop(&pool_map->list);
-    while(pool) {
-        pool_destroy(pool);
-        free(pool);
-        pool = list_pop(&pool_map->list);
+    map_pair = map_start(&pool_map->map);
+    while(map_pair.key && map_pair.value) {
+        pool_destroy(map_pair.value);
+        free(map_pair.value);
+        map_pair = map_next(&pool_map->map);
     }
 
     map_destroy(&pool_map->map);
-    list_destroy(&pool_map->list);
 }
 
 struct pool * pool_map_get(struct pool_map * pool_map, size_t size) {
@@ -55,14 +48,8 @@ struct pool * pool_map_get(struct pool_map * pool_map, size_t size) {
             if(pool_create(pool, size, pool_map->size / size)) {
                 status = panic("failed to create pool object");
             } else {
-                if(list_push(&pool_map->list, pool)) {
-                    status = panic("failed to push list object");
-                } else {
-                    if(map_insert(&pool_map->map, &pool->size, pool))
-                        status = panic("failed to insert map object");
-                    if(status)
-                        list_pop(&pool_map->list);
-                }
+                if(map_insert(&pool_map->map, &pool->size, pool))
+                    status = panic("failed to insert map object");
                 if(status)
                     pool_destroy(pool);
             }
