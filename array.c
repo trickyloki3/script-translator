@@ -46,59 +46,6 @@ void * array_index(struct array * array, size_t index) {
     return element;
 }
 
-int stack_create(struct stack * stack, size_t size, size_t count) {
-    int status = 0;
-
-    stack->top = 0;
-    if(array_create(&stack->array, size, count))
-        status = panic("failed to create stack object");
-
-    return status;
-}
-
-void stack_destroy(struct stack * stack) {
-    array_destroy(&stack->array);
-}
-
-int stack_push_value(struct stack * stack, void * element) {
-    int status = 0;
-
-    if(stack->top >= stack->array.count && array_expand(&stack->array)) {
-        status = panic("stack is full");
-    } else {
-        memcpy(array_index(&stack->array, stack->top), element, stack->array.size);
-        stack->top++;
-    }
-
-    return status;
-}
-
-void * stack_push_reference(struct stack * stack) {
-    void * element = NULL;
-
-    if(stack->top < stack->array.count || !array_expand(&stack->array)) {
-        element = array_index(&stack->array, stack->top);
-        stack->top++;
-    }
-
-    return element;
-}
-
-void * stack_pop(struct stack * stack) {
-    void * element = NULL;
-
-    if(stack->top) {
-        element = array_index(&stack->array, stack->top - 1);
-        stack->top--;
-    }
-
-    return element;
-}
-
-void stack_clear(struct stack * stack) {
-    stack->top = 0;
-}
-
 int string_create(struct string * string, size_t length) {
     int status = 0;
 
