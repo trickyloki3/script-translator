@@ -1,6 +1,7 @@
 #ifndef sector_string_h
 #define sector_string_h
 
+#include "array.h"
 #include "sector_list.h"
 
 typedef char * sstring;

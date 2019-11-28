@@ -29,42 +29,37 @@ int pool_create(struct pool * pool, size_t size, size_t count) {
         pool->size = size;
         pool->count = count;
         pool->root = NULL;
-        if(stack_create(&pool->stack, sizeof(void *), 8))
-            status = panic("failed to create stack object");
+        pool->buffer = NULL;
     }
 
     return status;
 }
 
 void pool_destroy(struct pool * pool) {
-    void ** buffer;
+    struct pool_buffer * buffer;
 
-    buffer = stack_pop(&pool->stack);
-    while(buffer) {
-        free(*buffer);
-        buffer = stack_pop(&pool->stack);
+    while(pool->buffer) {
+        buffer = pool->buffer;
+        pool->buffer = pool->buffer->next;
+        free(buffer);
     }
-    stack_destroy(&pool->stack);
 }
 
 int pool_expand(struct pool * pool) {
     int status = 0;
-
     size_t i;
-    void * buffer;
+    struct pool_buffer * buffer;
 
-    buffer = malloc(pool->size * pool->count);
+    buffer = malloc(sizeof(*buffer) + pool->size * pool->count);
     if(!buffer) {
         status = panic("out of memory");
     } else {
-        if(stack_push_value(&pool->stack, &buffer)) {
-            status = panic("failed to push stack object");
-        } else {
-            for(i = 0; i < pool->count; i++)
-                pool_put(pool, (char *) buffer + pool->size * i);
-        }
-        if(status)
-            free(buffer);
+        buffer->buffer = (char *) buffer + sizeof(*buffer);
+        buffer->next = pool->buffer;
+        pool->buffer = buffer;
+
+        for(i = 0; i < pool->count; i++)
+            pool_put(pool, buffer->buffer + pool->size * i);
     }
 
     return status;

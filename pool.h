@@ -1,7 +1,12 @@
 #ifndef pool_h
 #define pool_h
 
-#include "array.h"
+#include "utility.h"
+
+struct pool_buffer {
+    char * buffer;
+    struct pool_buffer * next;
+};
 
 struct pool_node {
     struct pool_node * next;
@@ -12,7 +17,7 @@ struct pool {
     size_t size;
     size_t count;
     struct pool_node * root;
-    struct stack stack;
+    struct pool_buffer * buffer;
 };
 
 int pool_create(struct pool *, size_t, size_t);

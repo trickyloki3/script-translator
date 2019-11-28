@@ -1,6 +1,7 @@
 #ifndef csv_h
 #define csv_h
 
+#include "array.h"
 #include "list.h"
 
 typedef int (* csv_process_cb) (struct list *, void *);

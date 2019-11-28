@@ -7,7 +7,7 @@
 #define BUFFER_SIZE 32768
 
 int csv_string_create(struct string **);
-int csv_string_destroy(struct string *);
+void csv_string_destroy(struct string *);
 
 int csv_parse_loop(struct csv *, yyscan_t, csvpstate *);
 
@@ -31,7 +31,7 @@ int csv_string_create(struct string ** result) {
     return status;
 }
 
-int csv_string_destroy(struct string * string) {
+void csv_string_destroy(struct string * string) {
     string_destroy(string);
     free(string);
 }
