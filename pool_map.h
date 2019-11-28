@@ -5,6 +5,7 @@
 
 struct pool_map {
     size_t size;
+    struct pool pool;
     struct map map;
 };
 

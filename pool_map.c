@@ -15,8 +15,14 @@ int pool_map_create(struct pool_map * pool_map, size_t size) {
         status = panic("size is zero");
     } else {
         pool_map->size = size;
-        if(map_create(&pool_map->map, size_compare, NULL))
-            status = panic("failed to create map object");
+        if(pool_create(&pool_map->pool, sizeof(struct pool), 16)) {
+            status = panic("failed to create pool object");
+        } else {
+            if(map_create(&pool_map->map, size_compare, NULL))
+                status = panic("failed to create map object");
+            if(status)
+                pool_destroy(&pool_map->pool);
+        }
     }
 
     return status;
@@ -28,11 +34,12 @@ void pool_map_destroy(struct pool_map * pool_map) {
     map_pair = map_start(&pool_map->map);
     while(map_pair.key && map_pair.value) {
         pool_destroy(map_pair.value);
-        free(map_pair.value);
+        pool_put(&pool_map->pool, map_pair.value);
         map_pair = map_next(&pool_map->map);
     }
 
     map_destroy(&pool_map->map);
+    pool_destroy(&pool_map->pool);
 }
 
 struct pool * pool_map_get(struct pool_map * pool_map, size_t size) {
@@ -41,7 +48,7 @@ struct pool * pool_map_get(struct pool_map * pool_map, size_t size) {
 
     pool = map_search(&pool_map->map, &size);
     if(!pool) {
-        pool = malloc(sizeof(*pool));
+        pool = pool_get(&pool_map->pool);
         if(!pool) {
             status = panic("out of memory");
         } else {
@@ -54,7 +61,7 @@ struct pool * pool_map_get(struct pool_map * pool_map, size_t size) {
                     pool_destroy(pool);
             }
             if(status)
-                free(pool);
+                pool_put(&pool_map->pool, pool);
         }
     }
 
