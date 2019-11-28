@@ -2,7 +2,8 @@
 
 static inline void pool_node_attach(struct pool_node *, struct pool_node *);
 static inline void pool_node_detach(struct pool_node *);
-int pool_expand(struct pool *);
+
+int pool_alloc(struct pool *);
 
 static inline void pool_node_attach(struct pool_node * x, struct pool_node * y) {
     x->next->prev = y->prev;
@@ -45,7 +46,7 @@ void pool_destroy(struct pool * pool) {
     }
 }
 
-int pool_expand(struct pool * pool) {
+int pool_alloc(struct pool * pool) {
     int status = 0;
     size_t i;
     struct pool_buffer * buffer;
@@ -68,7 +69,7 @@ int pool_expand(struct pool * pool) {
 void * pool_get(struct pool * pool) {
     struct pool_node * node = NULL;
 
-    if(pool->root || !pool_expand(pool)) {
+    if(pool->root || !pool_alloc(pool)) {
         node = pool->root;
         pool->root = (pool->root == pool->root->next) ? NULL : pool->root->next;
         pool_node_detach(node);

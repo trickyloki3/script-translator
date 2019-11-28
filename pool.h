@@ -3,14 +3,14 @@
 
 #include "utility.h"
 
-struct pool_buffer {
-    char * buffer;
-    struct pool_buffer * next;
-};
-
 struct pool_node {
     struct pool_node * next;
     struct pool_node * prev;
+};
+
+struct pool_buffer {
+    char * buffer;
+    struct pool_buffer * next;
 };
 
 struct pool {
