@@ -1,26 +1,19 @@
 #ifndef sector_h
 #define sector_h
 
-#include "pool.h"
-
-struct sector_node {
-    size_t min;
-    size_t max;
-    struct sector_node * next;
-    struct sector_node * prev;
-};
+#include "range.h"
 
 struct sector {
     char * buffer;
-    struct pool * pool;
-    struct sector_node * root;
+    struct pool pool;
+    struct range range;
 };
 
-int sector_create(struct sector *, size_t, struct pool *);
+int sector_create(struct sector *, long);
 void sector_destroy(struct sector *);
-void * sector_malloc(struct sector *, size_t);
+void * sector_malloc(struct sector *, long);
 void sector_free(void *);
-size_t sector_size(void *);
+long sector_size(void *);
 void sector_print(struct sector *);
 
 #endif

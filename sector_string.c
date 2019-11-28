@@ -20,7 +20,8 @@ int sstring_create2(sstring * result, struct string * string, struct sector_list
 }
 
 void sstring_destroy(sstring string) {
-    sector_list_free(string);
+    if(string)
+        sector_list_free(string);
 }
 
 size_t sstring_size(sstring string) {

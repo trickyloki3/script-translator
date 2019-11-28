@@ -2,11 +2,10 @@
 
 int sector_list_sector_create(struct sector_list *, struct sector **);
 
-int sector_list_create(struct sector_list * sector_list, size_t size, struct pool * sector_node_pool, struct pool * list_node_pool) {
+int sector_list_create(struct sector_list * sector_list, size_t size, struct pool * list_node_pool) {
     int status = 0;
 
     sector_list->size = size;
-    sector_list->pool = sector_node_pool;
     if(list_create(&sector_list->list, list_node_pool))
         status = panic("failed to create list object");
 
@@ -34,7 +33,7 @@ int sector_list_sector_create(struct sector_list * sector_list, struct sector **
     if(!sector) {
         status = panic("out of memory");
     } else {
-        if(sector_create(sector, sector_list->size, sector_list->pool)) {
+        if(sector_create(sector, sector_list->size)) {
             status = panic("failed to create sector object");
         } else {
             if(list_push(&sector_list->list, sector)) {

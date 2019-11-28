@@ -1,10 +1,10 @@
 OBJECT+=utility.o
 OBJECT+=array.o
 OBJECT+=pool.o
-OBJECT+=map.o
 OBJECT+=list.o
-OBJECT+=sector.o
+OBJECT+=map.o
 OBJECT+=range.o
+OBJECT+=sector.o
 OBJECT+=pool_map.o
 OBJECT+=sector_list.o
 OBJECT+=sector_string.o

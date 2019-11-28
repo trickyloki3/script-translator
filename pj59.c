@@ -10,8 +10,6 @@ int yaml_test(struct pool_map *, struct sector_list *);
 int main(int argc, char ** argv) {
     int status = 0;
     struct pool list_node_pool;
-    struct pool map_node_pool;
-    struct pool sector_node_pool;
     struct pool_map pool_map;
     struct sector_list sector_list;
 
@@ -22,27 +20,17 @@ int main(int argc, char ** argv) {
     } else if(pool_create(&list_node_pool, sizeof(struct list_node), 64)) {
         status = panic("failed to create pool object");
     } else {
-        if(pool_create(&map_node_pool, sizeof(struct map_node), 64)) {
-            status = panic("failed to create pool object");
+        if(pool_map_create(&pool_map, 524288)) {
+            status = panic("failed to create pool map object");
         } else {
-            if(pool_create(&sector_node_pool, sizeof(struct sector_node), 64)) {
-                status = panic("failed to create pool object");
+            if(sector_list_create(&sector_list, 524288, &list_node_pool)) {
+                status = panic("failed to create sector list object");
             } else {
-                if(pool_map_create(&pool_map, 524288)) {
-                    status = panic("failed to create pool map object");
-                } else {
-                    if(sector_list_create(&sector_list, 524288, &sector_node_pool, &list_node_pool)) {
-                        status = panic("failed to create sector list object");
-                    } else {
-                        status = load_test(&pool_map, &sector_list);
+                status = load_test(&pool_map, &sector_list);
 
-                        sector_list_destroy(&sector_list);
-                    }
-                    pool_map_destroy(&pool_map);
-                }
-                pool_destroy(&sector_node_pool);
+                sector_list_destroy(&sector_list);
             }
-            pool_destroy(&map_node_pool);
+            pool_map_destroy(&pool_map);
         }
         pool_destroy(&list_node_pool);
     }
