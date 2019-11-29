@@ -53,21 +53,17 @@ void sector_destroy(struct sector * sector) {
 
 void * sector_malloc(struct sector * sector, long size) {
     void * object = NULL;
-    struct range_node * root;
-    struct range_node * node;
+    long min;
+    long max;
     struct header * header;
 
     size += header_size - 1;
-    root = sector->range.root;
-    node = root->next;
-    while(node != root && size > node->max - node->min)
-        node = node->next;
 
-    if(node != root) {
-        header = (struct header *) (sector->buffer + node->min);
+    if(!range_search(&sector->range, size, &min, &max)) {
+        header = (struct header *) (sector->buffer + min);
         header->sector = sector;
-        header->min = node->min;
-        header->max = node->min + size;
+        header->min = min;
+        header->max = min + size;
         if(range_remove(&sector->range, header->min, header->max)) {
             panic("failed to remove sector object");
         } else {

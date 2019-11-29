@@ -221,6 +221,26 @@ int range_remove(struct range *  range, long x, long y) {
     return status;
 }
 
+int range_search(struct range * range, long size, long * min, long * max) {
+    int status = 0;
+    struct range_node * root;
+    struct range_node * node;
+
+    root = range->root;
+    node = root->next;
+    while(node != root && size > node->max - node->min)
+        node = node->next;
+
+    if(node == root) {
+        status = 1;
+    } else {
+        *min = node->min;
+        *max = node->max;
+    }
+
+    return status;
+}
+
 void range_get(struct range * range, long * min, long * max) {
     *min = range->root->next->min;
     *max = range->root->prev->max;
