@@ -5,7 +5,6 @@
 
 struct pool_node {
     struct pool_node * next;
-    struct pool_node * prev;
 };
 
 struct pool_buffer {

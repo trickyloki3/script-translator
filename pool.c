@@ -1,23 +1,6 @@
 #include "pool.h"
 
-static inline void pool_node_attach(struct pool_node *, struct pool_node *);
-static inline void pool_node_detach(struct pool_node *);
-
 int pool_alloc(struct pool *);
-
-static inline void pool_node_attach(struct pool_node * x, struct pool_node * y) {
-    x->next->prev = y->prev;
-    y->prev->next = x->next;
-    x->next = y;
-    y->prev = x;
-}
-
-static inline void pool_node_detach(struct pool_node * x) {
-    x->prev->next = x->next;
-    x->next->prev = x->prev;
-    x->next = x;
-    x->prev = x;
-}
 
 int pool_create(struct pool * pool, size_t size, size_t count) {
     int status = 0;
@@ -73,8 +56,7 @@ void * pool_get(struct pool * pool) {
 
     if(pool->root || !pool_alloc(pool)) {
         node = pool->root;
-        pool->root = (pool->root == pool->root->next) ? NULL : pool->root->next;
-        pool_node_detach(node);
+        pool->root = pool->root->next;
     }
 
     return node;
@@ -83,11 +65,6 @@ void * pool_get(struct pool * pool) {
 void pool_put(struct pool * pool, void * object) {
     struct pool_node * node = object;
 
-    node->next = node;
-    node->prev = node;
-
-    if(pool->root)
-        pool_node_attach(node, pool->root);
-
+    node->next = pool->root;
     pool->root = node;
 }
