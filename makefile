@@ -1,25 +1,22 @@
 OBJECT+=utility.o
-OBJECT+=array.o
 OBJECT+=pool.o
 OBJECT+=list.o
 OBJECT+=map.o
 OBJECT+=range.o
-OBJECT+=sector.o
-OBJECT+=pool_map.o
-OBJECT+=sector_list.o
-OBJECT+=sector_string.o
-OBJECT+=csv_parser.o
-OBJECT+=csv_scanner.o
-OBJECT+=csv.o
-OBJECT+=json_parser.o
-OBJECT+=json_scanner.o
-OBJECT+=json.o
-OBJECT+=yaml_parser.o
-OBJECT+=yaml_scanner.o
-OBJECT+=yaml.o
-OBJECT+=db.o
-OBJECT+=data.o
-OBJECT+=logic.o
+OBJECT+=heap.o
+# OBJECT+=array.o
+# OBJECT+=csv_parser.o
+# OBJECT+=csv_scanner.o
+# OBJECT+=csv.o
+# OBJECT+=json_parser.o
+# OBJECT+=json_scanner.o
+# OBJECT+=json.o
+# OBJECT+=yaml_parser.o
+# OBJECT+=yaml_scanner.o
+# OBJECT+=yaml.o
+# OBJECT+=db.o
+# OBJECT+=data.o
+# OBJECT+=logic.o
 
 all: clean pj59
 
