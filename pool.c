@@ -44,8 +44,6 @@ int pool_alloc(struct pool * pool) {
 
         for(i = 0; i < pool->count; i++)
             pool_put(pool, buffer->buffer + pool->size * i);
-
-        pool->count *= 2;
     }
 
     return status;
