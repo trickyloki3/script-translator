@@ -15,7 +15,7 @@ int pool_map_create(struct pool_map * pool_map, size_t size) {
         status = panic("size is zero");
     } else {
         pool_map->size = size;
-        if(pool_create(&pool_map->pool, sizeof(struct pool), 16)) {
+        if(pool_create(&pool_map->pool, sizeof(struct pool), pool_map->size / sizeof(struct pool))) {
             status = panic("failed to create pool object");
         } else {
             if(map_create(&pool_map->map, size_compare, NULL))
