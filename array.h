@@ -3,34 +3,26 @@
 
 #include "utility.h"
 
-struct array {
-    size_t size;
+struct long_array {
     size_t count;
-    void * buffer;
+    long * array;
 };
 
-int array_create(struct array *, size_t, size_t);
-void array_destroy(struct array *);
-int array_expand(struct array *);
-void * array_index(struct array *, size_t);
-
 struct string {
-    size_t offset;
     size_t length;
     char * string;
 };
 
-int string_create(struct string *, size_t);
-void string_destroy(struct string *);
-int string_copy(struct string *, struct string *);
-int string_expand(struct string *, size_t);
-int string_putc(struct string *, char);
-int string_strdup(struct string *, char *, size_t);
-int string_strtol(struct string *, int, long *);
-int string_strtol_split(struct string *, int, int, struct array *);
-int string_strtol_splitv(struct string *, int, int, ...);
-int string_strtoul(struct string *, int, unsigned long *);
-int string_strtod(struct string *, double *);
-void string_clear(struct string *);
+struct buffer {
+    size_t offset;
+    size_t length;
+    char * buffer;
+};
+
+int buffer_create(struct buffer *, size_t);
+void buffer_destroy(struct buffer *);
+void buffer_clear(struct buffer *);
+int buffer_putc(struct buffer *, char);
+int buffer_strdup(struct buffer *, char *, size_t);
 
 #endif
