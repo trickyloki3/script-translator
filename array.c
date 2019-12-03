@@ -1,55 +1,72 @@
 #include "array.h"
 
-int buffer_create(struct buffer * buffer, size_t length) {
+int strbuf_create(struct strbuf * strbuf, size_t size) {
     int status = 0;
 
-    if(!length) {
-        status = panic("lenght is zero");
+    if(!size) {
+        status = panic("size is zero");
     } else {
-        buffer->offset = 0;
-        buffer->length = length;
-        buffer->buffer = calloc(buffer->length, sizeof(*buffer->buffer));
-        if(!buffer->buffer)
+        strbuf->buf = calloc(size, sizeof(*strbuf->buf));
+        if(!strbuf->buf) {
             status = panic("out of memory");
+        } else {
+            strbuf->str = strbuf->pos = strbuf->buf;
+            strbuf->end = strbuf->buf + size;
+        }
     }
 
     return status;
 }
 
-void buffer_destroy(struct buffer * buffer) {
-    free(buffer->buffer);
+void strbuf_destroy(struct strbuf * strbuf) {
+    free(strbuf->buf);
 }
 
-void buffer_clear(struct buffer * buffer) {
-    memset(buffer->buffer, 0, buffer->offset);
-    buffer->length += buffer->offset;
-    buffer->offset = 0;
+void strbuf_clear(struct strbuf * strbuf) {
+    memset(strbuf->buf, 0, strbuf->pos - strbuf->buf);
+    strbuf->str = strbuf->pos = strbuf->buf;
 }
 
-int buffer_putc(struct buffer * buffer, char c) {
+int strbuf_putc(struct strbuf * strbuf, char c) {
     int status = 0;
 
-    if(buffer->length < 2) {
+    if(strbuf->pos == strbuf->end) {
         status = panic("out of memory");
     } else {
-        buffer->buffer[buffer->offset] = c;
-        buffer->offset++;
-        buffer->length--;
+        *strbuf->pos++ = c;
     }
 
     return status;
 }
 
-int buffer_strdup(struct buffer * buffer, char * string, size_t length) {
+
+int strbuf_strcpy(struct strbuf * strbuf, char * string, size_t length) {
     int status = 0;
 
-    if(buffer->length < length + 1) {
+    if(strbuf->end - strbuf->pos < length) {
         status = panic("out of memory");
     } else {
-        memcpy(buffer->buffer + buffer->offset, string, length);
-        buffer->offset += length;
-        buffer->length -= length;
+        memcpy(strbuf->pos, string, length);
+        strbuf->pos += length;
     }
 
     return status;
+}
+
+struct string * strbuf_string(struct strbuf * strbuf) {
+    int status = 0;
+    struct string * string = NULL;
+
+    if(strbuf_putc(strbuf, '\0')) {
+        status = panic("failed to putc strbuf object");
+    } else if(strbuf->end - strbuf->pos < sizeof(*string)) {
+        status = panic("out of memory");
+    } else {
+        string = (void *) strbuf->pos;
+        string->string = strbuf->str;
+        string->length = strbuf->pos - strbuf->str - 1;
+        strbuf->str = strbuf->pos += sizeof(*string);
+    }
+
+    return status ? NULL : string;
 }
