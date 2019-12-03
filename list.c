@@ -62,6 +62,7 @@ int list_create(struct list * list, struct pool * pool) {
 void list_destroy(struct list * list) {
     struct list_node * node;
 
+    list->size = 0;
     if(list->root) {
         while(list->root != list->root->next) {
             node = list->root->next;
@@ -71,6 +72,11 @@ void list_destroy(struct list * list) {
         list_node_destroy(list, list->root);
         list->root = NULL;
     }
+    list->iter = NULL;
+}
+
+void list_clear(struct list * list) {
+    list_destroy(list);
 }
 
 int list_copy(struct list * result, struct list * copy) {
@@ -128,10 +134,6 @@ void * list_pop(struct list * list) {
     }
 
     return object;
-}
-
-void list_clear(struct list * list) {
-    while(list_pop(list));
 }
 
 void * list_start(struct list * list) {

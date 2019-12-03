@@ -338,7 +338,13 @@ void map_destroy(struct map * map) {
             map_node_destroy(map, node);
         }
         map_node_destroy(map, map->root);
+        map->root = NULL;
     }
+    map->iter = NULL;
+}
+
+void map_clear(struct map * map) {
+    map_destroy(map);
 }
 
 int map_copy(struct map * result, struct map * map) {
