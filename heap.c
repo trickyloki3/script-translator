@@ -130,8 +130,17 @@ int heap_create(struct heap * heap, size_t per_alloc, size_t max_alloc, size_t h
     if(pool_map_create(&heap->pool_map, per_alloc)) {
         status = panic("failed to create pool map object");
     } else {
-        if(pool_list_create(&heap->pool_list, max_alloc, hash, &heap->pool_map))
+        if(pool_list_create(&heap->pool_list, max_alloc, hash, &heap->pool_map)) {
             status = panic("failed to create pool list object");
+        } else {
+            heap->list_pool = heap_pool(heap, sizeof(struct list_node));
+            heap->map_pool = heap_pool(heap, sizeof(struct map_node));
+            heap->range_pool = heap_pool(heap, sizeof(struct range_node));
+            if(!heap->list_pool || !heap->map_pool || !heap->range_pool)
+                status = panic("failed to pool heap object");
+            if(status)
+                pool_list_destroy(&heap->pool_list);
+        }
         if(status)
             pool_map_destroy(&heap->pool_map);
     }
@@ -150,4 +159,8 @@ void * heap_alloc(struct heap * heap, size_t size) {
 
 void heap_free(struct heap * heap, void * object, size_t size) {
     pool_list_free(&heap->pool_list, object, size);
+}
+
+struct pool * heap_pool(struct heap * heap, size_t size) {
+    return pool_map_get(&heap->pool_map, size);
 }
