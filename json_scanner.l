@@ -45,27 +45,11 @@ UNICODE         {ESCAPE}\x75{HEXDIG}{HEXDIG}{HEXDIG}{HEXDIG}
 %%
 
 {BEGINARRAY} {
-    int status = 0;
-
-    if(json_add_node(yyextra, json_array, NULL, 0, yylval)) {
-        status = panic("failed to add json object");
-    } else if(json_push_node(yyextra, *yylval)) {
-        status = panic("failed to push json object");
-    }
-
-    return status ? -1 : JSON_BEGINARRAY;
+    return JSON_BEGINARRAY;
 }
 
 {BEGINOBJECT} {
-    int status = 0;
-
-    if(json_add_node(yyextra, json_object, NULL, 0, yylval)) {
-        status = panic("failed to add json object");
-    } else if(json_push_node(yyextra, *yylval)) {
-        status = panic("failed to push json object");
-    }
-
-    return status ? -1 : JSON_BEGINOBJECT;
+    return JSON_BEGINOBJECT;
 }
 
 {ENDARRAY} {
@@ -89,23 +73,23 @@ UNICODE         {ESCAPE}\x75{HEXDIG}{HEXDIG}{HEXDIG}{HEXDIG}
 }
 
 {FALSE} {
-    return json_add_node(yyextra, json_false, NULL, 0, yylval) ? -1 : JSON_FALSE;
+    return JSON_FALSE;
 }
 
 {NULL} {
-    return json_add_node(yyextra, json_null, NULL, 0, yylval) ? -1 : JSON_NULL;
+    return JSON_NULL;
 }
 
 {TRUE} {
-    return json_add_node(yyextra, json_true, NULL, 0, yylval) ? -1 : JSON_TRUE;
+    return JSON_TRUE;
 }
 
 {MINUS}?{INT}{FRAC}?{EXP}? {
-    return json_add_node(yyextra, json_number, yytext, yyleng, yylval) ? -1 : JSON_NUMBER;
+    return JSON_NUMBER;
 }
 
 {QUOTATIONMARK}{CHAR}*{QUOTATIONMARK} {
-    return json_add_node(yyextra, json_string, yytext + 1, yyleng - 2, yylval) ? -1 : JSON_STRING;
+    return JSON_STRING;
 }
 
 . {

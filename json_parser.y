@@ -30,29 +30,26 @@
 }
 
 %code {
-void yyerror(JSONLTYPE *, struct json *, char const *);
+void yyerror(JSONLTYPE *, char const *);
 }
-
-%define api.value.type {struct json_node *}
-%parse-param {struct json * json}
 
 %%
 
-json : value { json->root = $1; }
+json : value
 
-object : BEGINOBJECT ENDOBJECT { if(json_pop_node(json, json_object)) YYABORT; }
-       | BEGINOBJECT member ENDOBJECT { if(json_pop_node(json, json_object)) YYABORT; }
+object : BEGINOBJECT ENDOBJECT
+       | BEGINOBJECT member ENDOBJECT
 
 member : field
        | member VALUESEPARATOR field
 
-field : STRING NAMESEPARATOR value { if(json_insert_object(json, $1, $3)) YYABORT; }
+field : STRING NAMESEPARATOR value
 
-array : BEGINARRAY ENDARRAY { if(json_pop_node(json, json_array)) YYABORT; }
-      | BEGINARRAY element ENDARRAY { if(json_pop_node(json, json_array)) YYABORT; }
+array : BEGINARRAY ENDARRAY
+      | BEGINARRAY element ENDARRAY
 
-element : value { if(json_insert_array(json, $1)) YYABORT; }
-        | element VALUESEPARATOR value { if(json_insert_array(json, $3)) YYABORT; }
+element : value
+        | element VALUESEPARATOR value
 
 value : FALSE
       | NULL
@@ -64,6 +61,6 @@ value : FALSE
 
 %%
 
-void yyerror(JSONLTYPE * location, struct json * json, char const * message) {
+void yyerror(JSONLTYPE * location, char const * message) {
     panic("%s (line %d)", message, location->first_line);
 }
