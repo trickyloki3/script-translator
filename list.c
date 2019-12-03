@@ -104,7 +104,7 @@ int list_push(struct list * list, void * object) {
         status = panic("failed to create node object");
     } else {
         if(list->root)
-            list_node_attach(node, list->root);
+            list_node_attach(list->root, node);
 
         list->root = node;
         list->size++;
@@ -121,7 +121,7 @@ void * list_pop(struct list * list) {
         object = list->root->object;
 
         node = list->root;
-        list->root = (list->root == list->root->next) ? NULL : list->root->next;
+        list->root = (list->root == list->root->prev) ? NULL : list->root->prev;
         list_node_detach(node);
         list_node_destroy(list, node);
         list->size--;
@@ -130,8 +130,12 @@ void * list_pop(struct list * list) {
     return object;
 }
 
+void list_clear(struct list * list) {
+    while(list_pop(list));
+}
+
 void * list_start(struct list * list) {
-    list->iter = list->root;
+    list->iter = list->root->next;
     return list_next(list);
 }
 
@@ -140,7 +144,7 @@ void * list_next(struct list * list) {
 
     if(list->iter) {
         object = list->iter->object;
-        list->iter = list->iter->next == list->root ? NULL : list->iter->next;
+        list->iter = list->iter->next == list->root->next ? NULL : list->iter->next;
     }
 
     return object;
