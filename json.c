@@ -5,7 +5,7 @@
 
 int json_parse_loop(yyscan_t, jsonpstate *);
 
-int json_parse(const char * path) {
+int json_parse(const char * path, size_t size) {
     int status = 0;
 
     FILE * file;
@@ -24,7 +24,7 @@ int json_parse(const char * path) {
             if(!parser) {
                 status = panic("failed to create parser object");
             } else {
-                buffer = json_create_buffer(file, 4096, scanner);
+                buffer = json_create_buffer(file, size, scanner);
                 if(!buffer) {
                     status = panic("faield to create buffer state object");
                 } else {

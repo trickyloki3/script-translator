@@ -3,6 +3,6 @@
 
 #include "utility.h"
 
-int json_parse(const char *);
+int json_parse(const char *, size_t);
 
 #endif
