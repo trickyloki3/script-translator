@@ -137,7 +137,7 @@ void * list_pop(struct list * list) {
 }
 
 void * list_start(struct list * list) {
-    list->iter = list->root->next;
+    list->iter = list->root ? list->root->next : NULL;
     return list_next(list);
 }
 
