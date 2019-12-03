@@ -1,18 +1,18 @@
 #include "logic.h"
 
-int logic_var_create(struct logic_var *, void *, sstring, struct range *, struct sector_list *);
+int logic_var_create(struct logic_var *, void *, struct string *, struct range *, struct logic *);
 void logic_var_destroy(struct logic_var *);
 int logic_var_merge(struct logic_var *, enum logic_type, struct range *);
 
-int logic_node_var_create(struct logic *, void *, sstring, struct range *, struct logic_node **);
+int logic_node_var_create(struct logic *, void *, struct string *, struct range *, struct logic_node **);
 int logic_node_create(struct logic *, enum logic_type, struct logic_node **);
 void logic_node_destroy(struct logic *, struct logic_node *);
 int logic_node_copy(struct logic *, struct logic_node *, struct logic_node **);
-struct logic_node * logic_node_search(struct logic_node *, sstring);
+struct logic_node * logic_node_search(struct logic_node *, struct string *);
 void logic_node_print(struct logic_node *, int);
 
-int logic_add_var_one(struct logic *, struct logic_node *, void *, sstring, struct range *);
-int logic_add_var_all(struct logic *, struct logic_node *, void *, sstring, struct range *);
+int logic_add_var_one(struct logic *, struct logic_node *, void *, struct string *, struct range *);
+int logic_add_var_all(struct logic *, struct logic_node *, void *, struct string *, struct range *);
 
 int logic_merge_and(struct logic *, struct logic_node *, struct logic_node *);
 int logic_merge_or(struct logic *, struct logic_node *, struct logic_node *);
@@ -21,17 +21,26 @@ int logic_merge_and_or(struct logic *, struct logic_node *, struct logic_node *)
 int range_and_merge(struct range *, struct range *);
 int range_or_merge(struct range *, struct range *);
 
-int logic_var_create(struct logic_var * var, void * data, sstring name, struct range * range, struct sector_list * sector_list) {
+int logic_var_create(struct logic_var * var, void * data, struct string * name, struct range * range, struct logic * logic) {
     int status = 0;
 
     var->data = data;
-    if(sstring_create(&var->name, name, sstring_size(name), sector_list)) {
-        status = panic("failed to create string object");
+    if(range_copy(&var->range, range)) {
+        status = panic("failed to copy range object");
     } else {
-        if(range_copy(&var->range, range))
-            status = panic("failed to copy range object");
-        if(status)
-            sstring_destroy(var->name);
+        var->name = map_search(&logic->map, name->string);
+        if(!var->name) {
+            if(strbuf_strcpy(&logic->strbuf, name->string, name->length)) {
+                status = panic("failed to strcpy strbuf object");
+            } else {
+                var->name = strbuf_string(&logic->strbuf);
+                if(!var->name) {
+                    status = panic("failed to string strbuf object");
+                } else if(map_insert(&logic->map, var->name->string, var->name)) {
+                    status = panic("failed to insert map object");
+                }
+            }
+        }
     }
 
     return status;
@@ -39,7 +48,6 @@ int logic_var_create(struct logic_var * var, void * data, sstring name, struct r
 
 void logic_var_destroy(struct logic_var * var) {
     range_destroy(&var->range);
-    sstring_destroy(var->name);
 }
 
 int logic_var_merge(struct logic_var * var, enum logic_type type, struct range * range) {
@@ -68,7 +76,7 @@ int logic_var_merge(struct logic_var * var, enum logic_type type, struct range *
     return status;
 }
 
-int logic_node_var_create(struct logic * logic, void * data, sstring name, struct range * range, struct logic_node ** result) {
+int logic_node_var_create(struct logic * logic, void * data, struct string * name, struct range * range, struct logic_node ** result) {
     int status = 0;
     struct logic_node * node;
 
@@ -77,7 +85,7 @@ int logic_node_var_create(struct logic * logic, void * data, sstring name, struc
         status = panic("out of memory");
     } else {
         node->type = logic_var;
-        if(logic_var_create(&node->var, data, name, range, logic->sector_list)) {
+        if(logic_var_create(&node->var, data, name, range, logic)) {
             status = panic("failed to create logic var object");
         } else {
             *result = node;
@@ -181,13 +189,13 @@ int logic_node_copy(struct logic * logic, struct logic_node * node, struct logic
     return status;
 }
 
-struct logic_node * logic_node_search(struct logic_node * node, sstring name) {
+struct logic_node * logic_node_search(struct logic_node * node, struct string * name) {
     struct logic_node * iter = NULL;
 
     if(node->type >= logic_and && node->type <= logic_and_or) {
         iter = list_start(&node->list);
         while(iter) {
-            if(iter->type == logic_var && !strcmp(iter->var.name, name))
+            if(iter->type == logic_var && !strcmp(iter->var.name->string, name->string))
                 break;
             iter = list_next(&node->list);
         }
@@ -205,7 +213,7 @@ void logic_node_print(struct logic_node * node, int indent) {
 
     switch(node->type) {
         case logic_var:
-            fprintf(stdout, "VAR %p, %s, ", node->var.data, node->var.name);
+            fprintf(stdout, "VAR %p, %s, ", node->var.data, node->var.name->string);
             range_print(&node->var.range);
             break;
         case logic_and:
@@ -228,17 +236,26 @@ void logic_node_print(struct logic_node * node, int indent) {
     }
 }
 
-int logic_create(struct logic * logic, struct pool_map * pool_map, struct sector_list * sector_list) {
+int logic_create(struct logic * logic, size_t size, struct heap * heap) {
     int status = 0;
 
-    logic->pool = pool_map_get(pool_map, sizeof(struct logic_node));
+    logic->pool = heap_pool(heap, sizeof(struct logic_node));
     if(!logic->pool) {
-        status = panic("failed to get pool map object");
+        status = panic("failed to pool heap object");
     } else {
-        if(list_create(&logic->list, pool_map_get(pool_map, sizeof(struct list_node)))) {
+        if(list_create(&logic->list, heap->list_pool)) {
             status = panic("failed to create list object");
         } else {
-            logic->sector_list = sector_list;
+            if(map_create(&logic->map, (map_compare_cb) strcmp, heap->map_pool)) {
+                status = panic("failed to create map object");
+            } else {
+                if(strbuf_create(&logic->strbuf, size))
+                    status = panic("failed to create strbuf object");
+                if(status)
+                    map_destroy(&logic->map);
+            }
+            if(status)
+                list_destroy(&logic->list);
         }
     }
 
@@ -247,6 +264,8 @@ int logic_create(struct logic * logic, struct pool_map * pool_map, struct sector
 
 void logic_destroy(struct logic * logic) {
     logic_clear(logic);
+    strbuf_destroy(&logic->strbuf);
+    map_destroy(&logic->map);
     list_destroy(&logic->list);
 }
 
@@ -258,9 +277,11 @@ void logic_clear(struct logic * logic) {
         logic_node_destroy(logic, iter);
         iter = list_pop(&logic->list);
     }
+    map_clear(&logic->map);
+    strbuf_clear(&logic->strbuf);
 }
 
-int logic_add_var_one(struct logic * logic, struct logic_node * op, void * data, sstring name, struct range * range) {
+int logic_add_var_one(struct logic * logic, struct logic_node * op, void * data, struct string * name, struct range * range) {
     int status = 0;
     struct logic_node * var;
 
@@ -282,7 +303,7 @@ int logic_add_var_one(struct logic * logic, struct logic_node * op, void * data,
     return status;
 }
 
-int logic_add_var_all(struct logic * logic, struct logic_node * op, void * data, sstring name, struct range * range) {
+int logic_add_var_all(struct logic * logic, struct logic_node * op, void * data, struct string * name, struct range * range) {
     int status = 0;
     struct logic_node * node;
 
@@ -299,11 +320,11 @@ int logic_add_var_all(struct logic * logic, struct logic_node * op, void * data,
     return status;
 }
 
-int logic_push_var(struct logic * logic, void * data, sstring name, struct range * range) {
+int logic_push_var(struct logic * logic, void * data, struct string * name, struct range * range) {
     int status = 0;
     struct logic_node * op;
 
-    op = list_start(&logic->list);
+    op = list_pop(&logic->list);
     if(!op) {
         status = panic("missing operator");
     } else {
@@ -321,6 +342,8 @@ int logic_push_var(struct logic * logic, void * data, sstring name, struct range
                 status = panic("invalid type - %d", op->type);
                 break;
         }
+        if(list_push(&logic->list, op))
+            status = panic("failed to push list object");
     }
 
     return status;
@@ -611,7 +634,7 @@ int range_or_merge(struct range * result, struct range * range) {
     return status;
 }
 
-int logic_search(struct logic * logic, sstring name, struct range * range) {
+int logic_search(struct logic * logic, struct string * name, struct range * range) {
     int status = 0;
     struct logic_node * root;
     struct logic_node * node;
@@ -635,7 +658,7 @@ int logic_search(struct logic * logic, sstring name, struct range * range) {
                     while(iter && !status) {
                         switch(iter->type) {
                             case logic_var:
-                                if(!strcmp(iter->var.name, name) && range_or_merge(&result, &iter->var.range))
+                                if(!strcmp(iter->var.name->string, name->string) && range_or_merge(&result, &iter->var.range))
                                     status = panic("failed to or merge range object");
                                 break;
                             case logic_and:

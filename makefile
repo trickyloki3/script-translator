@@ -5,6 +5,7 @@ OBJECT+=map.o
 OBJECT+=range.o
 OBJECT+=array.o
 OBJECT+=heap.o
+OBJECT+=logic.o
 OBJECT+=csv_parser.o
 OBJECT+=csv_scanner.o
 OBJECT+=csv.o
@@ -15,7 +16,6 @@ OBJECT+=json.o
 # OBJECT+=yaml_scanner.o
 # OBJECT+=yaml.o
 # OBJECT+=db.o
-# OBJECT+=logic.o
 
 all: clean pj59
 

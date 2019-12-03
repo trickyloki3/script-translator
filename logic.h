@@ -1,10 +1,8 @@
 #ifndef logic_h
 #define logic_h
 
-#include "range.h"
-#include "pool_map.h"
-#include "sector_list.h"
-#include "sector_string.h"
+#include "array.h"
+#include "heap.h"
 
 enum logic_type {
     logic_var,
@@ -15,8 +13,8 @@ enum logic_type {
 
 struct logic_var {
     void * data;
-    sstring name;
     struct range range;
+    struct string * name;
 };
 
 struct logic_node {
@@ -30,16 +28,17 @@ struct logic_node {
 struct logic {
     struct pool * pool;
     struct list list;
-    struct sector_list * sector_list;
+    struct map map;
+    struct strbuf strbuf;
 };
 
-int logic_create(struct logic *, struct pool_map *, struct sector_list *);
+int logic_create(struct logic *, size_t, struct heap *);
 void logic_destroy(struct logic *);
 void logic_clear(struct logic *);
-int logic_push_var(struct logic *, void *, sstring, struct range *);
+int logic_push_var(struct logic *, void *, struct string *, struct range *);
 int logic_push_op(struct logic *, enum logic_type);
 int logic_pop_op(struct logic *);
-int logic_search(struct logic *, sstring, struct range *);
+int logic_search(struct logic *, struct string *, struct range *);
 void logic_print(struct logic *);
 
 #endif
