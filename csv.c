@@ -104,10 +104,12 @@ int csv_pop(struct csv * csv) {
     int status = 0;
     struct string * string;
 
-    string = list_start(&csv->list);
-    while(string) {
+    if(csv->list.size) {
+        string = list_start(&csv->list);
+        while(string) {
 
-        string = list_next(&csv->list);
+            string = list_next(&csv->list);
+        }
     }
     csv_reset(csv);
 
