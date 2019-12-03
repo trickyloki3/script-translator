@@ -25,7 +25,7 @@ void csv_destroy(struct csv * csv) {
     strbuf_destroy(&csv->strbuf);
 }
 
-int csv_parse(struct csv * csv, const char * path) {
+int csv_parse(struct csv * csv, const char * path, size_t size) {
     int status = 0;
 
     FILE * file;
@@ -44,7 +44,7 @@ int csv_parse(struct csv * csv, const char * path) {
             if(!parser) {
                 status = panic("failed to create parser object");
             } else {
-                buffer = csv_create_buffer(file, 4096, scanner);
+                buffer = csv_create_buffer(file, size, scanner);
                 if(!buffer) {
                     status = panic("failed to create buffer state object");
                 } else {
