@@ -40,40 +40,28 @@ TEXTDATA    [\x9\x20-\x21\x23-\x2B\x2D-\x7A\x7C\x7E]
 
 {CURLY} {
     int status = 0;
-    struct string * string;
     int count;
     int symbol;
 
-    string = csv_get_string(yyextra);
-    if(!string) {
-        status = panic("failed to get string object");
-    } else {
-        count = 1;
-        do {
-            symbol = input(yyscanner);
-            if(symbol == EOF || symbol == '\n') {
-                status = panic("unmatch curly bracket");
-            } else if(symbol == '{') {
-                count++;
-            } else if(symbol == '}') {
-                count--;
-            } else if(string_putc(string, symbol)) {
-                status = panic("failed to putc string object");
-            }
-        } while(count && !status);
-
-        if(!status && csv_push_field_string(yyextra, string))
-            status = panic("failed to push field csv object");
-
-        if(status && csv_put_string(yyextra, string))
-            status = panic("failed to put string object");
-    }
+    count = 1;
+    do {
+        symbol = input(yyscanner);
+        if(symbol == EOF || symbol == '\n') {
+            status = panic("unmatch curly bracket");
+        } else if(symbol == '{') {
+            count++;
+        } else if(symbol == '}') {
+            count--;
+        } else if(strbuf_putc(yyextra, symbol)) {
+            status = panic("failed to putc strbuf object");
+        }
+    } while(count && !status);
 
     return status ? -1 : CSV_ESCAPED;
 }
 
 {DQUOTE}({TEXTDATA}|{COMMA})*{DQUOTE} {
-    return csv_push_field_strdup(yyextra, yytext, yyleng) ? -1 : CSV_ESCAPED;
+    return strbuf_strcpy(yyextra, yytext, yyleng) ? -1 : CSV_ESCAPED;
 }
 
 {DQUOTE}({TEXTDATA}|{COMMA})* {
@@ -82,7 +70,7 @@ TEXTDATA    [\x9\x20-\x21\x23-\x2B\x2D-\x7A\x7C\x7E]
 }
 
 {TEXTDATA}* {
-    return csv_push_field_strdup(yyextra, yytext, yyleng) ? -1 : CSV_NONESCAPED;
+    return strbuf_strcpy(yyextra, yytext, yyleng) ? -1 : CSV_NONESCAPED;
 }
 
 . {
