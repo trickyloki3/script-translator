@@ -11,8 +11,8 @@ int logic_node_copy(struct logic *, struct logic_node *, struct logic_node **);
 struct logic_node * logic_node_search(struct logic_node *, struct string *);
 void logic_node_print(struct logic_node *, int);
 
-int logic_add_var_one(struct logic *, struct logic_node *, void *, struct string *, struct range *);
-int logic_add_var_all(struct logic *, struct logic_node *, void *, struct string *, struct range *);
+int logic_add_one(struct logic *, struct logic_node *, void *, struct string *, struct range *);
+int logic_add_all(struct logic *, struct logic_node *, void *, struct string *, struct range *);
 
 int logic_merge_and(struct logic *, struct logic_node *, struct logic_node *);
 int logic_merge_or(struct logic *, struct logic_node *, struct logic_node *);
@@ -281,7 +281,7 @@ void logic_clear(struct logic * logic) {
     strbuf_clear(&logic->strbuf);
 }
 
-int logic_add_var_one(struct logic * logic, struct logic_node * op, void * data, struct string * name, struct range * range) {
+int logic_add_one(struct logic * logic, struct logic_node * op, void * data, struct string * name, struct range * range) {
     int status = 0;
     struct logic_node * var;
 
@@ -303,7 +303,7 @@ int logic_add_var_one(struct logic * logic, struct logic_node * op, void * data,
     return status;
 }
 
-int logic_add_var_all(struct logic * logic, struct logic_node * op, void * data, struct string * name, struct range * range) {
+int logic_add_all(struct logic * logic, struct logic_node * op, void * data, struct string * name, struct range * range) {
     int status = 0;
     struct logic_node * node;
 
@@ -311,7 +311,7 @@ int logic_add_var_all(struct logic * logic, struct logic_node * op, void * data,
     while(node && !status) {
         if(node->type != logic_and) {
             status = panic("invalid type - %d", node->type);
-        } else if(logic_add_var_one(logic, node, data, name, range)) {
+        } else if(logic_add_one(logic, node, data, name, range)) {
             status = panic("failed to add var one logic object");
         }
         node = list_next(&op->list);
@@ -331,11 +331,11 @@ int logic_push_var(struct logic * logic, void * data, struct string * name, stru
         switch(op->type) {
             case logic_and:
             case logic_or:
-                if(logic_add_var_one(logic, op, data, name, range))
+                if(logic_add_one(logic, op, data, name, range))
                     status = panic("failed to add var one logic object");
                 break;
             case logic_and_or:
-                if(logic_add_var_all(logic, op, data, name, range))
+                if(logic_add_all(logic, op, data, name, range))
                     status = panic("failed to add var all logic object");
                 break;
             default:
@@ -370,7 +370,7 @@ int logic_merge_and(struct logic * logic, struct logic_node * parent, struct log
     struct logic_node * iter;
 
     if(child->type == logic_var) {
-        if(logic_add_var_one(logic, parent, child->var.data, child->var.name, &child->var.range))
+        if(logic_add_one(logic, parent, child->var.data, child->var.name, &child->var.range))
             status = panic("failed to add var one logic object");
     } else if(child->type == logic_and) {
         iter = list_start(&child->list);
@@ -391,7 +391,7 @@ int logic_merge_or(struct logic * logic, struct logic_node * parent, struct logi
     struct logic_node * copy;
 
     if(child->type == logic_var) {
-        if(logic_add_var_one(logic, parent, child->var.data, child->var.name, &child->var.range))
+        if(logic_add_one(logic, parent, child->var.data, child->var.name, &child->var.range))
             status = panic("failed to add var one logic object");
     } else if(child->type == logic_and) {
         if(logic_node_copy(logic, child, &copy)) {
@@ -414,7 +414,7 @@ int logic_merge_and_or(struct logic * logic, struct logic_node * parent, struct 
     struct logic_node * iter;
 
     if(child->type == logic_var) {
-        if(logic_add_var_all(logic, parent, child->var.data, child->var.name, &child->var.range))
+        if(logic_add_all(logic, parent, child->var.data, child->var.name, &child->var.range))
             status = panic("failed to add var all logic object");
     } else if(child->type == logic_and) {
         iter = list_start(&child->list);
