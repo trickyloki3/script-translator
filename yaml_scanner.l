@@ -52,10 +52,6 @@ ns-plain-one-line       {ns-plain-first}({s-space}*{ns-plain-char})*
     return yaml_c_folded;
 }
 
-<literal>{ns-char}({s-space}*{nb-char})* {
-    return yaml_nb_char;
-}
-
 {s-indent} {
     return yaml_s_indent;
 }
@@ -70,6 +66,10 @@ ns-plain-one-line       {ns-plain-first}({s-space}*{ns-plain-char})*
 
 ({s-separate-in-line}{c-nb-comment-text}?)?{b-break} {
     return yaml_b_break;
+}
+
+<literal>{ns-char}({s-space}*{nb-char})* {
+    return yaml_nb_char;
 }
 
 {ns-plain-one-line} {
