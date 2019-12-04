@@ -4,7 +4,7 @@
 #include "heap.h"
 
 struct yaml {
-    int indent;
+
 };
 
 int yaml_create(struct yaml *, struct heap *);

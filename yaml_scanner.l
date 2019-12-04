@@ -45,30 +45,15 @@ ns-plain-one-line       {ns-plain-first}({s-space}*{ns-plain-char})*
 }
 
 {c-literal} {
-    BEGIN(literal);
     return yaml_c_literal;
 }
 
 {c-folded} {
-    BEGIN(literal);
     return yaml_c_folded;
 }
 
 <literal>{ns-char}({s-space}*{nb-char})* {
     return yaml_nb_char;
-}
-
-<literal>{s-indent} {
-    struct yaml * yaml = yyextra;
-
-    if(!yaml->indent) {
-        yaml->indent = yyleng;
-    } else if(yaml->indent > yyleng) {
-        yaml->indent = 0;
-        BEGIN(INITIAL);
-    }
-
-    return yaml_s_indent;
 }
 
 {s-indent} {
@@ -79,11 +64,11 @@ ns-plain-one-line       {ns-plain-first}({s-space}*{ns-plain-char})*
     return yaml_s_separate_in_line;
 }
 
-<INITIAL,literal>{s-indent}{c-nb-comment-text}?{b-break} {
+{s-indent}{c-nb-comment-text}?{b-break} {
     return yaml_l_empty;
 }
 
-<INITIAL,literal>({s-separate-in-line}{c-nb-comment-text}?)?{b-break} {
+({s-separate-in-line}{c-nb-comment-text}?)?{b-break} {
     return yaml_b_break;
 }
 
@@ -91,7 +76,7 @@ ns-plain-one-line       {ns-plain-first}({s-space}*{ns-plain-char})*
     return yaml_ns_plain_one_line;
 }
 
-<INITIAL,literal>. {
+<INITIAL,literal>.|{b-break} {
     panic("invalid character (line %d)", yylineno);
     return -1;
 }

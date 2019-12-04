@@ -8,8 +8,6 @@ int yaml_parse_loop(struct yaml * yaml, yyscan_t, yamlpstate *);
 int yaml_create(struct yaml * yaml, struct heap * heap) {
     int status = 0;
 
-    yaml->indent = 0;
-
     return status;
 }
 
