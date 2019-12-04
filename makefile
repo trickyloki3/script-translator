@@ -12,9 +12,9 @@ OBJECT+=csv.o
 OBJECT+=json_parser.o
 OBJECT+=json_scanner.o
 OBJECT+=json.o
-# OBJECT+=yaml_parser.o
-# OBJECT+=yaml_scanner.o
-# OBJECT+=yaml.o
+OBJECT+=yaml_parser.o
+OBJECT+=yaml_scanner.o
+OBJECT+=yaml.o
 # OBJECT+=db.o
 
 all: clean pj59

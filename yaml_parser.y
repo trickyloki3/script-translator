@@ -45,7 +45,9 @@ void yyerror(YAMLLTYPE *, struct yaml *, char const *);
 yaml : l_bare_document
      | l_empty_r l_bare_document
 
-l_bare_document : s_indent s_l_block_node
+l_bare_document : s_l_block_node
+                | s_indent s_l_block_node
+                | l_bare_document s_l_block_node
                 | l_bare_document s_indent s_l_block_node
 
 s_l_block_node : ns_plain

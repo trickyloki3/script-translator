@@ -5,10 +5,12 @@
 
 int yaml_parse_loop(struct yaml * yaml, yyscan_t, yamlpstate *);
 
-int yaml_create(struct yaml * yaml, struct pool_map * pool_map, struct sector_list * sector_list) {
+int yaml_create(struct yaml * yaml, struct heap * heap) {
+    int status = 0;
+
     yaml->indent = 0;
 
-    return 0;
+    return status;
 }
 
 void yaml_destroy(struct yaml * yaml) {
@@ -58,25 +60,14 @@ int yaml_parse_loop(struct yaml * yaml, yyscan_t scanner, yamlpstate * parser) {
 
     YAMLSTYPE value;
     YAMLLTYPE location;
-    int token = yaml_l_empty;
+    int token;
     int state;
 
     do {
-        if(token == yaml_b_break || token == yaml_l_empty) {
-            token = yamllex(&value, &location, scanner);
-            if(token < 0) {
-                status = panic("failed to get the next token");
-            } else if(token && token != yaml_s_indent && token != yaml_l_empty) {
-                state = yamlpush_parse(parser, yaml_s_indent, NULL, &location, yaml);
-                if(state && state != YYPUSH_MORE)
-                    status = panic("failed to parse the current token");
-            }
+        token = yamllex(&value, &location, scanner);
+        if(token < 0) {
+            status = panic("failed to get the next token");
         } else {
-            token = yamllex(&value, &location, scanner);
-            if(token < 0)
-                status = panic("failed to get the next token");
-        }
-        if(!status) {
             state = yamlpush_parse(parser, token, &value, &location, yaml);
             if(state && state != YYPUSH_MORE)
                 status = panic("failed to parse the current token");

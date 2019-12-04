@@ -1,15 +1,13 @@
 #ifndef yaml_h
 #define yaml_h
 
-#include "pool_map.h"
-#include "sector_list.h"
-#include "sector_string.h"
+#include "heap.h"
 
 struct yaml {
     int indent;
 };
 
-int yaml_create(struct yaml *, struct pool_map *, struct sector_list *);
+int yaml_create(struct yaml *, struct heap *);
 void yaml_destroy(struct yaml *);
 int yaml_parse(struct yaml *, const char *);
 
