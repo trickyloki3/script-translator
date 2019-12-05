@@ -3,19 +3,75 @@
 #include "yaml_parser.h"
 #include "yaml_scanner.h"
 
-int yaml_parse_loop(struct yaml * yaml, yyscan_t, yamlpstate *);
+int yaml_node_create(struct yaml *, int, size_t, struct string *, struct yaml_node **);
+void yaml_node_destroy(struct yaml *, struct yaml_node *);
+void yaml_node_indent(struct yaml *, struct yaml_node *);
 
-int yaml_create(struct yaml * yaml, struct heap * heap) {
+int yaml_parse_loop(struct yaml *, yyscan_t, yamlpstate *);
+void yaml_parse_reset(struct yaml *);
+
+int yaml_node_create(struct yaml * yaml, int type, size_t scope, struct string * string, struct yaml_node ** result) {
     int status = 0;
+    struct yaml_node * node;
+
+    node = pool_get(yaml->pool);
+    if(!node) {
+        status = panic("out of memory");
+    } else {
+        node->type = type;
+        node->scope = scope;
+        node->string = string;
+        node->child = NULL;
+        *result = node;
+    }
+
+    return status;
+}
+
+void yaml_node_destroy(struct yaml * yaml, struct yaml_node * node) {
+    pool_put(yaml->pool, node);
+}
+
+void yaml_node_indent(struct yaml * yaml, struct yaml_node * node) {
+    if(node->type == yaml_s_indent) {
+        yaml->indent = node;
+    } else if(node->type == yaml_b_break) {
+        yaml->indent = NULL;
+    } else if(node->type == yaml_s_separate_in_line) {
+        if(yaml->indent)
+            node->scope += yaml->indent->scope + 1;
+        yaml->indent = node;
+    }
+}
+
+int yaml_create(struct yaml * yaml, size_t size, struct heap * heap) {
+    int status = 0;
+
+    yaml->pool = heap_pool(heap, sizeof(struct yaml_node));
+    if(!yaml->pool) {
+        status = panic("failed to pool heap object");
+    } else if(strbuf_create(&yaml->strbuf, size)) {
+        status = panic("failed to create strbuf object");
+    } else {
+        if(list_create(&yaml->list, heap->list_pool)) {
+            status = panic("failed to create list object");
+        } else {
+            yaml->root = NULL;
+            yaml->indent = NULL;
+        }
+        if(status)
+            strbuf_destroy(&yaml->strbuf);
+    }
 
     return status;
 }
 
 void yaml_destroy(struct yaml * yaml) {
-
+    list_destroy(&yaml->list);
+    strbuf_destroy(&yaml->strbuf);
 }
 
-int yaml_parse(struct yaml * yaml, const char * path) {
+int yaml_parse(struct yaml * yaml, const char * path, size_t size) {
     int status = 0;
 
     FILE * file;
@@ -34,7 +90,7 @@ int yaml_parse(struct yaml * yaml, const char * path) {
             if(!parser) {
                 status = panic("failed to create parser object");
             } else {
-                buffer = yaml_create_buffer(file, 4096, scanner);
+                buffer = yaml_create_buffer(file, size, scanner);
                 if(!buffer) {
                     status = panic("faield to create buffer state object");
                 } else {
@@ -72,5 +128,58 @@ int yaml_parse_loop(struct yaml * yaml, yyscan_t scanner, yamlpstate * parser) {
         }
     } while(token && state == YYPUSH_MORE && !status);
 
+    yaml_parse_reset(yaml);
+
     return status;
+}
+
+void yaml_parse_reset(struct yaml * yaml) {
+    yaml->indent = NULL;
+    yaml->root = NULL;
+    yaml_clear(yaml);
+    strbuf_clear(&yaml->strbuf);
+}
+
+struct string * yaml_string(struct yaml * yaml, char * string, size_t length) {
+    return strbuf_strcpy(&yaml->strbuf, string, length) ? NULL : strbuf_string(&yaml->strbuf);
+}
+
+int yaml_token(struct yaml * yaml, int type, size_t scope, struct string * string, struct yaml_node ** result) {
+    int status = 0;
+    struct yaml_node * node;
+
+    if(yaml_node_create(yaml, type, scope, string, &node)) {
+        status = panic("failed to create yaml node object");
+    } else {
+        if(list_push(&yaml->list, node)) {
+            status = panic("failed to push list object");
+        } else {
+            yaml_node_indent(yaml, node);
+        }
+        if(status) {
+            yaml_node_destroy(yaml, node);
+        } else {
+            *result = node;
+        }
+    }
+
+    return status;
+}
+
+int yaml_block(struct yaml * yaml, struct yaml_node * scope, struct yaml_node * block) {
+    int status = 0;
+
+    yaml_clear(yaml);
+
+    return status;
+}
+
+void yaml_clear(struct yaml * yaml) {
+    struct yaml_node * node;
+
+    node = list_pop(&yaml->list);
+    while(node) {
+        yaml_node_destroy(yaml, node);
+        node = list_pop(&yaml->list);
+    }
 }

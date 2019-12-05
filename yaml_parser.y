@@ -45,10 +45,10 @@ void yyerror(YAMLLTYPE *, struct yaml *, char const *);
 yaml : l_bare_document
      | l_empty_r l_bare_document
 
-l_bare_document : s_l_block_node
-                | s_indent s_l_block_node
-                | l_bare_document s_l_block_node
-                | l_bare_document s_indent s_l_block_node
+l_bare_document : s_l_block_node { if(yaml_block(yaml, NULL, $1)) YYABORT; }
+                | s_indent s_l_block_node { if(yaml_block(yaml, $1, $2)) YYABORT; }
+                | l_bare_document s_l_block_node { if(yaml_block(yaml, NULL, $2)) YYABORT; }
+                | l_bare_document s_indent s_l_block_node { if(yaml_block(yaml, $2, $3)) YYABORT; }
 
 s_l_block_node : ns_plain
                | l_block_scalar
@@ -61,18 +61,35 @@ l_block_scalar : c_literal s_l_comments
                | c_folded s_l_comments
                | nb_char s_l_comments
 
-l_block_sequence : c_sequence_entry s_separate s_l_block_node
+l_block_sequence : c_sequence_entry s_separate s_l_block_node {
+    if(yaml_token(yaml, yaml_c_sequence_entry, 0, NULL, &$$)) {
+        YYABORT;
+    } else {
+        $3->scope = $2->scope;
+        $$->child = $3;
+    }
+}
 
-l_block_mapping : ns_plain_one_line c_mapping_value s_separate s_l_block_node
+l_block_mapping : ns_plain_one_line c_mapping_value s_separate s_l_block_node {
+    if($3->type != yaml_s_indent && ($4->type == yaml_c_sequence_entry || $4->type == yaml_c_mapping_value)) {
+        YYABORT; /* map does not support compact notation */
+    } else if(yaml_token(yaml, yaml_c_mapping_value, 0, NULL, &$$)) {
+        YYABORT;
+    } else {
+        $4->scope = $3->scope;
+        $$->string = $1->string;
+        $$->child = $4;
+    }
+}
 
-s_separate : s_separate_in_line
-           | s_l_comments s_indent
+s_separate : s_separate_in_line { $$ = $1; }
+           | s_l_comments s_indent { $$ = $2; }
 
 s_l_comments : b_break
-             | b_break l_empty_r
+             | b_break l_empty_r { $$ = $2; $$->scope++; }
 
 l_empty_r : l_empty
-          | l_empty_r l_empty
+          | l_empty_r l_empty { $$ = $1; $$->scope++; }
 
 %%
 

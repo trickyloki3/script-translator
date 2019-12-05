@@ -45,35 +45,37 @@ ns-plain-one-line       {ns-plain-first}({s-space}*{ns-plain-char})*
 }
 
 {c-literal} {
-    return yaml_c_literal;
+    return yaml_token(yyextra, yaml_c_literal, 0, NULL, yylval) ? -1 : yaml_c_literal;
 }
 
 {c-folded} {
-    return yaml_c_folded;
+    return yaml_token(yyextra, yaml_c_folded, 0, NULL, yylval) ? -1 : yaml_c_folded;
 }
 
 {s-indent} {
-    return yaml_s_indent;
+    return yaml_token(yyextra, yaml_s_indent, yyleng, NULL, yylval) ? -1 : yaml_s_indent;
 }
 
 {s-separate-in-line} {
-    return yaml_s_separate_in_line;
+    return yaml_token(yyextra, yaml_s_separate_in_line, yyleng, NULL, yylval) ? -1 : yaml_s_separate_in_line;
 }
 
 {s-indent}{c-nb-comment-text}?{b-break} {
-    return yaml_l_empty;
+    return yaml_token(yyextra, yaml_l_empty, 1, NULL, yylval) ? -1 : yaml_l_empty;
 }
 
 ({s-separate-in-line}{c-nb-comment-text}?)?{b-break} {
-    return yaml_b_break;
+    return yaml_token(yyextra, yaml_b_break, 1, NULL, yylval) ? -1 : yaml_b_break;
 }
 
 <literal>{ns-char}({s-space}*{nb-char})* {
-    return yaml_nb_char;
+    struct string * string = yaml_string(yyextra, yytext, yyleng);
+    return string ? (yaml_token(yyextra, yaml_nb_char, 0, string, yylval) ? -1 : yaml_nb_char) : -1;
 }
 
 {ns-plain-one-line} {
-    return yaml_ns_plain_one_line;
+    struct string * string = yaml_string(yyextra, yytext, yyleng);
+    return string ? (yaml_token(yyextra, yaml_ns_plain_one_line, 0, string, yylval) ? -1 : yaml_ns_plain_one_line) : -1;
 }
 
 <INITIAL,literal>.|{b-break} {
