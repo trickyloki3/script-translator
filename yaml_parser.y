@@ -62,23 +62,19 @@ l_block_scalar : c_literal s_l_comments
                | nb_char s_l_comments
 
 l_block_sequence : c_sequence_entry s_separate s_l_block_node {
-    if(yaml_token(yaml, yaml_c_sequence_entry, 0, NULL, &$$)) {
-        YYABORT;
-    } else {
-        $3->scope = $2->scope;
-        $$->child = $3;
-    }
+    $3->scope = $2->scope;
+    $1->child = $3;
+    $$ = $1;
 }
 
 l_block_mapping : ns_plain_one_line c_mapping_value s_separate s_l_block_node {
     if($3->type != yaml_s_indent && ($4->type == yaml_c_sequence_entry || $4->type == yaml_c_mapping_value)) {
         YYABORT; /* map does not support compact notation */
-    } else if(yaml_token(yaml, yaml_c_mapping_value, 0, NULL, &$$)) {
-        YYABORT;
     } else {
         $4->scope = $3->scope;
-        $$->string = $1->string;
-        $$->child = $4;
+        $2->string = $1->string;
+        $2->child = $4;
+        $$ = $2;
     }
 }
 

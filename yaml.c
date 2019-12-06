@@ -134,14 +134,36 @@ int yaml_parse_loop(struct yaml * yaml, yyscan_t scanner, yamlpstate * parser) {
 }
 
 void yaml_parse_reset(struct yaml * yaml) {
+    struct yaml_node * node;
+
     yaml->indent = NULL;
     yaml->root = NULL;
-    yaml_clear(yaml);
+
+    node = list_pop(&yaml->list);
+    while(node) {
+        yaml_node_destroy(yaml, node);
+        node = list_pop(&yaml->list);
+    }
+
     strbuf_clear(&yaml->strbuf);
 }
 
-struct string * yaml_string(struct yaml * yaml, char * string, size_t length) {
-    return strbuf_strcpy(&yaml->strbuf, string, length) ? NULL : strbuf_string(&yaml->strbuf);
+int yaml_string(struct yaml * yaml, int type, size_t scope, char * buffer, size_t length, struct yaml_node ** result) {
+    int status = 0;
+    struct string * string;
+
+    if(strbuf_strcpy(&yaml->strbuf, buffer, length)) {
+        status = panic("failed to strcpy strbuf object");
+    } else {
+        string = strbuf_string(&yaml->strbuf);
+        if(!string) {
+            status = panic("failed to string strbuf object");
+        } else {
+            status = yaml_token(yaml, type, scope, string, result);
+        }
+    }
+
+    return status;
 }
 
 int yaml_token(struct yaml * yaml, int type, size_t scope, struct string * string, struct yaml_node ** result) {
@@ -169,17 +191,5 @@ int yaml_token(struct yaml * yaml, int type, size_t scope, struct string * strin
 int yaml_block(struct yaml * yaml, struct yaml_node * scope, struct yaml_node * block) {
     int status = 0;
 
-    yaml_clear(yaml);
-
     return status;
-}
-
-void yaml_clear(struct yaml * yaml) {
-    struct yaml_node * node;
-
-    node = list_pop(&yaml->list);
-    while(node) {
-        yaml_node_destroy(yaml, node);
-        node = list_pop(&yaml->list);
-    }
 }

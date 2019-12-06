@@ -33,15 +33,15 @@ ns-plain-one-line       {ns-plain-first}({s-space}*{ns-plain-char})*
 %%
 
 {c-sequence-entry} {
-    return yaml_c_sequence_entry;
+    return yaml_token(yyextra, yaml_c_sequence_entry, 0, NULL, yylval) ? -1 : yaml_c_sequence_entry;
 }
 
 {c-mapping-key} {
-    return yaml_c_mapping_key;
+    return yaml_token(yyextra, yaml_c_mapping_key, 0, NULL, yylval) ? -1 : yaml_c_mapping_key;
 }
 
 {c-mapping-value} {
-    return yaml_c_mapping_value;
+    return yaml_token(yyextra, yaml_c_mapping_value, 0, NULL, yylval) ? -1 : yaml_c_mapping_value;
 }
 
 {c-literal} {
@@ -69,13 +69,11 @@ ns-plain-one-line       {ns-plain-first}({s-space}*{ns-plain-char})*
 }
 
 <literal>{ns-char}({s-space}*{nb-char})* {
-    struct string * string = yaml_string(yyextra, yytext, yyleng);
-    return string ? (yaml_token(yyextra, yaml_nb_char, 0, string, yylval) ? -1 : yaml_nb_char) : -1;
+    return yaml_string(yyextra, yaml_nb_char, 0, yytext, yyleng, yylval) ? -1 : yaml_nb_char;
 }
 
 {ns-plain-one-line} {
-    struct string * string = yaml_string(yyextra, yytext, yyleng);
-    return string ? (yaml_token(yyextra, yaml_ns_plain_one_line, 0, string, yylval) ? -1 : yaml_ns_plain_one_line) : -1;
+    return yaml_string(yyextra, yaml_ns_plain_one_line, 0, yytext, yyleng, yylval) ? -1 : yaml_ns_plain_one_line;
 }
 
 <INITIAL,literal>.|{b-break} {
