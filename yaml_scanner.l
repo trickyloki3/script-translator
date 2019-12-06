@@ -53,6 +53,8 @@ ns-plain-one-line       {ns-plain-first}({s-space}*{ns-plain-char})*
 }
 
 {s-indent} {
+    if(yaml_literal(yyextra, yyleng))
+        BEGIN(literal);
     return yaml_token(yyextra, yaml_s_indent, yyleng, NULL, yylval) ? -1 : yaml_s_indent;
 }
 
@@ -69,6 +71,7 @@ ns-plain-one-line       {ns-plain-first}({s-space}*{ns-plain-char})*
 }
 
 <literal>{ns-char}({s-space}*{nb-char})* {
+    BEGIN(INITIAL);
     return yaml_string(yyextra, yaml_nb_char, 0, yytext, yyleng, yylval) ? -1 : yaml_nb_char;
 }
 

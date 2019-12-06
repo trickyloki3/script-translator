@@ -45,10 +45,10 @@ void yyerror(YAMLLTYPE *, struct yaml *, char const *);
 yaml : l_bare_document
      | l_empty_r l_bare_document
 
-l_bare_document : s_l_block_node { if(yaml_block(yaml, NULL, $1)) YYABORT; }
-                | s_indent s_l_block_node { if(yaml_block(yaml, $1, $2)) YYABORT; }
-                | l_bare_document s_l_block_node { if(yaml_block(yaml, NULL, $2)) YYABORT; }
-                | l_bare_document s_indent s_l_block_node { if(yaml_block(yaml, $2, $3)) YYABORT; }
+l_bare_document : s_l_block_node { $1->scope = 0; if(yaml_block(yaml, $1)) YYABORT; }
+                | s_indent s_l_block_node { $2->scope = $1->scope; if(yaml_block(yaml, $2)) YYABORT; }
+                | l_bare_document s_l_block_node { $2->scope = 0; if(yaml_block(yaml, $2)) YYABORT; }
+                | l_bare_document s_indent s_l_block_node { $3->scope = $2->scope; if(yaml_block(yaml, $3)) YYABORT; }
 
 s_l_block_node : ns_plain
                | l_block_scalar
@@ -57,24 +57,21 @@ s_l_block_node : ns_plain
 
 ns_plain : ns_plain_one_line s_l_comments
 
-l_block_scalar : c_literal s_l_comments
-               | c_folded s_l_comments
+l_block_scalar : c_literal { if(yaml_stack(yaml, $1->type)) YYABORT; } s_l_comments
+               | c_folded { if(yaml_stack(yaml, $1->type)) YYABORT; } s_l_comments
                | nb_char s_l_comments
 
-l_block_sequence : c_sequence_entry s_separate s_l_block_node {
-    $3->scope = $2->scope;
-    $1->child = $3;
-    $$ = $1;
+l_block_sequence : { if(yaml_stack(yaml, yaml_c_sequence_entry)) YYABORT; } c_sequence_entry s_separate s_l_block_node {
+    $4->scope = $3->scope;
+    $$ = $2;
 }
 
-l_block_mapping : ns_plain_one_line c_mapping_value s_separate s_l_block_node {
-    if($3->type != yaml_s_indent && ($4->type == yaml_c_sequence_entry || $4->type == yaml_c_mapping_value)) {
+l_block_mapping : ns_plain_one_line { if(yaml_stack(yaml, yaml_c_mapping_value)) YYABORT; } c_mapping_value s_separate s_l_block_node {
+    if($4->type != yaml_s_indent && ($5->type == yaml_c_sequence_entry || $5->type == yaml_c_mapping_value)) {
         YYABORT; /* map does not support compact notation */
     } else {
-        $4->scope = $3->scope;
-        $2->string = $1->string;
-        $2->child = $4;
-        $$ = $2;
+        $5->scope = $4->scope;
+        $$ = $3;
     }
 }
 
