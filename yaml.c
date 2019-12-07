@@ -11,6 +11,8 @@ void yaml_node_print(struct yaml_node *);
 int yaml_parse_loop(struct yaml *, yyscan_t, yamlpstate *);
 void yaml_parse_reset(struct yaml *);
 
+int yaml_scalar_space(struct yaml *, struct yaml_node *);
+int yaml_scalar_newline(struct yaml *, struct yaml_node *);
 int yaml_strbuf_clear(struct yaml *, struct yaml_node *);
 
 int yaml_node_create(struct yaml * yaml, int type, size_t scope, struct string * string, struct yaml_node ** result) {
@@ -308,8 +310,12 @@ int yaml_block(struct yaml * yaml, struct yaml_node * block) {
                 case yaml_c_folded:
                     if(block->type != yaml_nb_char) {
                         status = panic("invalid scalar - %d", block->type);
+                    } else if(yaml_scalar_space(yaml, block)) {
+                        status = panic("failed to scalar space yaml object");
                     } else if(strbuf_strcpy(&yaml->scalar, block->string->string, block->string->length)) {
                         status = panic("failed to strcpy strbuf object");
+                    } else if(yaml_scalar_newline(yaml, block->child)) {
+                        status = panic("failed to scalar newline yaml object");
                     }
                     break;
                 case yaml_c_sequence_entry:
@@ -374,6 +380,45 @@ int yaml_block(struct yaml * yaml, struct yaml_node * block) {
 
         if(status)
             yaml_node_destroy(yaml, peek);
+    }
+
+    return status;
+}
+
+int yaml_scalar_space(struct yaml * yaml, struct yaml_node * node) {
+    int status = 0;
+
+    size_t i;
+    size_t size;
+
+    size = node->scope - yaml->root->scope;
+    for(i = 0; i < size && !status; i++)
+        if(strbuf_putc(&yaml->scalar, ' '))
+            status = panic("failed to putc strbuf object");
+
+    return status;
+}
+
+int yaml_scalar_newline(struct yaml * yaml, struct yaml_node * node) {
+    int status = 0;
+
+    size_t i;
+    size_t size;
+
+    if(yaml->root->type == yaml_c_literal) {
+        for(i = 0; i < node->scope && !status; i++)
+            if(strbuf_putc(&yaml->scalar, '\n'))
+                status = panic("failed to putc strbuf object");
+    } else if(yaml->root->type == yaml_c_folded) {
+        if(node->scope == 1) {
+            if(strbuf_putc(&yaml->scalar, ' '))
+                status = panic("failed to putc strbuf object");
+        } else {
+            size = node->scope - 1;
+            for(i = 0; i < size && !status; i++)
+                if(strbuf_putc(&yaml->scalar, '\n'))
+                    status = panic("failed to putc strbuf object");
+        }
     }
 
     return status;

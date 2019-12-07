@@ -59,7 +59,7 @@ ns_plain : ns_plain_one_line s_l_comments
 
 l_block_scalar : c_literal { if(yaml_stack(yaml, $1->type)) YYABORT; } s_l_comments
                | c_folded { if(yaml_stack(yaml, $1->type)) YYABORT; } s_l_comments
-               | nb_char s_l_comments
+               | nb_char s_l_comments { $1->child = $2; $$ = $1; }
 
 l_block_sequence : { if(yaml_stack(yaml, yaml_c_sequence_entry)) YYABORT; } c_sequence_entry s_separate s_l_block_node {
     $4->scope = $3->scope;
