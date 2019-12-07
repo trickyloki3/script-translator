@@ -231,15 +231,21 @@ int yaml_literal(struct yaml * yaml, size_t scope) {
     int status = 0;
 
     if(yaml->stack) {
-        status = (yaml->stack->type == yaml_c_literal || yaml->stack->type == yaml_c_folded) && yaml->stack->scope < scope;
         /*
-         * the scope of the block scalar is the same
-         * as the scope of the  first non-empty line
+         * first non-empty line for block scalar
          */
+        status = ( yaml->stack->type == yaml_c_literal ||
+                   yaml->stack->type == yaml_c_folded ) &&
+                   yaml->stack->scope < scope;
         if(status)
             yaml->stack->scope = scope;
     } else if(yaml->root) {
-        status = (yaml->root->type == yaml_c_literal || yaml->root->type == yaml_c_folded) && yaml->root->scope <= scope;
+        /*
+         * other non-empty line for block scalar
+         */
+        status = ( yaml->root->type == yaml_c_literal  ||
+                   yaml->root->type == yaml_c_folded ) &&
+                   yaml->root->scope <= scope;
     }
 
     return status;
