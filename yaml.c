@@ -11,6 +11,7 @@ void yaml_node_print(struct yaml_node *);
 int yaml_parse_loop(struct yaml *, yyscan_t, yamlpstate *);
 void yaml_parse_reset(struct yaml *);
 
+int yaml_scalar(struct yaml *, struct yaml_node *);
 int yaml_scalar_space(struct yaml *, struct yaml_node *);
 int yaml_scalar_newline(struct yaml *, struct yaml_node *);
 int yaml_strbuf_clear(struct yaml *, struct yaml_node *);
@@ -308,15 +309,8 @@ int yaml_block(struct yaml * yaml, struct yaml_node * block) {
             switch(yaml->root->type) {
                 case yaml_c_literal:
                 case yaml_c_folded:
-                    if(block->type != yaml_nb_char) {
-                        status = panic("invalid scalar - %d", block->type);
-                    } else if(yaml_scalar_space(yaml, block)) {
-                        status = panic("failed to scalar space yaml object");
-                    } else if(strbuf_strcpy(&yaml->scalar, block->string->string, block->string->length)) {
-                        status = panic("failed to strcpy strbuf object");
-                    } else if(yaml_scalar_newline(yaml, block->child)) {
-                        status = panic("failed to scalar newline yaml object");
-                    }
+                    if(yaml_scalar(yaml, block))
+                        status = panic("failed to scalar yaml object");
                     break;
                 case yaml_c_sequence_entry:
                 case yaml_c_mapping_value:
@@ -380,6 +374,22 @@ int yaml_block(struct yaml * yaml, struct yaml_node * block) {
 
         if(status)
             yaml_node_destroy(yaml, peek);
+    }
+
+    return status;
+}
+
+int yaml_scalar(struct yaml * yaml, struct yaml_node * node) {
+    int status = 0;
+
+    if(node->type != yaml_nb_char) {
+        status = panic("invalid scalar");
+    } else if(yaml_scalar_space(yaml, node)) {
+        status = panic("failed to scalar space yaml object");
+    } else if(strbuf_strcpy(&yaml->scalar, node->string->string, node->string->length)) {
+        status = panic("failed to strcpy strbuf object");
+    } else if(yaml_scalar_newline(yaml, node->child)) {
+        status = panic("failed to scalar newline yaml object");
     }
 
     return status;
