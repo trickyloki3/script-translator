@@ -7,7 +7,7 @@
 struct yaml_node {
     int type;
     size_t scope;
-    struct string * string;
+    struct string * value;
     struct yaml_node * child;
 };
 

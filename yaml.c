@@ -26,7 +26,7 @@ int yaml_node_create(struct yaml * yaml, int type, size_t scope, struct string *
     } else {
         node->type = type;
         node->scope = scope;
-        node->string = string;
+        node->value = string;
         node->child = NULL;
         *result = node;
     }
@@ -61,8 +61,8 @@ void yaml_node_print(struct yaml_node * node) {
         case yaml_s_separate_in_line: fprintf(stdout, "s_separate_in_line(%zu) ", node->scope); break;
         case yaml_l_empty: fprintf(stdout, "l_empty\n"); break;
         case yaml_b_break: fprintf(stdout, "b_break\n"); break;
-        case yaml_nb_char: fprintf(stdout, "nb_char(%s) ", node->string->string); break;
-        case yaml_ns_plain_one_line: fprintf(stdout, "ns_plain_one_line(%s) ", node->string->string); break;
+        case yaml_nb_char: fprintf(stdout, "nb_char(%s) ", node->value->string); break;
+        case yaml_ns_plain_one_line: fprintf(stdout, "ns_plain_one_line(%s) ", node->value->string); break;
     }
 }
 
@@ -386,7 +386,7 @@ int yaml_scalar(struct yaml * yaml, struct yaml_node * node) {
         status = panic("invalid scalar");
     } else if(yaml_scalar_space(yaml, node)) {
         status = panic("failed to scalar space yaml object");
-    } else if(strbuf_strcpy(&yaml->scalar, node->string->string, node->string->length)) {
+    } else if(strbuf_strcpy(&yaml->scalar, node->value->string, node->value->length)) {
         status = panic("failed to strcpy strbuf object");
     } else if(yaml_scalar_newline(yaml, node->child)) {
         status = panic("failed to scalar newline yaml object");
@@ -437,10 +437,10 @@ int yaml_scalar_newline(struct yaml * yaml, struct yaml_node * node) {
 int yaml_strbuf_clear(struct yaml * yaml, struct yaml_node * node) {
     int status = 0;
 
-    if(node->string) {
-        strbuf_clear_move(&yaml->strbuf, node->string->string, node->string->length);
-        node->string = strbuf_string(&yaml->strbuf);
-        if(!node->string)
+    if(node->value) {
+        strbuf_clear_move(&yaml->strbuf, node->value->string, node->value->length);
+        node->value = strbuf_string(&yaml->strbuf);
+        if(!node->value)
             status = panic("failed to string strbuf object");
     } else {
         strbuf_clear(&yaml->strbuf);
