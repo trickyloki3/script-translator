@@ -14,6 +14,7 @@ struct yaml_node {
 struct yaml {
     struct pool * pool;
     struct strbuf strbuf;
+    struct strbuf scalar;
     struct list list;
     struct yaml_node * root;
     struct yaml_node * stack;

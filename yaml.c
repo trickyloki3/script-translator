@@ -70,12 +70,18 @@ int yaml_create(struct yaml * yaml, size_t size, struct heap * heap) {
     } else if(strbuf_create(&yaml->strbuf, size)) {
         status = panic("failed to create strbuf object");
     } else {
-        if(list_create(&yaml->list, heap->list_pool)) {
-            status = panic("failed to create list object");
+        if(strbuf_create(&yaml->scalar, size)) {
+            status = panic("failed to create strbuf object");
         } else {
-            yaml->root = NULL;
-            yaml->stack = NULL;
-            yaml->indent = NULL;
+            if(list_create(&yaml->list, heap->list_pool)) {
+                status = panic("failed to create list object");
+            } else {
+                yaml->root = NULL;
+                yaml->stack = NULL;
+                yaml->indent = NULL;
+            }
+            if(status)
+                strbuf_destroy(&yaml->scalar);
         }
         if(status)
             strbuf_destroy(&yaml->strbuf);
@@ -86,6 +92,7 @@ int yaml_create(struct yaml * yaml, size_t size, struct heap * heap) {
 
 void yaml_destroy(struct yaml * yaml) {
     list_destroy(&yaml->list);
+    strbuf_destroy(&yaml->scalar);
     strbuf_destroy(&yaml->strbuf);
 }
 
@@ -263,11 +270,15 @@ int yaml_block(struct yaml * yaml, struct yaml_node * block) {
         while(yaml->root && yaml->root->scope > block->scope) {
             node = yaml->root;
             yaml->root = yaml->root->child;
+            if(node->type == yaml_c_literal || node->type == yaml_c_folded)
+                strbuf_clear(&yaml->scalar);
             yaml_node_destroy(yaml, node);
         }
         if(yaml->root && (yaml->root->type == yaml_c_literal || yaml->root->type == yaml_c_folded) && yaml->root->scope == block->scope) {
             node = yaml->root;
             yaml->root = yaml->root->child;
+            if(node->type == yaml_c_literal || node->type == yaml_c_folded)
+                strbuf_clear(&yaml->scalar);
             yaml_node_destroy(yaml, node);
         }
         if(!yaml->root) {
@@ -280,6 +291,8 @@ int yaml_block(struct yaml * yaml, struct yaml_node * block) {
                         status = panic("invalid scalar - %d", block->type);
                     } else if(block->scope <= yaml->root->scope) {
                         status = panic("invalid scope - %d", block->scope);
+                    } else if(strbuf_strcpy(&yaml->scalar, block->string->string, block->string->length)) {
+                        status = panic("failed to strcpy strbuf object");
                     }
                     break;
                 case yaml_c_sequence_entry:
@@ -363,6 +376,8 @@ void yaml_document(struct yaml * yaml) {
     while(yaml->root) {
         node = yaml->root;
         yaml->root = yaml->root->child;
+        if(node->type == yaml_c_literal || node->type == yaml_c_folded)
+            strbuf_clear(&yaml->scalar);
         yaml_node_destroy(yaml, node);
     }
 }
