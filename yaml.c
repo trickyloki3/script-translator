@@ -6,6 +6,7 @@
 int yaml_node_create(struct yaml *, int, size_t, struct string *, struct yaml_node **);
 void yaml_node_destroy(struct yaml *, struct yaml_node *);
 void yaml_node_indent(struct yaml *, struct yaml_node *);
+void yaml_node_print(struct yaml_node *);
 
 int yaml_parse_loop(struct yaml *, yyscan_t, yamlpstate *);
 void yaml_parse_reset(struct yaml *);
@@ -41,6 +42,22 @@ void yaml_node_indent(struct yaml * yaml, struct yaml_node * node) {
         if(yaml->indent)
             node->scope += yaml->indent->scope + 1;
         yaml->indent = node;
+    }
+}
+
+void yaml_node_print(struct yaml_node * node) {
+    switch(node->type) {
+        case yaml_c_sequence_entry: fprintf(stdout, "c_sequence_entry(%zu) ", node->scope); break;
+        case yaml_c_mapping_key: fprintf(stdout, "c_mapping_key "); break;
+        case yaml_c_mapping_value: fprintf(stdout, "c_mapping_value(%zu) ", node->scope); break;
+        case yaml_c_literal: fprintf(stdout, "c_literal(%zu) ", node->scope); break;
+        case yaml_c_folded: fprintf(stdout, "c_folded(%zu) ", node->scope); break;
+        case yaml_s_indent: fprintf(stdout, "s_indent(%zu) ", node->scope); break;
+        case yaml_s_separate_in_line: fprintf(stdout, "s_separate_in_line(%zu) ", node->scope); break;
+        case yaml_l_empty: fprintf(stdout, "l_empty\n"); break;
+        case yaml_b_break: fprintf(stdout, "b_break\n"); break;
+        case yaml_nb_char: fprintf(stdout, "nb_char(%s) ", node->string->string); break;
+        case yaml_ns_plain_one_line: fprintf(stdout, "ns_plain_one_line(%s) ", node->string->string); break;
     }
 }
 
