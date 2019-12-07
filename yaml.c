@@ -229,8 +229,14 @@ int yaml_literal(struct yaml * yaml, size_t scope) {
 
     if(yaml->stack) {
         status = (yaml->stack->type == yaml_c_literal || yaml->stack->type == yaml_c_folded) && yaml->stack->scope < scope;
+        /*
+         * the scope of the block scalar is the same
+         * as the scope of the  first non-empty line
+         */
+        if(status)
+            yaml->stack->scope = scope;
     } else if(yaml->root) {
-        status = (yaml->root->type == yaml_c_literal || yaml->root->type == yaml_c_folded) && yaml->root->scope < scope;
+        status = (yaml->root->type == yaml_c_literal || yaml->root->type == yaml_c_folded) && yaml->root->scope <= scope;
     }
 
     return status;
@@ -274,13 +280,6 @@ int yaml_block(struct yaml * yaml, struct yaml_node * block) {
                 strbuf_clear(&yaml->scalar);
             yaml_node_destroy(yaml, node);
         }
-        if(yaml->root && (yaml->root->type == yaml_c_literal || yaml->root->type == yaml_c_folded) && yaml->root->scope == block->scope) {
-            node = yaml->root;
-            yaml->root = yaml->root->child;
-            if(node->type == yaml_c_literal || node->type == yaml_c_folded)
-                strbuf_clear(&yaml->scalar);
-            yaml_node_destroy(yaml, node);
-        }
         if(!yaml->root) {
             status = panic("invalid scope - %zu", block->scope);
         } else {
@@ -289,8 +288,6 @@ int yaml_block(struct yaml * yaml, struct yaml_node * block) {
                 case yaml_c_folded:
                     if(block->type != yaml_nb_char) {
                         status = panic("invalid scalar - %d", block->type);
-                    } else if(block->scope <= yaml->root->scope) {
-                        status = panic("invalid scope - %d", block->scope);
                     } else if(strbuf_strcpy(&yaml->scalar, block->string->string, block->string->length)) {
                         status = panic("failed to strcpy strbuf object");
                     }
