@@ -74,6 +74,7 @@ int yaml_create(struct yaml * yaml, size_t size, struct heap * heap) {
             status = panic("failed to create list object");
         } else {
             yaml->root = NULL;
+            yaml->stack = NULL;
             yaml->indent = NULL;
         }
         if(status)
