@@ -23,6 +23,7 @@ struct strbuf {
 int strbuf_create(struct strbuf *, size_t);
 void strbuf_destroy(struct strbuf *);
 void strbuf_clear(struct strbuf *);
+void strbuf_clear_move(struct strbuf *, char *, size_t);
 int strbuf_putc(struct strbuf *, char);
 int strbuf_strcpy(struct strbuf *, char *, size_t);
 struct string * strbuf_string(struct strbuf *);

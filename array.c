@@ -27,6 +27,13 @@ void strbuf_clear(struct strbuf * strbuf) {
     strbuf->str = strbuf->pos = strbuf->buf;
 }
 
+void strbuf_clear_move(struct strbuf * strbuf, char * string, size_t length) {
+    memmove(strbuf->buf, string, length);
+    memset(strbuf->buf + length, 0, (strbuf->pos - strbuf->buf) - length);
+    strbuf->str = strbuf->buf;
+    strbuf->pos = strbuf->buf + length;
+}
+
 int strbuf_putc(struct strbuf * strbuf, char c) {
     int status = 0;
 

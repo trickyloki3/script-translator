@@ -28,5 +28,6 @@ int yaml_string(struct yaml *, int, size_t, char *, size_t, struct yaml_node **)
 int yaml_literal(struct yaml *, size_t);
 int yaml_stack(struct yaml *, int);
 int yaml_block(struct yaml *, struct yaml_node *);
+void yaml_document(struct yaml *);
 
 #endif

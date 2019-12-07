@@ -42,8 +42,8 @@ void yyerror(YAMLLTYPE *, struct yaml *, char const *);
 
 %%
 
-yaml : l_bare_document
-     | l_empty_r l_bare_document
+yaml : l_bare_document { yaml_document(yaml); }
+     | l_empty_r l_bare_document { yaml_document(yaml); }
 
 l_bare_document : s_l_block_node { $1->scope = 0; if(yaml_block(yaml, $1)) YYABORT; }
                 | s_indent s_l_block_node { $2->scope = $1->scope; if(yaml_block(yaml, $2)) YYABORT; }

@@ -236,6 +236,7 @@ int yaml_block(struct yaml * yaml, struct yaml_node * block) {
     int status = 0;
     struct yaml_node * node;
     struct yaml_node * list;
+    struct yaml_node * peek;
 
     if(!yaml->root) {
         yaml->root = yaml->stack;
@@ -299,5 +300,45 @@ int yaml_block(struct yaml * yaml, struct yaml_node * block) {
         }
     }
 
+    /*
+     * bison is a lalr(1) parser
+     * save the look-ahead token
+     */
+    peek = list_pop(&yaml->list);
+    if(peek) {
+        node = list_pop(&yaml->list);
+        while(node) {
+            yaml_node_destroy(yaml, node);
+            node = list_pop(&yaml->list);
+        }
+
+        if(peek->string) {
+            strbuf_clear_move(&yaml->strbuf, peek->string->string, peek->string->length);
+            peek->string = strbuf_string(&yaml->strbuf);
+            if(!peek->string) {
+                status = panic("failed to string strbuf object");
+            } else if(list_push(&yaml->list, peek)) {
+                status = panic("failed to push list object");
+            }
+        } else {
+            strbuf_clear(&yaml->strbuf);
+            if(list_push(&yaml->list, peek))
+                status = panic("failed to push list object");
+        }
+
+        if(status)
+            yaml_node_destroy(yaml, peek);
+    }
+
     return status;
+}
+
+void yaml_document(struct yaml * yaml) {
+    struct yaml_node * node;
+
+    while(yaml->root) {
+        node = yaml->root;
+        yaml->root = yaml->root->child;
+        yaml_node_destroy(yaml, node);
+    }
 }
