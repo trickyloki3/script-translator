@@ -283,30 +283,36 @@ int yaml_block(struct yaml * yaml, struct yaml_node * block) {
                     break;
                 case yaml_c_sequence_entry:
                 case yaml_c_mapping_value:
-                    if(block->type != yaml->root->type) {
-                        status = panic("invalid sequence entry or map value");
-                    } else if(block->scope != yaml->root->scope) {
-                        status = panic("invalid scope - %d", block->scope);
-                    } else {
-                        list = NULL;
-                        while(yaml->stack) {
-                            node = yaml->stack;
-                            yaml->stack = yaml->stack->child;
-                            node->child = list;
-                            list = node;
-                        }
+                    list = NULL;
+                    while(yaml->stack) {
+                        node = yaml->stack;
+                        yaml->stack = yaml->stack->child;
+                        node->child = list;
+                        list = node;
+                    }
 
-                        if(list->type == yaml_c_sequence_entry || list->type == yaml_c_mapping_value) {
-                            node = list;
-                            list = list->child;
-                            yaml_node_destroy(yaml, node);
-                        }
+                    if(list->type != yaml->root->type) {
+                        status = panic("invalid sequence entry or map value");
+                    } else if(list->scope != yaml->root->scope) {
+                        status = panic("invalid scope - %d", list->scope);
+                    } else {
+                        node = list;
+                        list = list->child;
+                        yaml_node_destroy(yaml, node);
 
                         while(list) {
                             node = list;
                             list = list->child;
                             node->child = yaml->root;
                             yaml->root = node;
+                        }
+                    }
+
+                    if(status) {
+                        while(list) {
+                            node = list;
+                            list = list->child;
+                            yaml_node_destroy(yaml, node);
                         }
                     }
                     break;
