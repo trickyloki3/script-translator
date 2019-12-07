@@ -11,6 +11,8 @@ void yaml_node_print(struct yaml_node *);
 int yaml_parse_loop(struct yaml *, yyscan_t, yamlpstate *);
 void yaml_parse_reset(struct yaml *);
 
+int yaml_strbuf_clear(struct yaml *, struct yaml_node *);
+
 int yaml_node_create(struct yaml * yaml, int type, size_t scope, struct string * string, struct yaml_node ** result) {
     int status = 0;
     struct yaml_node * node;
@@ -181,6 +183,7 @@ void yaml_parse_reset(struct yaml * yaml) {
         node = list_pop(&yaml->list);
     }
 
+    strbuf_clear(&yaml->scalar);
     strbuf_clear(&yaml->strbuf);
 }
 
@@ -346,22 +349,29 @@ int yaml_block(struct yaml * yaml, struct yaml_node * block) {
             node = list_pop(&yaml->list);
         }
 
-        if(peek->string) {
-            strbuf_clear_move(&yaml->strbuf, peek->string->string, peek->string->length);
-            peek->string = strbuf_string(&yaml->strbuf);
-            if(!peek->string) {
-                status = panic("failed to string strbuf object");
-            } else if(list_push(&yaml->list, peek)) {
-                status = panic("failed to push list object");
-            }
-        } else {
-            strbuf_clear(&yaml->strbuf);
-            if(list_push(&yaml->list, peek))
-                status = panic("failed to push list object");
+        if(yaml_strbuf_clear(yaml, peek)) {
+            status = panic("failed to clear strbuf object");
+        } else if(list_push(&yaml->list, peek)) {
+            status = panic("failed to push list object");
         }
 
         if(status)
             yaml_node_destroy(yaml, peek);
+    }
+
+    return status;
+}
+
+int yaml_strbuf_clear(struct yaml * yaml, struct yaml_node * node) {
+    int status = 0;
+
+    if(node->string) {
+        strbuf_clear_move(&yaml->strbuf, node->string->string, node->string->length);
+        node->string = strbuf_string(&yaml->strbuf);
+        if(!node->string)
+            status = panic("failed to string strbuf object");
+    } else {
+        strbuf_clear(&yaml->strbuf);
     }
 
     return status;
