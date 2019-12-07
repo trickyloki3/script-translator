@@ -274,13 +274,24 @@ int yaml_stack(struct yaml * yaml, int type) {
 
 int yaml_block(struct yaml * yaml, struct yaml_node * block) {
     int status = 0;
-    struct yaml_node * node;
     struct yaml_node * list;
+    struct yaml_node * node;
     struct yaml_node * peek;
 
     if(!yaml->root) {
-        yaml->root = yaml->stack;
-        yaml->stack = NULL;
+        list = NULL;
+        while(yaml->stack) {
+            node = yaml->stack;
+            yaml->stack = yaml->stack->child;
+            node->child = list;
+            list = node;
+        }
+        while(list) {
+            node = list;
+            list = list->child;
+            node->child = yaml->root;
+            yaml->root = node;
+        }
     } else {
         while(yaml->root && yaml->root->scope > block->scope) {
             node = yaml->root;
