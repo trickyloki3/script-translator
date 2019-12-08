@@ -61,15 +61,18 @@ l_block_scalar : c_literal { if(yaml_stack(yaml, $1->type)) YYABORT; } s_l_comme
                | c_folded { if(yaml_stack(yaml, $1->type)) YYABORT; } s_l_comments
                | nb_char s_l_comments { $1->child = $2; $$ = $1; }
 
-l_block_sequence : { if(yaml_stack(yaml, yaml_c_sequence_entry)) YYABORT; } c_sequence_entry s_separate s_l_block_node {
+l_block_sequence : { if(yaml_stack(yaml, yaml_c_sequence_entry)) YYABORT; else $$ = yaml->stack; } c_sequence_entry s_separate s_l_block_node {
+    $1->value = $4->value;
     $4->scope = $3->scope;
     $$ = $2;
 }
 
-l_block_mapping : ns_plain_one_line { if(yaml_stack(yaml, yaml_c_mapping_value)) YYABORT; } c_mapping_value s_separate s_l_block_node {
+l_block_mapping : ns_plain_one_line { if(yaml_stack(yaml, yaml_c_mapping_value)) YYABORT; else $$ = yaml->stack; } c_mapping_value s_separate s_l_block_node {
     if($4->type != yaml_s_indent && ($5->type == yaml_c_sequence_entry || $5->type == yaml_c_mapping_value)) {
         YYABORT; /* map does not support compact notation */
     } else {
+        $2->key = $1->value;
+        $2->value = $5->value;
         $5->scope = $4->scope;
         $$ = $3;
     }

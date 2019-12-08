@@ -26,6 +26,7 @@ int yaml_node_create(struct yaml * yaml, int type, size_t scope, struct string *
     } else {
         node->type = type;
         node->scope = scope;
+        node->key = NULL;
         node->value = string;
         node->child = NULL;
         *result = node;
