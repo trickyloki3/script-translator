@@ -5,11 +5,8 @@
 
 int yaml_node_create(struct yaml *, int, size_t, struct string *, struct yaml_node **);
 void yaml_node_destroy(struct yaml *, struct yaml_node *);
-void yaml_node_indent(struct yaml *, struct yaml_node *);
-void yaml_node_print(struct yaml_node *);
 
 int yaml_parse_loop(struct yaml *, yyscan_t, yamlpstate *);
-void yaml_parse_reset(struct yaml *);
 
 int yaml_scalar(struct yaml *, struct yaml_node *);
 int yaml_scalar_space(struct yaml *, struct yaml_node *);
@@ -39,58 +36,32 @@ void yaml_node_destroy(struct yaml * yaml, struct yaml_node * node) {
     pool_put(yaml->pool, node);
 }
 
-void yaml_node_indent(struct yaml * yaml, struct yaml_node * node) {
-    if(node->type == yaml_s_indent) {
-        yaml->indent = node;
-    } else if(node->type == yaml_b_break) {
-        yaml->indent = NULL;
-    } else if(node->type == yaml_s_separate_in_line) {
-        if(yaml->indent)
-            node->scope += yaml->indent->scope + 1;
-        yaml->indent = node;
-    }
-}
-
-void yaml_node_print(struct yaml_node * node) {
-    switch(node->type) {
-        case yaml_c_sequence_entry: fprintf(stdout, "c_sequence_entry(%zu) ", node->scope); break;
-        case yaml_c_mapping_key: fprintf(stdout, "c_mapping_key "); break;
-        case yaml_c_mapping_value: fprintf(stdout, "c_mapping_value(%zu) ", node->scope); break;
-        case yaml_c_literal: fprintf(stdout, "c_literal(%zu) ", node->scope); break;
-        case yaml_c_folded: fprintf(stdout, "c_folded(%zu) ", node->scope); break;
-        case yaml_s_indent: fprintf(stdout, "s_indent(%zu) ", node->scope); break;
-        case yaml_s_separate_in_line: fprintf(stdout, "s_separate_in_line(%zu) ", node->scope); break;
-        case yaml_l_empty: fprintf(stdout, "l_empty\n"); break;
-        case yaml_b_break: fprintf(stdout, "b_break\n"); break;
-        case yaml_nb_char: fprintf(stdout, "nb_char(%s) ", node->value->string); break;
-        case yaml_ns_plain_one_line: fprintf(stdout, "ns_plain_one_line(%s) ", node->value->string); break;
-    }
-}
-
 int yaml_create(struct yaml * yaml, size_t size, struct heap * heap) {
     int status = 0;
 
     yaml->pool = heap_pool(heap, sizeof(struct yaml_node));
     if(!yaml->pool) {
         status = panic("failed to pool heap object");
-    } else if(strbuf_create(&yaml->strbuf, size)) {
-        status = panic("failed to create strbuf object");
     } else {
-        if(strbuf_create(&yaml->scalar, size)) {
+        if(strbuf_create(&yaml->strbuf, size)) {
             status = panic("failed to create strbuf object");
         } else {
-            if(list_create(&yaml->list, heap->list_pool)) {
-                status = panic("failed to create list object");
+            if(strbuf_create(&yaml->scalar, size)) {
+                status = panic("failed to create strbuf object");
             } else {
-                yaml->root = NULL;
-                yaml->stack = NULL;
-                yaml->indent = NULL;
+                if(list_create(&yaml->list, heap->list_pool)) {
+                    status = panic("failed to create list object");
+                } else {
+                    yaml->root = NULL;
+                    yaml->stack = NULL;
+                    yaml->indent = NULL;
+                }
+                if(status)
+                    strbuf_destroy(&yaml->scalar);
             }
             if(status)
-                strbuf_destroy(&yaml->scalar);
+                strbuf_destroy(&yaml->strbuf);
         }
-        if(status)
-            strbuf_destroy(&yaml->strbuf);
     }
 
     return status;
@@ -147,6 +118,7 @@ int yaml_parse_loop(struct yaml * yaml, yyscan_t scanner, yamlpstate * parser) {
     YAMLLTYPE location;
     int token;
     int state;
+    struct yaml_node * node;
 
     do {
         token = yamllex(&value, &location, scanner);
@@ -159,14 +131,9 @@ int yaml_parse_loop(struct yaml * yaml, yyscan_t scanner, yamlpstate * parser) {
         }
     } while(token && state == YYPUSH_MORE && !status);
 
-    yaml_parse_reset(yaml);
-
-    return status;
-}
-
-void yaml_parse_reset(struct yaml * yaml) {
-    struct yaml_node * node;
-
+    /*
+     * reset yaml object to initial state
+     */
     yaml->indent = NULL;
 
     while(yaml->stack) {
@@ -189,6 +156,8 @@ void yaml_parse_reset(struct yaml * yaml) {
 
     strbuf_clear(&yaml->scalar);
     strbuf_clear(&yaml->strbuf);
+
+    return status;
 }
 
 int yaml_token(struct yaml * yaml, int type, size_t scope, struct string * string, struct yaml_node ** result) {
@@ -201,7 +170,19 @@ int yaml_token(struct yaml * yaml, int type, size_t scope, struct string * strin
         if(list_push(&yaml->list, node)) {
             status = panic("failed to push list object");
         } else {
-            yaml_node_indent(yaml, node);
+            /*
+             * update the indentation for the
+             * next sequence,  map, or scalar
+             */
+            if(node->type == yaml_s_indent) {
+                yaml->indent = node;
+            } else if(node->type == yaml_b_break) {
+                yaml->indent = NULL;
+            } else if(node->type == yaml_s_separate_in_line) {
+                if(yaml->indent)
+                    node->scope += yaml->indent->scope + 1;
+                yaml->indent = node;
+            }
         }
         if(status) {
             yaml_node_destroy(yaml, node);
