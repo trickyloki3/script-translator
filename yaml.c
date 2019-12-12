@@ -11,7 +11,6 @@ int yaml_parse_loop(struct yaml *, yyscan_t, yamlpstate *);
 int yaml_scalar(struct yaml *, struct yaml_node *);
 int yaml_scalar_space(struct yaml *, struct yaml_node *);
 int yaml_scalar_newline(struct yaml *, struct yaml_node *);
-int yaml_strbuf_clear(struct yaml *, struct yaml_node *);
 
 int yaml_node_create(struct yaml * yaml, int type, size_t scope, struct string * string, struct yaml_node ** result) {
     int status = 0;
@@ -348,10 +347,18 @@ int yaml_block(struct yaml * yaml, struct yaml_node * block) {
             node = list_pop(&yaml->list);
         }
 
-        if(yaml_strbuf_clear(yaml, peek)) {
-            status = panic("failed to clear strbuf object");
-        } else if(list_push(&yaml->list, peek)) {
-            status = panic("failed to push list object");
+        if(peek->value) {
+            strbuf_clear_move(&yaml->strbuf, peek->value->string, peek->value->length);
+            peek->value = strbuf_string(&yaml->strbuf);
+            if(!peek->value) {
+                status = panic("failed to string strbuf object");
+            } else if(list_push(&yaml->list, peek)) {
+                status = panic("failed to push list object");
+            }
+        } else {
+            strbuf_clear(&yaml->strbuf);
+            if(list_push(&yaml->list, peek))
+                status = panic("failed to push list object");
         }
 
         if(status)
@@ -411,21 +418,6 @@ int yaml_scalar_newline(struct yaml * yaml, struct yaml_node * node) {
                 if(strbuf_putc(&yaml->scalar, '\n'))
                     status = panic("failed to putc strbuf object");
         }
-    }
-
-    return status;
-}
-
-int yaml_strbuf_clear(struct yaml * yaml, struct yaml_node * node) {
-    int status = 0;
-
-    if(node->value) {
-        strbuf_clear_move(&yaml->strbuf, node->value->string, node->value->length);
-        node->value = strbuf_string(&yaml->strbuf);
-        if(!node->value)
-            status = panic("failed to string strbuf object");
-    } else {
-        strbuf_clear(&yaml->strbuf);
     }
 
     return status;
