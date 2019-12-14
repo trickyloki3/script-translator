@@ -46,6 +46,19 @@ int strbuf_putc(struct strbuf * strbuf, char c) {
     return status;
 }
 
+int strbuf_putcn(struct strbuf * strbuf, char c, size_t n) {
+    int status = 0;
+    size_t i;
+
+    if(strbuf->end - strbuf->pos < n) {
+        status = panic("out of memory");
+    } else {
+        for(i = 0; i < n; i++)
+            *strbuf->pos++ = c;
+    }
+
+    return status;
+}
 
 int strbuf_strcpy(struct strbuf * strbuf, char * string, size_t length) {
     int status = 0;
