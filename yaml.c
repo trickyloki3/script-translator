@@ -381,20 +381,20 @@ int yaml_block(struct yaml * yaml, struct yaml_node * block) {
             node = list_pop(&yaml->list);
         }
 
-        if(peek->value) {
-            strbuf_clear_move(&yaml->strbuf, peek->value->string, peek->value->length);
-            peek->value = strbuf_string(&yaml->strbuf);
-            if(!peek->value) {
-                status = panic("failed to string strbuf object");
-            } else if(list_push(&yaml->list, peek)) {
-                status = panic("failed to push list object");
-            }
+        if(list_push(&yaml->list, peek)) {
+            status = panic("failed to push list object");
         } else {
-            strbuf_clear(&yaml->strbuf);
-            if(list_push(&yaml->list, peek))
-                status = panic("failed to push list object");
+            if(peek->value) {
+                strbuf_clear_move(&yaml->strbuf, peek->value->string, peek->value->length);
+                peek->value = strbuf_string(&yaml->strbuf);
+                if(!peek->value)
+                    status = panic("failed to string strbuf object");
+            } else {
+                strbuf_clear(&yaml->strbuf);
+            }
+            if(status)
+                list_pop(&yaml->list);
         }
-
         if(status)
             yaml_node_destroy(yaml, peek);
     }
