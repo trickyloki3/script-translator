@@ -296,17 +296,19 @@ int yaml_block(struct yaml * yaml, struct yaml_node * block) {
     struct yaml_node * node;
     struct yaml_node * peek;
 
+    list = NULL;
+    while(yaml->stack) {
+        node = yaml->stack;
+        yaml->stack = yaml->stack->child;
+        node->child = list;
+        list = node;
+    }
+    yaml->stack = list;
+
     if(!yaml->root) {
-        list = NULL;
         while(yaml->stack) {
             node = yaml->stack;
             yaml->stack = yaml->stack->child;
-            node->child = list;
-            list = node;
-        }
-        while(list) {
-            node = list;
-            list = list->child;
             node->child = yaml->root;
             yaml->root = node;
         }
@@ -320,51 +322,25 @@ int yaml_block(struct yaml * yaml, struct yaml_node * block) {
         }
         if(!yaml->root) {
             status = panic("invalid scope - %zu", block->scope);
-        } else {
-            switch(yaml->root->type) {
-                case yaml_c_literal:
-                case yaml_c_folded:
-                    if(yaml_scalar(yaml, block))
-                        status = panic("failed to scalar yaml object");
-                    break;
-                case yaml_c_sequence_entry:
-                case yaml_c_mapping_value:
-                    list = NULL;
-                    while(yaml->stack) {
-                        node = yaml->stack;
-                        yaml->stack = yaml->stack->child;
-                        node->child = list;
-                        list = node;
-                    }
+        } else if(yaml->root->type == yaml_c_literal || yaml->root->type == yaml_c_folded) {
+            if(yaml_scalar(yaml, block))
+                status = panic("failed to scalar yaml object");
+        } else if(yaml->root->type == yaml_c_sequence_entry || yaml->root->type == yaml_c_mapping_value) {
+            if(yaml->stack->type != yaml->root->type) {
+                status = panic("invalid sequence entry or map value");
+            } else if(yaml->stack->scope != yaml->root->scope) {
+                status = panic("invalid scope - %d", yaml->stack->scope);
+            } else {
+                node = yaml->stack;
+                yaml->stack = yaml->stack->child;
+                yaml_node_destroy(yaml, node);
 
-                    if(list->type != yaml->root->type) {
-                        status = panic("invalid sequence entry or map value");
-                    } else if(list->scope != yaml->root->scope) {
-                        status = panic("invalid scope - %d", list->scope);
-                    } else {
-                        node = list;
-                        list = list->child;
-                        yaml_node_destroy(yaml, node);
-
-                        while(list) {
-                            node = list;
-                            list = list->child;
-                            node->child = yaml->root;
-                            yaml->root = node;
-                        }
-                    }
-
-                    if(status) {
-                        while(list) {
-                            node = list;
-                            list = list->child;
-                            yaml_node_destroy(yaml, node);
-                        }
-                    }
-                    break;
-                default:
-                    status = panic("invalid type - %d", yaml->root->type);
-                    break;
+                while(yaml->stack) {
+                    node = yaml->stack;
+                    yaml->stack = yaml->stack->child;
+                    node->child = yaml->root;
+                    yaml->root = node;
+                }
             }
         }
     }
