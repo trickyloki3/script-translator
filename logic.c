@@ -455,9 +455,12 @@ int logic_pop_op(struct logic * logic) {
                                 if(logic_node_copy(logic, parent, &node)) {
                                     status = panic("failed to copy logic node object");
                                 } else {
-                                    if(logic_merge_and(logic, node, child))
+                                    if(logic_merge_and(logic, node, child)) {
                                         status = panic("failed to merge and logic object");
-                                    if(status || list_push(&logic->list, node))
+                                    } else if(list_push(&logic->list, node)) {
+                                        status = panic("failed to push list object");
+                                    }
+                                    if(status)
                                         logic_node_destroy(logic, node);
                                 }
                                 break;
@@ -465,22 +468,28 @@ int logic_pop_op(struct logic * logic) {
                                 if(logic_node_create(logic, logic_and_or, &node)) {
                                     status = panic("failed to create logic node object");
                                 } else {
-                                    iter = list_start(&child->list);
-                                    while(iter && !status) {
-                                        if(logic_node_copy(logic, parent, &copy)) {
-                                            status = panic("failed to copy logic node object");
-                                        } else {
-                                            if(logic_merge_and(logic, copy, iter)) {
-                                                status = panic("failed to merge and logic object");
-                                            } else if(list_push(&node->list, copy)) {
-                                                status = panic("failed to push list object");
+                                    if(list_push(&logic->list, node)) {
+                                        status = panic("failed to push list object");
+                                    } else {
+                                        iter = list_start(&child->list);
+                                        while(iter && !status) {
+                                            if(logic_node_copy(logic, parent, &copy)) {
+                                                status = panic("failed to copy logic node object");
+                                            } else {
+                                                if(logic_merge_and(logic, copy, iter)) {
+                                                    status = panic("failed to merge and logic object");
+                                                } else if(list_push(&node->list, copy)) {
+                                                    status = panic("failed to push list object");
+                                                }
+                                                if(status)
+                                                    logic_node_destroy(logic, copy);
                                             }
-                                            if(status)
-                                                logic_node_destroy(logic, copy);
+                                            iter = list_next(&child->list);
                                         }
-                                        iter = list_next(&child->list);
+                                        if(status)
+                                            list_pop(&logic->list);
                                     }
-                                    if(status || list_push(&logic->list, node))
+                                    if(status)
                                         logic_node_destroy(logic, node);
                                 }
                                 break;
@@ -488,24 +497,30 @@ int logic_pop_op(struct logic * logic) {
                                 if(logic_node_create(logic, logic_and_or, &node)) {
                                     status = panic("failed to create logic node object");
                                 } else {
-                                    iter = list_start(&child->list);
-                                    while(iter && !status) {
-                                        if(iter->type != logic_and) {
-                                            status = panic("invalid type - %d", iter->type);
-                                        } else if(logic_node_copy(logic, iter, &copy)) {
-                                            status = panic("failed to copy logic node object");
-                                        } else {
-                                            if(logic_merge_and(logic, copy, parent)) {
-                                                status = panic("failed to merge and logic object");
-                                            } else if(list_push(&node->list, copy)) {
-                                                status = panic("failed to push list object");
+                                    if(list_push(&logic->list, node)) {
+                                        status = panic("failed to push list object");
+                                    } else {
+                                        iter = list_start(&child->list);
+                                        while(iter && !status) {
+                                            if(iter->type != logic_and) {
+                                                status = panic("invalid type - %d", iter->type);
+                                            } else if(logic_node_copy(logic, iter, &copy)) {
+                                                status = panic("failed to copy logic node object");
+                                            } else {
+                                                if(logic_merge_and(logic, copy, parent)) {
+                                                    status = panic("failed to merge and logic object");
+                                                } else if(list_push(&node->list, copy)) {
+                                                    status = panic("failed to push list object");
+                                                }
+                                                if(status)
+                                                    logic_node_destroy(logic, copy);
                                             }
-                                            if(status)
-                                                logic_node_destroy(logic, copy);
+                                            iter = list_next(&child->list);
                                         }
-                                        iter = list_next(&child->list);
+                                        if(status)
+                                            list_pop(&logic->list);
                                     }
-                                    if(status || list_push(&logic->list, node))
+                                    if(status)
                                         logic_node_destroy(logic, node);
                                 }
                                 break;
@@ -520,9 +535,12 @@ int logic_pop_op(struct logic * logic) {
                                 if(logic_node_copy(logic, parent, &node)) {
                                     status = panic("failed to copy logic node object");
                                 } else {
-                                    if(logic_merge_or(logic, node, child))
+                                    if(logic_merge_or(logic, node, child)) {
                                         status = panic("failed to merge or logic object");
-                                    if(status || list_push(&logic->list, node))
+                                    } else if(list_push(&logic->list, node)) {
+                                        status = panic("failed to push list object");
+                                    }
+                                    if(status)
                                         logic_node_destroy(logic, node);
                                 }
                                 break;
@@ -531,13 +549,19 @@ int logic_pop_op(struct logic * logic) {
                                 if(logic_node_copy(logic, parent, &node)) {
                                     status = panic("failed to copy logic node object");
                                 } else {
-                                    iter = list_start(&child->list);
-                                    while(iter && !status) {
-                                        if(logic_merge_or(logic, node, iter))
-                                            status = panic("failed to merge or logic object");
-                                        iter = list_next(&child->list);
+                                    if(list_push(&logic->list, node)) {
+                                        status = panic("failed to push list object");
+                                    } else {
+                                        iter = list_start(&child->list);
+                                        while(iter && !status) {
+                                            if(logic_merge_or(logic, node, iter))
+                                                status = panic("failed to merge or logic object");
+                                            iter = list_next(&child->list);
+                                        }
+                                        if(status)
+                                            list_pop(&logic->list);
                                     }
-                                    if(status || list_push(&logic->list, node))
+                                    if(status)
                                         logic_node_destroy(logic, node);
                                 }
                                 break;
@@ -552,9 +576,12 @@ int logic_pop_op(struct logic * logic) {
                                 if(logic_node_copy(logic, parent, &node)) {
                                     status = panic("failed to copy logic node object");
                                 } else {
-                                    if(logic_merge_and_or(logic, node, child))
+                                    if(logic_merge_and_or(logic, node, child)) {
                                         status = panic("failed to merge and or logic object");
-                                    if(status || list_push(&logic->list, node))
+                                    } else if(list_push(&logic->list, node)) {
+                                        status = panic("failed to push list object");
+                                    }
+                                    if(status)
                                         logic_node_destroy(logic, node);
                                 }
                                 break;
@@ -563,28 +590,34 @@ int logic_pop_op(struct logic * logic) {
                                 if(logic_node_create(logic, logic_and_or, &node)) {
                                     status = panic("failed to create logic node object");
                                 } else {
-                                    iter = list_start(&parent->list);
-                                    while(iter && !status) {
-                                        cross = list_start(&child->list);
-                                        while(cross && !status) {
-                                            if(iter->type != logic_and) {
-                                                status = panic("invalid type - %d", iter->type);
-                                            } else if(logic_node_copy(logic, iter, &copy)) {
-                                                status = panic("failed to copy logic node object");
-                                            } else {
-                                                if(logic_merge_and(logic, copy, cross)) {
-                                                    status = panic("failed to merge and logic object");
-                                                } else if(list_push(&node->list, copy)) {
-                                                    status = panic("failed to push list object");
+                                    if(list_push(&logic->list, node)) {
+                                        status = panic("failed to push list object");
+                                    } else {
+                                        iter = list_start(&parent->list);
+                                        while(iter && !status) {
+                                            cross = list_start(&child->list);
+                                            while(cross && !status) {
+                                                if(iter->type != logic_and) {
+                                                    status = panic("invalid type - %d", iter->type);
+                                                } else if(logic_node_copy(logic, iter, &copy)) {
+                                                    status = panic("failed to copy logic node object");
+                                                } else {
+                                                    if(logic_merge_and(logic, copy, cross)) {
+                                                        status = panic("failed to merge and logic object");
+                                                    } else if(list_push(&node->list, copy)) {
+                                                        status = panic("failed to push list object");
+                                                    }
+                                                    if(status)
+                                                        logic_node_destroy(logic, copy);
                                                 }
-                                                if(status)
-                                                    logic_node_destroy(logic, copy);
+                                                cross = list_next(&child->list);
                                             }
-                                            cross = list_next(&child->list);
+                                            iter = list_next(&parent->list);
                                         }
-                                        iter = list_next(&parent->list);
+                                        if(status)
+                                            list_pop(&logic->list);
                                     }
-                                    if(status || list_push(&logic->list, node))
+                                    if(status)
                                         logic_node_destroy(logic, node);
                                 }
                                 break;
