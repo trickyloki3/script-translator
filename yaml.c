@@ -10,6 +10,10 @@ int yaml_parse_loop(struct yaml *, yyscan_t, yamlpstate *);
 
 int yaml_scalar(struct yaml *, struct yaml_node *);
 
+static inline int yaml_start(struct yaml *, struct yaml_node *);
+static inline int yaml_next(struct yaml *, struct yaml_node *);
+static inline int yaml_end(struct yaml *, struct yaml_node *);
+
 int yaml_node_create(struct yaml * yaml, int type, size_t scope, struct string * string, struct yaml_node ** result) {
     int status = 0;
     struct yaml_node * node;
@@ -70,13 +74,16 @@ void yaml_destroy(struct yaml * yaml) {
     strbuf_destroy(&yaml->strbuf);
 }
 
-int yaml_parse(struct yaml * yaml, const char * path, size_t size) {
+int yaml_parse(struct yaml * yaml, const char * path, size_t size, event_cb callback, void * context) {
     int status = 0;
 
     FILE * file;
     yyscan_t scanner;
     yamlpstate * parser;
     YY_BUFFER_STATE buffer;
+
+    yaml->callback = callback;
+    yaml->context = context;
 
     file = fopen(path, "r");
     if(!file) {
@@ -290,6 +297,61 @@ int yaml_scalar(struct yaml * yaml, struct yaml_node * node) {
     return status;
 }
 
+static inline int yaml_start(struct yaml * yaml, struct yaml_node * node) {
+    int status = 0;
+
+    if(node->type == yaml_c_sequence_entry) {
+        if(yaml->callback(event_list_start, NULL, yaml->context)) {
+            status = panic("failed to process list start event");
+        } else if(yaml_next(yaml, node)) {
+            status = panic("failed to next yaml object");
+        }
+    } else if(node->type == yaml_c_mapping_value) {
+        if(yaml->callback(event_map_start, NULL, yaml->context)) {
+            status = panic("failed to process map start event");
+        } else if(yaml_next(yaml, node)) {
+            status = panic("failed to next yaml object");
+        }
+    }
+
+    return status;
+}
+
+static inline int yaml_next(struct yaml * yaml, struct yaml_node * node) {
+    int status = 0;
+
+    if(node->key && yaml->callback(event_string, node->key, yaml->context)) {
+        status = panic("failed to process string event");
+    } else if(node->value && yaml->callback(event_string, node->value, yaml->context)) {
+        status = panic("failed to process string event");
+    }
+
+    return status;
+}
+
+static inline int yaml_end(struct yaml * yaml, struct yaml_node * node) {
+    int status = 0;
+    struct string * string;
+
+    if(node->type == yaml_c_sequence_entry) {
+        if(yaml->callback(event_list_end, NULL, yaml->context))
+            status = panic("failed to process list end event");
+    } else if(node->type == yaml_c_mapping_value) {
+        if(yaml->callback(event_map_end, NULL, yaml->context))
+            status = panic("failed to process map end event");
+    } else if(node->type == yaml_c_literal || node->type == yaml_c_folded) {
+        string = strbuf_string(&yaml->scalar);
+        if(!string) {
+            status = panic("failed to string strbuf object");
+        } else if(yaml->callback(event_string, string, yaml->context)) {
+            status = panic("failed to process string object");
+        }
+        strbuf_clear(&yaml->scalar);
+    }
+
+    return status;
+}
+
 int yaml_block(struct yaml * yaml, struct yaml_node * block) {
     int status = 0;
     struct yaml_node * list;
@@ -306,21 +368,29 @@ int yaml_block(struct yaml * yaml, struct yaml_node * block) {
     yaml->stack = list;
 
     if(!yaml->root) {
-        while(yaml->stack) {
-            node = yaml->stack;
-            yaml->stack = yaml->stack->child;
-            node->child = yaml->root;
-            yaml->root = node;
+        while(yaml->stack && !status) {
+            if(yaml_start(yaml, yaml->stack)) {
+                status = panic("failed to start yaml object");
+            } else {
+                node = yaml->stack;
+                yaml->stack = yaml->stack->child;
+                node->child = yaml->root;
+                yaml->root = node;
+            }
         }
     } else {
-        while(yaml->root && yaml->root->scope > block->scope) {
-            node = yaml->root;
-            yaml->root = yaml->root->child;
-            if(node->type == yaml_c_literal || node->type == yaml_c_folded)
-                strbuf_clear(&yaml->scalar);
-            yaml_node_destroy(yaml, node);
+        while(yaml->root && yaml->root->scope > block->scope && !status) {
+            if(yaml_end(yaml, yaml->root)) {
+                status = panic("failed to end yaml object");
+            } else {
+                node = yaml->root;
+                yaml->root = yaml->root->child;
+                yaml_node_destroy(yaml, node);
+            }
         }
-        if(!yaml->root) {
+        if(status) {
+            /* skip on error */
+        } else if(!yaml->root) {
             status = panic("invalid scope - %zu", block->scope);
         } else if(yaml->root->type == yaml_c_literal || yaml->root->type == yaml_c_folded) {
             if(yaml_scalar(yaml, block))
@@ -331,15 +401,23 @@ int yaml_block(struct yaml * yaml, struct yaml_node * block) {
             } else if(yaml->stack->scope != yaml->root->scope) {
                 status = panic("invalid scope - %d", yaml->stack->scope);
             } else {
-                node = yaml->stack;
-                yaml->stack = yaml->stack->child;
-                yaml_node_destroy(yaml, node);
-
-                while(yaml->stack) {
+                if(yaml_next(yaml, yaml->stack)) {
+                    status = panic("failed to next yaml object");
+                } else {
                     node = yaml->stack;
                     yaml->stack = yaml->stack->child;
-                    node->child = yaml->root;
-                    yaml->root = node;
+                    yaml_node_destroy(yaml, node);
+
+                    while(yaml->stack && !status) {
+                        if(yaml_start(yaml, yaml->stack)) {
+                            status = panic("failed to start yaml object");
+                        } else {
+                            node = yaml->stack;
+                            yaml->stack = yaml->stack->child;
+                            node->child = yaml->root;
+                            yaml->root = node;
+                        }
+                    }
                 }
             }
         }
@@ -378,14 +456,19 @@ int yaml_block(struct yaml * yaml, struct yaml_node * block) {
     return status;
 }
 
-void yaml_document(struct yaml * yaml) {
+int yaml_document(struct yaml * yaml) {
+    int status = 0;
     struct yaml_node * node;
 
-    while(yaml->root) {
-        node = yaml->root;
-        yaml->root = yaml->root->child;
-        if(node->type == yaml_c_literal || node->type == yaml_c_folded)
-            strbuf_clear(&yaml->scalar);
-        yaml_node_destroy(yaml, node);
+    while(yaml->root && !status) {
+        if(yaml_end(yaml, yaml->root)) {
+            status = panic("failed to end yaml object");
+        } else {
+            node = yaml->root;
+            yaml->root = yaml->root->child;
+            yaml_node_destroy(yaml, node);
+        }
     }
+
+    return status;
 }

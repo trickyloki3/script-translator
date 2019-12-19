@@ -42,8 +42,8 @@ void yyerror(YAMLLTYPE *, struct yaml *, char const *);
 
 %%
 
-yaml : l_bare_document { yaml_document(yaml); }
-     | l_empty_r l_bare_document { yaml_document(yaml); }
+yaml : l_bare_document { if(yaml_document(yaml)) YYABORT; }
+     | l_empty_r l_bare_document { if(yaml_document(yaml)) YYABORT; }
 
 l_bare_document : s_l_block_node { $1->scope = 0; if(yaml_block(yaml, $1)) YYABORT; }
                 | s_indent s_l_block_node { $2->scope = $1->scope; if(yaml_block(yaml, $2)) YYABORT; }
@@ -63,6 +63,7 @@ l_block_scalar : { if(yaml_stack(yaml, yaml_c_literal)) YYABORT; } c_literal s_l
 
 l_block_sequence : { if(yaml_stack(yaml, yaml_c_sequence_entry)) YYABORT; else $$ = yaml->stack; } c_sequence_entry s_separate s_l_block_node {
     $1->value = $4->value;
+    $$ = $2;
 }
 
 l_block_mapping : ns_plain_one_line { if(yaml_stack(yaml, yaml_c_mapping_value)) YYABORT; else $$ = yaml->stack; } c_mapping_value s_separate s_l_block_node {
@@ -71,6 +72,7 @@ l_block_mapping : ns_plain_one_line { if(yaml_stack(yaml, yaml_c_mapping_value))
     } else {
         $2->key = $1->value;
         $2->value = $5->value;
+        $$ = $3;
     }
 }
 
