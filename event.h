@@ -4,11 +4,11 @@
 #include "array.h"
 
 enum event_type {
-    event_list_start  = 1024,
-    event_list_end,  // 1025
-    event_map_start, // 1026
-    event_map_end,   // 1027
-    event_string     // 1028
+    event_list_start,
+    event_list_end,
+    event_map_start,
+    event_map_end,
+    event_string
 };
 
 typedef int (* event_cb) (enum event_type, struct string *, void *);
