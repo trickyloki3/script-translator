@@ -25,13 +25,16 @@ void csv_destroy(struct csv * csv) {
     strbuf_destroy(&csv->strbuf);
 }
 
-int csv_parse(struct csv * csv, const char * path, size_t size) {
+int csv_parse(struct csv * csv, const char * path, size_t size, event_cb callback, void * context) {
     int status = 0;
 
     FILE * file;
     yyscan_t scanner;
     csvpstate * parser;
     YY_BUFFER_STATE buffer;
+
+    csv->callback = callback;
+    csv->context = context;
 
     file = fopen(path, "r");
     if(!file) {
@@ -70,16 +73,26 @@ int csv_parse_loop(struct csv * csv, yyscan_t scanner, csvpstate * parser) {
     int token;
     int state;
 
-    do {
-        token = csvlex(&value, &location, scanner);
-        if(token < 0) {
-            status = panic("failed to get the next token");
-        } else {
-            state = csvpush_parse(parser, token, &value, &location, csv);
-            if(state && state != YYPUSH_MORE)
-                status = panic("failed to parse the current token");
+    if(csv->callback(event_list_start, NULL, csv->context)) {
+        status = panic("failed to process list start event");
+    } else {
+        do {
+            token = csvlex(&value, &location, scanner);
+            if(token < 0) {
+                status = panic("failed to get the next token");
+            } else {
+                state = csvpush_parse(parser, token, &value, &location, csv);
+                if(state && state != YYPUSH_MORE)
+                    status = panic("failed to parse the current token");
+            }
+        } while(token && state == YYPUSH_MORE && !status);
+
+        if(status) {
+            /* skip list end on error */
+        } else if(csv->callback(event_list_end, NULL, csv->context)) {
+            status = panic("failed to process list end event");
         }
-    } while(token && state == YYPUSH_MORE && !status);
+    }
 
     csv_reset(csv);
 
@@ -105,12 +118,25 @@ int csv_pop(struct csv * csv) {
     struct string * string;
 
     if(csv->list.size) {
-        string = list_start(&csv->list);
-        while(string) {
-
-            string = list_next(&csv->list);
+        if(csv->callback(event_list_start, NULL, csv->context)) {
+            status = panic("failed to process list start event");
+        } else {
+            string = list_start(&csv->list);
+            while(string && !status) {
+                if(csv->callback(event_string, string, csv->context)) {
+                    status = panic("failed to process string event");
+                } else {
+                    string = list_next(&csv->list);
+                }
+            }
+            if(status) {
+                /* skip list end on error */
+            } else if(csv->callback(event_list_end, NULL, csv->context)) {
+                status = panic("failed to process list end event");
+            }
         }
     }
+
     csv_reset(csv);
 
     return status;
