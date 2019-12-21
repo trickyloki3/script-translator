@@ -75,10 +75,10 @@ struct pool * pool_map_get(struct pool_map * pool_map, size_t size) {
     return status ? NULL : pool;
 }
 
-int heap_create(struct heap * heap, size_t per_alloc, size_t max_alloc, size_t hash) {
+int heap_create(struct heap * heap, size_t size) {
     int status = 0;
 
-    if(pool_map_create(&heap->pool_map, per_alloc)) {
+    if(pool_map_create(&heap->pool_map, size)) {
         status = panic("failed to create pool map object");
     } else {
         heap->list_pool = heap_pool(heap, sizeof(struct list_node));

@@ -23,7 +23,7 @@ struct heap {
     struct pool * range_pool;
 };
 
-int heap_create(struct heap *, size_t, size_t, size_t);
+int heap_create(struct heap *, size_t);
 void heap_destroy(struct heap *);
 struct pool * heap_pool(struct heap *, size_t);
 
