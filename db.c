@@ -156,6 +156,39 @@ void schema_print(struct schema * schema) {
         data_print(schema->root->data, 0, NULL);
 }
 
+int schema_markup(struct schema * schema, struct markup * markup, struct heap * heap) {
+    int status = 0;
+    struct markup * root = NULL;
+
+    if(schema_create(schema, heap)) {
+        status = panic("failed to create schema object");
+    } else {
+        while(markup->level) {
+            while(root && root->level >= markup->level) {
+                schema_pop(schema);
+                root = root->next;
+            }
+            if(schema_push(schema, markup->type, markup->mark, markup->key)) {
+                status = panic("failed to push schema object");
+            } else if(markup->type == list || markup->type == map) {
+                markup->next = root;
+                root = markup;
+            }
+            markup++;
+        }
+        if(status) {
+            schema_destroy(schema);
+        } else {
+            while(root) {
+                schema_pop(schema);
+                root = root->next;
+            }
+        }
+    }
+
+    return status;
+}
+
 int parser_create(struct parser * parser, size_t size, struct heap * heap) {
     int status = 0;
 

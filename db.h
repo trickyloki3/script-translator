@@ -32,6 +32,16 @@ int schema_push(struct schema *, enum type, int, char *);
 void schema_pop(struct schema *);
 void schema_print(struct schema *);
 
+struct markup {
+    int level;
+    enum type type;
+    int mark;
+    char * key;
+    struct markup * next;
+};
+
+int schema_markup(struct schema *, struct markup *, struct heap *);
+
 struct parser {
     size_t size;
     struct csv csv;
