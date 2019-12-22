@@ -42,17 +42,16 @@ void data_print(struct data * data, int indent, char * key) {
     for(i = 0; i < indent; i++)
         fputs("    ", stdout);
 
+    if(key)
+        fprintf(stdout, "[%s]", key);
+
     switch(data->type) {
         case list:
-            key ?
-                fprintf(stdout, "[%s:list:%d]\n", key, data->mark) :
-                fprintf(stdout, "[list:%d]\n", data->mark);
+            fprintf(stdout, "[list:%d]\n", data->mark);
             data_print(data->data, indent + 1, NULL);
             break;
         case map:
-            key ?
-                fprintf(stdout, "[%s:map:%d]\n", key, data->mark) :
-                fprintf(stdout, "[map:%d]\n", data->mark);
+            fprintf(stdout, "[map:%d]\n", data->mark);
             kv = map_start(&data->map);
             while(kv.key) {
                 data_print(kv.value, indent + 1, kv.key);
@@ -60,9 +59,7 @@ void data_print(struct data * data, int indent, char * key) {
             }
             break;
         case string:
-            key ?
-                fprintf(stdout, "[%s:string:%d]\n", key, data->mark) :
-                fprintf(stdout, "[string:%d]\n", data->mark);
+            fprintf(stdout, "[string:%d]\n", data->mark);
             break;
     }
 }
@@ -139,7 +136,6 @@ int schema_push(struct schema * schema, enum type type, int mark, char * key) {
         if(status)
             data_destroy(schema, data);
     }
-
 
     return status;
 }
