@@ -145,7 +145,18 @@ void schema_pop(struct schema * schema) {
         schema->root = schema->root->next;
 }
 
-int schema_load(struct schema * schema, struct markup * markup) {
+struct data * schema_top(struct schema * schema) {
+    struct data * data = NULL;
+
+    if(schema->root->data) {
+        data = schema->root->data;
+        schema->root->data = NULL;
+    }
+
+    return data;
+}
+
+struct data * schema_load(struct schema * schema, struct markup * markup) {
     int status = 0;
     struct markup * root = NULL;
 
@@ -168,7 +179,7 @@ int schema_load(struct schema * schema, struct markup * markup) {
         root = root->next;
     }
 
-    return status;
+    return status ? NULL : schema_top(schema);
 }
 
 void schema_print(struct schema * schema) {
