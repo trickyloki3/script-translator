@@ -136,6 +136,10 @@ void * list_pop(struct list * list) {
     return object;
 }
 
+void * list_top(struct list * list) {
+    return list->root ? list->root->object : NULL;
+}
+
 void * list_start(struct list * list) {
     list->iter = list->root ? list->root->next : NULL;
     return list_next(list);
