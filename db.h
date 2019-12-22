@@ -26,12 +26,6 @@ struct schema {
     struct data * root;
 };
 
-int schema_create(struct schema *, struct heap *);
-void schema_destroy(struct schema *);
-int schema_push(struct schema *, enum type, int, char *);
-void schema_pop(struct schema *);
-void schema_print(struct schema *);
-
 struct markup {
     int level;
     enum type type;
@@ -40,7 +34,12 @@ struct markup {
     struct markup * next;
 };
 
-int schema_markup(struct schema *, struct markup *, struct heap *);
+int schema_create(struct schema *, struct heap *);
+void schema_destroy(struct schema *);
+int schema_push(struct schema *, enum type, int, char *);
+void schema_pop(struct schema *);
+int schema_load(struct schema *, struct markup *);
+void schema_print(struct schema *);
 
 struct parser {
     size_t size;

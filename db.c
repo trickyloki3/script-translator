@@ -151,42 +151,35 @@ void schema_pop(struct schema * schema) {
         schema->root = schema->root->next;
 }
 
-void schema_print(struct schema * schema) {
-    if(schema->root->data)
-        data_print(schema->root->data, 0, NULL);
-}
-
-int schema_markup(struct schema * schema, struct markup * markup, struct heap * heap) {
+int schema_load(struct schema * schema, struct markup * markup) {
     int status = 0;
     struct markup * root = NULL;
 
-    if(schema_create(schema, heap)) {
-        status = panic("failed to create schema object");
-    } else {
-        while(markup->level) {
-            while(root && root->level >= markup->level) {
-                schema_pop(schema);
-                root = root->next;
-            }
-            if(schema_push(schema, markup->type, markup->mark, markup->key)) {
-                status = panic("failed to push schema object");
-            } else if(markup->type == list || markup->type == map) {
-                markup->next = root;
-                root = markup;
-            }
-            markup++;
+    while(markup->level) {
+        while(root && root->level >= markup->level) {
+            schema_pop(schema);
+            root = root->next;
         }
-        if(status) {
-            schema_destroy(schema);
-        } else {
-            while(root) {
-                schema_pop(schema);
-                root = root->next;
-            }
+        if(schema_push(schema, markup->type, markup->mark, markup->key)) {
+            status = panic("failed to push schema object");
+        } else if(markup->type == list || markup->type == map) {
+            markup->next = root;
+            root = markup;
         }
+        markup++;
+    }
+
+    while(root) {
+        schema_pop(schema);
+        root = root->next;
     }
 
     return status;
+}
+
+void schema_print(struct schema * schema) {
+    if(schema->root->data)
+        data_print(schema->root->data, 0, NULL);
 }
 
 int parser_create(struct parser * parser, size_t size, struct heap * heap) {
