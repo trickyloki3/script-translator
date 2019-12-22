@@ -4,6 +4,7 @@ int data_create(struct schema *, enum type, int, struct pool *, struct data **);
 void data_destroy(struct schema *, struct data *);
 void data_print(struct data *, int, char *);
 
+int parser_node(struct parser *, enum event_type, struct string *, struct data *);
 int parser_event(enum event_type, struct string *, void *);
 
 int data_create(struct schema * schema, enum type type, int mark, struct pool * pool, struct data ** result) {
@@ -216,15 +217,74 @@ void parser_destroy(struct parser * parser) {
     csv_destroy(&parser->csv);
 }
 
-int parser_event(enum event_type event, struct string * string, void * context) {
+int parser_node(struct parser * parser, enum event_type event, struct string * string, struct data * data) {
     int status = 0;
+
+    if(data->type == list) {
+        if(event != list_begin) {
+            status = panic("invalid event");
+        } else {
+            data->next = parser->root;
+            parser->root = data;
+        }
+    } else if(data->type == map) {
+        if(event != map_begin) {
+            status = panic("invalid event");
+        } else {
+            data->next = parser->root;
+            parser->root = data;
+        }
+    } else {
+        if(event != scalar)
+            status = panic("invalid event");
+    }
 
     return status;
 }
 
-int parser_parse(struct parser * parser, const char * path) {
+int parser_event(enum event_type event, struct string * string, void * context) {
+    int status = 0;
+    struct parser * parser = context;
+
+    if(parser->data) {
+        if(parser_node(parser, event, string, parser->data)) {
+            status = panic("failed to node parser object");
+        } else {
+            parser->data = NULL;
+        }
+    } else {
+        if(!parser->root) {
+            status = panic("invalid data");
+        } else {
+            if(parser->root->type == list) {
+                if(event == list_end) {
+                    parser->root = parser->root->next;
+                } else if(parser_node(parser, event, string, parser->root->data)) {
+                    status = panic("failed to node parser object");
+                }
+            } else if(parser->root->type == map) {
+                if(event == map_end) {
+                    parser->root = parser->root->next;
+                } else if(event == scalar) {
+                    parser->data = map_search(&parser->root->map, string->string);
+                    if(!parser->data)
+                        status = panic("invalid key - %s", string->string);
+                } else {
+                    status = panic("invalid event");
+                }
+            }
+        }
+    }
+
+    return status;
+}
+
+int parser_parse(struct parser * parser, const char * path, struct data * data) {
     int status = 0;
     char * ext;
+
+    parser->root = NULL;
+    parser->data = data;
 
     ext = strrchr(path, '.');
     if(!ext) {
@@ -240,6 +300,9 @@ int parser_parse(struct parser * parser, const char * path) {
             if(yaml_parse(&parser->yaml, path, parser->size, parser_event, parser))
                 status = panic("failed to parse yaml object");
         }
+
+        if(parser->root)
+            status = panic("failed to parse %s", path);
     }
 
     return status;

@@ -46,10 +46,12 @@ struct parser {
     struct csv csv;
     struct json json;
     struct yaml yaml;
+    struct data * root;
+    struct data * data;
 };
 
 int parser_create(struct parser *, size_t, struct heap *);
 void parser_destroy(struct parser *);
-int parser_parse(struct parser *, const char *);
+int parser_parse(struct parser *, const char *, struct data *);
 
 #endif
