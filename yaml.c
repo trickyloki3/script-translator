@@ -53,6 +53,7 @@ int yaml_create(struct yaml * yaml, size_t size, struct heap * heap) {
                 if(list_create(&yaml->list, heap->list_pool)) {
                     status = panic("failed to create list object");
                 } else {
+                    yaml->line = 0;
                     yaml->root = NULL;
                     yaml->stack = NULL;
                     yaml->indent = NULL;
@@ -151,6 +152,8 @@ int yaml_parse_loop(struct yaml * yaml, yyscan_t scanner, yamlpstate * parser) {
         yaml->root = yaml->root->child;
         yaml_node_destroy(yaml, node);
     }
+
+    yaml->line = 0;
 
     node = list_pop(&yaml->list);
     while(node) {
@@ -263,34 +266,36 @@ int yaml_stack(struct yaml * yaml, int type) {
 
 int yaml_scalar(struct yaml * yaml, struct yaml_node * node) {
     int status = 0;
-
     size_t space;
-    size_t lines;
-
-    space = node->scope - yaml->root->scope;
-    lines = node->child->scope;
 
     if(node->type != yaml_nb_char) {
         status = panic("invalid scalar");
-    } else if(strbuf_putcn(&yaml->scalar, ' ', space)) {
-        status = panic("failed to putcn strbuf object");
-    } else if(strbuf_strcpy(&yaml->scalar, node->value->string, node->value->length)) {
-        status = panic("failed to strcpy strbuf object");
     } else {
+        space = node->scope - yaml->root->scope;
+
         switch(yaml->root->type) {
             case yaml_c_literal:
-                if(strbuf_putcn(&yaml->scalar, '\n', lines))
+                if(strbuf_putcn(&yaml->scalar, '\n', yaml->line))
                     status = panic("failed to putcn strbuf object");
                 break;
             case yaml_c_folded:
-                if(lines == 1) {
+                if(yaml->line == 1) {
                     if(strbuf_putc(&yaml->scalar, space ? '\n' : ' '))
                         status = panic("failed to putc strbuf object");
-                } else {
-                    if(strbuf_putcn(&yaml->scalar, '\n', lines - 1))
+                } else if(yaml->line > 1) {
+                    if(strbuf_putcn(&yaml->scalar, '\n', yaml->line - 1))
                         status = panic("failed to putcn strbuf object");
                 }
                 break;
+        }
+        if(status) {
+            /* skip scalar on error */
+        } else if(strbuf_putcn(&yaml->scalar, ' ', space)) {
+            status = panic("failed to putcn strbuf object");
+        } else if(strbuf_strcpy(&yaml->scalar, node->value->string, node->value->length)) {
+            status = panic("failed to strcpy strbuf object");
+        } else {
+            yaml->line = node->child->scope;
         }
     }
 
@@ -346,6 +351,7 @@ static inline int yaml_end(struct yaml * yaml, struct yaml_node * node) {
         } else if(yaml->callback(scalar, string, yaml->context)) {
             status = panic("failed to process string object");
         }
+        yaml->line = 0;
         strbuf_clear(&yaml->scalar);
     }
 
