@@ -1,12 +1,12 @@
 #include "db.h"
 
-int data_create(struct schema *, enum type, int, struct data **);
+int data_create(struct schema *, enum type, int, struct pool *, struct data **);
 void data_destroy(struct schema *, struct data *);
 void data_print(struct data *, int, char *);
 
 int parser_event(enum event_type, struct string *, void *);
 
-int data_create(struct schema * schema, enum type type, int mark, struct data ** result) {
+int data_create(struct schema * schema, enum type type, int mark, struct pool * pool, struct data ** result) {
     int status = 0;
     struct data * data;
 
@@ -18,7 +18,7 @@ int data_create(struct schema * schema, enum type type, int mark, struct data **
         data->mark = mark;
         data->data = NULL;
         data->next = NULL;
-        if(map_create(&data->map, (map_compare_cb) strcmp, schema->map_pool))
+        if(map_create(&data->map, (map_compare_cb) strcmp, pool))
             status = panic("failed to create map object");
         if(status) {
             pool_put(schema->pool, data);
@@ -70,8 +70,6 @@ void data_print(struct data * data, int indent, char * key) {
 int schema_create(struct schema * schema, struct heap * heap) {
     int status = 0;
 
-    schema->map_pool = heap->map_pool;
-
     schema->pool = heap_pool(heap, sizeof(struct data));
     if(!schema->pool) {
         status = panic("failed to pool heap object");
@@ -79,7 +77,7 @@ int schema_create(struct schema * schema, struct heap * heap) {
         if(list_create(&schema->list, heap->list_pool)) {
             status = panic("failed to create list object");
         } else {
-            if(data_create(schema, list, 0, &schema->root)) {
+            if(data_create(schema, list, 0, heap->map_pool, &schema->root)) {
                 status = panic("failed to create data object");
             } else {
                 if(list_push(&schema->list, schema->root))
@@ -110,7 +108,7 @@ int schema_push(struct schema * schema, enum type type, int mark, char * key) {
     int status = 0;
     struct data * data;
 
-    if(data_create(schema, type, mark, &data)) {
+    if(data_create(schema, type, mark, schema->root->map.pool, &data)) {
         status = panic("failed to create data object");
     } else {
         if(list_push(&schema->list, data)) {

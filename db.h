@@ -20,7 +20,6 @@ struct data {
 };
 
 struct schema {
-    struct pool * map_pool;
     struct pool * pool;
     struct list list;
     struct data * root;
