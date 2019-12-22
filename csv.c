@@ -73,7 +73,7 @@ int csv_parse_loop(struct csv * csv, yyscan_t scanner, csvpstate * parser) {
     int token;
     int state;
 
-    if(csv->callback(event_list_start, NULL, csv->context)) {
+    if(csv->callback(list_begin, NULL, csv->context)) {
         status = panic("failed to process list start event");
     } else {
         do {
@@ -89,7 +89,7 @@ int csv_parse_loop(struct csv * csv, yyscan_t scanner, csvpstate * parser) {
 
         if(status) {
             /* skip list end on error */
-        } else if(csv->callback(event_list_end, NULL, csv->context)) {
+        } else if(csv->callback(list_end, NULL, csv->context)) {
             status = panic("failed to process list end event");
         }
     }
@@ -118,12 +118,12 @@ int csv_pop(struct csv * csv) {
     struct string * string;
 
     if(csv->list.size) {
-        if(csv->callback(event_list_start, NULL, csv->context)) {
+        if(csv->callback(list_begin, NULL, csv->context)) {
             status = panic("failed to process list start event");
         } else {
             string = list_start(&csv->list);
             while(string && !status) {
-                if(csv->callback(event_string, string, csv->context)) {
+                if(csv->callback(scalar, string, csv->context)) {
                     status = panic("failed to process string event");
                 } else {
                     string = list_next(&csv->list);
@@ -131,7 +131,7 @@ int csv_pop(struct csv * csv) {
             }
             if(status) {
                 /* skip list end on error */
-            } else if(csv->callback(event_list_end, NULL, csv->context)) {
+            } else if(csv->callback(list_end, NULL, csv->context)) {
                 status = panic("failed to process list end event");
             }
         }

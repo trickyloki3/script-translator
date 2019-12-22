@@ -45,19 +45,19 @@ UNICODE         {ESCAPE}\x75{HEXDIG}{HEXDIG}{HEXDIG}{HEXDIG}
 %%
 
 {BEGINARRAY} {
-    return json_token(yyextra, event_list_start, NULL, 0) ? -1 : JSON_BEGINARRAY;
+    return json_token(yyextra, list_begin, NULL, 0) ? -1 : JSON_BEGINARRAY;
 }
 
 {BEGINOBJECT} {
-    return json_token(yyextra, event_map_start, NULL, 0) ? -1 : JSON_BEGINOBJECT;
+    return json_token(yyextra, map_begin, NULL, 0) ? -1 : JSON_BEGINOBJECT;
 }
 
 {ENDARRAY} {
-    return json_token(yyextra, event_list_end, NULL, 0) ? -1 : JSON_ENDARRAY;
+    return json_token(yyextra, list_end, NULL, 0) ? -1 : JSON_ENDARRAY;
 }
 
 {ENDOBJECT} {
-    return json_token(yyextra, event_map_end, NULL, 0) ? -1 : JSON_ENDOBJECT;
+    return json_token(yyextra, map_end, NULL, 0) ? -1 : JSON_ENDOBJECT;
 }
 
 {NAMESEPARATOR} {
@@ -73,23 +73,23 @@ UNICODE         {ESCAPE}\x75{HEXDIG}{HEXDIG}{HEXDIG}{HEXDIG}
 }
 
 {FALSE} {
-    return json_token(yyextra, event_string, yytext, yyleng) ? -1 : JSON_FALSE;
+    return json_token(yyextra, scalar, yytext, yyleng) ? -1 : JSON_FALSE;
 }
 
 {NULL} {
-    return json_token(yyextra, event_string, yytext, yyleng) ? -1 : JSON_NULL;
+    return json_token(yyextra, scalar, yytext, yyleng) ? -1 : JSON_NULL;
 }
 
 {TRUE} {
-    return json_token(yyextra, event_string, yytext, yyleng) ? -1 : JSON_TRUE;
+    return json_token(yyextra, scalar, yytext, yyleng) ? -1 : JSON_TRUE;
 }
 
 {MINUS}?{INT}{FRAC}?{EXP}? {
-    return json_token(yyextra, event_string, yytext, yyleng) ? -1 : JSON_NUMBER;
+    return json_token(yyextra, scalar, yytext, yyleng) ? -1 : JSON_NUMBER;
 }
 
 {QUOTATIONMARK}{CHAR}*{QUOTATIONMARK} {
-    return json_token(yyextra, event_string, yytext, yyleng) ? -1 : JSON_STRING;
+    return json_token(yyextra, scalar, yytext, yyleng) ? -1 : JSON_STRING;
 }
 
 . {
