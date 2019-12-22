@@ -41,6 +41,14 @@ struct data * schema_top(struct schema *);
 struct data * schema_load(struct schema *, struct markup *);
 void schema_print(struct schema *);
 
+enum parser_event {
+    start,
+    next,
+    end
+};
+
+typedef int (* parser_cb) (enum parser_event, int, struct string *, void *);
+
 struct parser {
     size_t size;
     struct csv csv;
@@ -48,10 +56,12 @@ struct parser {
     struct yaml yaml;
     struct data * root;
     struct data * data;
+    parser_cb callback;
+    void * context;
 };
 
 int parser_create(struct parser *, size_t, struct heap *);
 void parser_destroy(struct parser *);
-int parser_parse(struct parser *, const char *, struct data *);
+int parser_parse(struct parser *, const char *, struct data *, parser_cb, void *);
 
 #endif
