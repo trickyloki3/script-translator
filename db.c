@@ -71,19 +71,19 @@ int schema_create(struct schema * schema, struct heap * heap) {
     if(!schema->pool) {
         status = panic("failed to pool heap object");
     } else {
-        if(list_create(&schema->list, heap->list_pool)) {
-            status = panic("failed to create list object");
+        if(data_create(schema, list, 0, heap->map_pool, &schema->root)) {
+            status = panic("failed to create data object");
         } else {
-            if(data_create(schema, list, 0, heap->map_pool, &schema->root)) {
-                status = panic("failed to create data object");
+            if(list_create(&schema->list, heap->list_pool)) {
+                status = panic("failed to create list object");
             } else {
                 if(list_push(&schema->list, schema->root))
                     status = panic("failed to push list object");
                 if(status)
-                    data_destroy(schema, schema->root);
+                    list_destroy(&schema->list);
             }
             if(status)
-                list_destroy(&schema->list);
+                data_destroy(schema, schema->root);
         }
     }
 

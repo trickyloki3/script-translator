@@ -21,8 +21,8 @@ struct data {
 
 struct schema {
     struct pool * pool;
-    struct list list;
     struct data * root;
+    struct list list;
 };
 
 struct markup {
