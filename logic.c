@@ -705,8 +705,11 @@ int logic_search(struct logic * logic, struct string * name, struct range * rang
                         }
                         iter = list_next(&root->list);
                     }
-                    if(!status && result.root && range_and_merge(range, &result))
+                    if(status) {
+                        /* skip on error */
+                    } else if(range_and_merge(range, &result)) {
                         status = panic("failed to and merge range object");
+                    }
                     range_destroy(&result);
                 }
                 break;
