@@ -3,11 +3,6 @@
 
 #include "utility.h"
 
-struct long_array {
-    size_t count;
-    long * array;
-};
-
 struct string {
     size_t length;
     char * string;
