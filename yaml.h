@@ -18,6 +18,7 @@ struct yaml {
     struct strbuf scalar;
     struct list list;
     size_t line;
+    size_t space;
     struct yaml_node * root;
     struct yaml_node * stack;
     struct yaml_node * indent;

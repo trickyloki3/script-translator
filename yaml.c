@@ -54,6 +54,7 @@ int yaml_create(struct yaml * yaml, size_t size, struct heap * heap) {
                     status = panic("failed to create list object");
                 } else {
                     yaml->line = 0;
+                    yaml->space = 0;
                     yaml->root = NULL;
                     yaml->stack = NULL;
                     yaml->indent = NULL;
@@ -153,6 +154,7 @@ int yaml_parse_loop(struct yaml * yaml, yyscan_t scanner, yamlpstate * parser) {
         yaml_node_destroy(yaml, node);
     }
 
+    yaml->space = 0;
     yaml->line = 0;
 
     node = list_pop(&yaml->list);
@@ -280,7 +282,7 @@ int yaml_scalar(struct yaml * yaml, struct yaml_node * node) {
                 break;
             case yaml_c_folded:
                 if(yaml->line == 1) {
-                    if(strbuf_putc(&yaml->scalar, space ? '\n' : ' '))
+                    if(strbuf_putc(&yaml->scalar, yaml->space ? '\n' : ' '))
                         status = panic("failed to putc strbuf object");
                 } else if(yaml->line > 1) {
                     if(strbuf_putcn(&yaml->scalar, '\n', yaml->line - 1))
@@ -296,6 +298,7 @@ int yaml_scalar(struct yaml * yaml, struct yaml_node * node) {
             status = panic("failed to strcpy strbuf object");
         } else {
             yaml->line = node->child->scope;
+            yaml->space = space;
         }
     }
 
@@ -351,6 +354,7 @@ static inline int yaml_end(struct yaml * yaml, struct yaml_node * node) {
         } else if(yaml->callback(scalar, string, yaml->context)) {
             status = panic("failed to process string object");
         }
+        yaml->space = 0;
         yaml->line = 0;
         strbuf_clear(&yaml->scalar);
     }
