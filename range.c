@@ -68,21 +68,6 @@ int range_create(struct range * range, struct pool * pool) {
     return status;
 }
 
-int range_create_add(struct range * range, struct pool * pool, size_t min, size_t max) {
-    int status = 0;
-
-    if(range_create(range, pool)) {
-        status = panic("failed to create range object");
-    } else {
-        if(range_add(range, min, max))
-            status = panic("failed to add range object");
-        if(status)
-            range_destroy(range);
-    }
-
-    return status;
-}
-
 void range_destroy(struct range * range) {
     struct range_node * node;
 
@@ -96,20 +81,29 @@ void range_destroy(struct range * range) {
     }
 }
 
-void range_print(struct range * range) {
+int range_copy(struct range * result, struct range * x) {
+    int status = 0;
     struct range_node * node;
 
-    fprintf(stdout, "global:[%ld,%ld],range:", range->root->min, range->root->max);
-    if(range->root == range->root->next) {
-        fprintf(stdout, "empty");
+    if(range_create(result, x->pool)) {
+        status = panic("failed to create range object");
     } else {
-        node = range->root->next;
-        while(node != range->root) {
-            fprintf(stdout, "[%ld,%ld]", node->min, node->max);
+        node = x->root->next;
+        while(node != x->root && !status) {
+            if(range_add(result, node->min, node->max))
+                status = panic("failed to add range object");
             node = node->next;
         }
+        if(status)
+            range_destroy(result);
     }
-    fprintf(stdout,"\n");
+
+    return status;
+}
+
+void range_get(struct range * range, long * min, long * max) {
+    *min = range->root->next->min;
+    *max = range->root->prev->max;
 }
 
 int range_add(struct range * range, long x, long y) {
@@ -221,66 +215,20 @@ int range_remove(struct range *  range, long x, long y) {
     return status;
 }
 
-int range_search(struct range * range, long size, long * min, long * max) {
-    int status = 0;
-    struct range_node * root;
+void range_print(struct range * range) {
     struct range_node * node;
 
-    root = range->root;
-    node = root->next;
-    while(node != root && size > node->max - node->min)
-        node = node->next;
-
-    if(node == root) {
-        status = 1;
+    fprintf(stdout, "global:[%ld,%ld],range:", range->root->min, range->root->max);
+    if(range->root == range->root->next) {
+        fprintf(stdout, "empty");
     } else {
-        *min = node->min;
-        *max = node->max;
-    }
-
-    return status;
-}
-
-void range_get(struct range * range, long * min, long * max) {
-    *min = range->root->next->min;
-    *max = range->root->prev->max;
-}
-
-void range_get_absolute(struct range * range, long * min, long * max) {
-    long l;
-    long r;
-
-    range_get(range, &l, &r);
-    l = labs(l);
-    r = labs(r);
-
-    if(l < r) {
-        *min = l;
-        *max = r;
-    } else {
-        *min = r;
-        *max = l;
-    }
-}
-
-int range_copy(struct range * result, struct range * x) {
-    int status = 0;
-    struct range_node * node;
-
-    if(range_create(result, x->pool)) {
-        status = panic("failed to create range object");
-    } else {
-        node = x->root->next;
-        while(node != x->root && !status) {
-            if(range_add(result, node->min, node->max))
-                status = panic("failed to add range object");
+        node = range->root->next;
+        while(node != range->root) {
+            fprintf(stdout, "[%ld,%ld]", node->min, node->max);
             node = node->next;
         }
-        if(status)
-            range_destroy(result);
     }
-
-    return status;
+    fprintf(stdout,"\n");
 }
 
 int range_negative(struct range * result, struct range * x) {
@@ -506,11 +454,14 @@ int range_less(struct range * result, struct range * x, struct range * y) {
     range_get(x, &xmin, &xmax);
     range_get(y, &ymin, &ymax);
     if(ymax - 1 >= xmin) {
-        if(range_create_add(&object, x->pool, xmin, ymax - 1)) {
+        if(range_create(&object, x->pool)) {
             status = panic("failed to create range object");
         } else {
-            if(range_and(result, x, &object))
+            if(range_add(&object, xmin, ymax - 1)) {
+                status = panic("failed to add range object");
+            } else if(range_and(result, x, &object)) {
                 status = panic("failed to and range object");
+            }
             range_destroy(&object);
         }
     } else {
@@ -530,11 +481,14 @@ int range_less_equal(struct range * result, struct range * x, struct range * y) 
     range_get(x, &xmin, &xmax);
     range_get(y, &ymin, &ymax);
     if(ymax >= xmin) {
-        if(range_create_add(&object, x->pool, xmin, ymax)) {
+        if(range_create(&object, x->pool)) {
             status = panic("failed to create range object");
         } else {
-            if(range_and(result, x, &object))
+            if(range_add(&object, xmin, ymax)) {
+                status = panic("failed to add range object");
+            } else if(range_and(result, x, &object)) {
                 status = panic("failed to and range object");
+            }
             range_destroy(&object);
         }
     } else {
@@ -554,11 +508,14 @@ int range_greater(struct range * result, struct range * x, struct range * y) {
     range_get(x, &xmin, &xmax);
     range_get(y, &ymin, &ymax);
     if(xmax >= ymax + 1) {
-        if(range_create_add(&object, x->pool, ymax + 1, xmax)) {
+        if(range_create(&object, x->pool)) {
             status = panic("failed to create range object");
         } else {
-            if(range_and(result, x, &object))
+            if(range_add(&object, ymax + 1, xmax)) {
+                status = panic("failed to add range object");
+            } else if(range_and(result, x, &object)) {
                 status = panic("failed to and range object");
+            }
             range_destroy(&object);
         }
     } else {
@@ -578,11 +535,14 @@ int range_greater_equal(struct range * result, struct range * x, struct range * 
     range_get(x, &xmin, &xmax);
     range_get(y, &ymin, &ymax);
     if(xmax >= ymax) {
-        if(range_create_add(&object, x->pool, ymax, xmax)) {
+        if(range_create(&object, x->pool)) {
             status = panic("failed to create range object");
         } else {
-            if(range_and(result, x, &object))
+            if(range_add(&object, ymax, xmax)) {
+                status = panic("failed to add range object");
+            } else if(range_and(result, x, &object)) {
                 status = panic("failed to and range object");
+            }
             range_destroy(&object);
         }
     } else {

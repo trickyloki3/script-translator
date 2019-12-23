@@ -16,15 +16,12 @@ struct range {
 };
 
 int range_create(struct range *, struct pool *);
-int range_create_add(struct range *, struct pool *, size_t, size_t);
 void range_destroy(struct range *);
-void range_print(struct range *);
+int range_copy(struct range *, struct range *);
+void range_get(struct range *, long *, long *);
 int range_add(struct range *, long, long);
 int range_remove(struct range *, long, long);
-int range_search(struct range *, long, long *, long *);
-void range_get(struct range *, long *, long *);
-void range_get_absolute(struct range *, long *, long *);
-int range_copy(struct range *, struct range *);
+void range_print(struct range *);
 int range_negative(struct range *, struct range *);
 int range_bit_not(struct range *, struct range *);
 int range_and(struct range *, struct range *, struct range *);
