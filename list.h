@@ -18,7 +18,6 @@ struct list {
 int list_create(struct list *, struct pool *);
 void list_destroy(struct list *);
 void list_clear(struct list *);
-int list_copy(struct list *, struct list *);
 int list_push(struct list *, void *);
 void * list_pop(struct list *);
 void * list_top(struct list *);
