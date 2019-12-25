@@ -117,7 +117,7 @@ int csv_pop(struct csv * csv) {
     int status = 0;
     struct string * string;
 
-    if(csv->list.size) {
+    if(list_top(&csv->list)) {
         if(csv->callback(list_begin, NULL, csv->context)) {
             status = panic("failed to process list start event");
         } else {

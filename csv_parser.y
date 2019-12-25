@@ -50,7 +50,7 @@ record : field
        | record COMMA field SPACE
        | record COMMA field COMMENT
 
-field : %empty { if(csv->list.size && csv_push(csv)) YYABORT; }
+field : %empty { if(csv_push(csv)) YYABORT; }
       | ESCAPED { if(csv_push(csv)) YYABORT; }
       | NONESCAPED { if(csv_push(csv)) YYABORT; }
 

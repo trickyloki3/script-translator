@@ -50,7 +50,6 @@ int list_create(struct list * list, struct pool * pool) {
     if(pool && pool->size != sizeof(struct list_node)) {
         status = panic("pool is invalid");
     } else {
-        list->size = 0;
         list->pool = pool;
         list->root = NULL;
         list->iter = NULL;
@@ -62,7 +61,6 @@ int list_create(struct list * list, struct pool * pool) {
 void list_destroy(struct list * list) {
     struct list_node * node;
 
-    list->size = 0;
     if(list->root) {
         while(list->root != list->root->next) {
             node = list->root->next;
@@ -113,7 +111,6 @@ int list_push(struct list * list, void * object) {
             list_node_attach(list->root, node);
 
         list->root = node;
-        list->size++;
     }
 
     return status;
@@ -130,7 +127,6 @@ void * list_pop(struct list * list) {
         list->root = (list->root == list->root->prev) ? NULL : list->root->prev;
         list_node_detach(node);
         list_node_destroy(list, node);
-        list->size--;
     }
 
     return object;
