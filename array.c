@@ -4,7 +4,7 @@ int strbuf_create(struct strbuf * strbuf, size_t size) {
     int status = 0;
 
     if(!size) {
-        status = panic("size is zero");
+        status = panic("invalid size");
     } else {
         strbuf->buf = calloc(size, sizeof(*strbuf->buf));
         if(!strbuf->buf) {

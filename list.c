@@ -51,12 +51,12 @@ int list_create(struct list * list, struct pool * pool) {
 }
 
 void list_destroy(struct list * list) {
-    while(list_pop(list));
-    list->iter = NULL;
+    list_clear(list);
 }
 
 void list_clear(struct list * list) {
-    list_destroy(list);
+    while(list_pop(list));
+    list->iter = NULL;
 }
 
 int list_push(struct list * list, void * object) {

@@ -6,9 +6,9 @@ int pool_create(struct pool * pool, size_t size, size_t count) {
     int status = 0;
 
     if(sizeof(struct pool_node) > size) {
-        status = panic("size is less than %zu", sizeof(struct pool_node));
+        status = panic("invalid size");
     } else if(!count) {
-        status = panic("count is zero");
+        status = panic("invalid count");
     } else {
         pool->size = size;
         pool->count = count;
