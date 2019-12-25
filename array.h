@@ -13,7 +13,6 @@ struct strbuf {
     char * str;
     char * pos;
     char * end;
-    struct strbuf * next;
 };
 
 int strbuf_create(struct strbuf *, size_t);
@@ -24,17 +23,5 @@ int strbuf_putc(struct strbuf *, char);
 int strbuf_putcn(struct strbuf *, char, size_t);
 int strbuf_strcpy(struct strbuf *, char *, size_t);
 struct string * strbuf_string(struct strbuf *);
-
-struct buffer {
-    size_t offset;
-    size_t length;
-    char * buffer;
-    struct buffer * next;
-};
-
-int buffer_create(struct buffer *, size_t);
-void buffer_destroy(struct buffer *);
-void buffer_clear(struct buffer *);
-void * buffer_alloc(struct buffer *, size_t);
 
 #endif
