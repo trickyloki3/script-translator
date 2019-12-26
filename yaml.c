@@ -3,8 +3,8 @@
 #include "yaml_parser.h"
 #include "yaml_scanner.h"
 
-int yaml_node_create(struct yaml *, int, size_t, struct string *, struct yaml_node **);
-void yaml_node_destroy(struct yaml *, struct yaml_node *);
+static inline struct yaml_node * yaml_node_create(struct yaml *, int, size_t, struct string *);
+static inline void yaml_node_destroy(struct yaml *, struct yaml_node *);
 
 int yaml_parse_loop(struct yaml *, yyscan_t, yamlpstate *);
 
@@ -14,26 +14,22 @@ static inline int yaml_start(struct yaml *, struct yaml_node *);
 static inline int yaml_next(struct yaml *, struct yaml_node *);
 static inline int yaml_end(struct yaml *, struct yaml_node *);
 
-int yaml_node_create(struct yaml * yaml, int type, size_t scope, struct string * string, struct yaml_node ** result) {
-    int status = 0;
+static inline struct yaml_node * yaml_node_create(struct yaml * yaml, int type, size_t scope, struct string * string) {
     struct yaml_node * node;
 
     node = pool_get(yaml->pool);
-    if(!node) {
-        status = panic("out of memory");
-    } else {
+    if(node) {
         node->type = type;
         node->scope = scope;
         node->key = NULL;
         node->value = string;
         node->child = NULL;
-        *result = node;
     }
 
-    return status;
+    return node;
 }
 
-void yaml_node_destroy(struct yaml * yaml, struct yaml_node * node) {
+static inline void yaml_node_destroy(struct yaml * yaml, struct yaml_node * node) {
     pool_put(yaml->pool, node);
 }
 
@@ -173,7 +169,8 @@ int yaml_token(struct yaml * yaml, int type, size_t scope, struct string * strin
     int status = 0;
     struct yaml_node * node;
 
-    if(yaml_node_create(yaml, type, scope, string, &node)) {
+    node = yaml_node_create(yaml, type, scope, string);
+    if(!node) {
         status = panic("failed to create yaml node object");
     } else {
         if(list_push(&yaml->list, node)) {
@@ -256,7 +253,8 @@ int yaml_stack(struct yaml * yaml, int type) {
         scope = yaml->stack ? yaml->stack->scope : 0;
     }
 
-    if(yaml_node_create(yaml, type, scope, NULL, &node)) {
+    node = yaml_node_create(yaml, type, scope, NULL);
+    if(!node) {
         status = panic("failed to create yaml node object");
     } else {
         node->child = yaml->stack;
