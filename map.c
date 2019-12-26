@@ -7,10 +7,8 @@
 #define is_black(x)         ((x) == NULL || (x)->color == black)
 #define is_red(x)           ((x) != NULL && (x)->color == red)
 
-int map_node_create(struct map *, void *, void *, struct map_node **);
-void map_node_destroy(struct map *, struct map_node *);
-static inline void map_node_attach(struct map_node *, struct map_node *);
-static inline void map_node_detach(struct map_node *);
+static inline struct map_node * map_node_create(struct map *, void *, void *);
+static inline void map_node_destroy(struct map *, struct map_node *);
 
 static inline void right_rotate(struct map *, struct map_node *);
 static inline void left_rotate(struct map *, struct map_node *);
@@ -20,49 +18,24 @@ static inline void map_insert_node(struct map *, struct map_node *);
 static inline void map_delete_node(struct map *, struct map_node *);
 static inline struct map_node * map_search_node(struct map *, void *);
 
-int map_node_create(struct map * map, void * key, void * value, struct map_node ** result) {
-    int status = 0;
+static inline struct map_node * map_node_create(struct map * map, void * key, void * value) {
     struct map_node * node;
 
-    node = map->pool ? pool_get(map->pool) : malloc(sizeof(*node));
-    if(!node) {
-        status = panic("out of memory");
-    } else {
+    node = pool_get(map->pool);
+    if(node) {
         node->key = key;
         node->value = value;
         node->color = red;
         node->left = NULL;
         node->right = NULL;
         node->parent = NULL;
-        node->next = node;
-        node->prev = node;
-        *result = node;
     }
 
-    return status;
+    return node;
 }
 
-void map_node_destroy(struct map * map, struct map_node * node) {
-    if(map->pool) {
-        pool_put(map->pool, node);
-    } else {
-        free(node);
-    }
-
-}
-
-static inline void map_node_attach(struct map_node * x, struct map_node * y) {
-    x->next->prev = y->prev;
-    y->prev->next = x->next;
-    x->next = y;
-    y->prev = x;
-}
-
-static inline void map_node_detach(struct map_node * x) {
-    x->prev->next = x->next;
-    x->next->prev = x->prev;
-    x->next = x;
-    x->prev = x;
+static inline void map_node_destroy(struct map * map, struct map_node * node) {
+    pool_put(map->pool, node);
 }
 
 static inline void right_rotate(struct map * map, struct map_node * x) {
@@ -135,10 +108,8 @@ static inline void map_insert_node(struct map * map, struct map_node * x) {
     } else {
         if(0 > map->compare(x->key, p->key)) {
             p->left = x;
-            map_node_attach(x, p);
         } else {
             p->right = x;
-            map_node_attach(p, x);
         }
     }
 
@@ -289,7 +260,6 @@ static inline void map_delete_node(struct map * map, struct map_node * x) {
 
     x->left = NULL;
     x->right = NULL;
-    map_node_detach(x);
 }
 
 static inline struct map_node * map_search_node(struct map * map, void * key) {
@@ -315,63 +285,46 @@ int map_create(struct map * map, map_compare_cb compare, struct pool * pool) {
     int status = 0;
 
     if(!compare) {
-        status = panic("compare is zero");
-    } else if(pool && pool->size != sizeof(struct map_node)) {
-        status = panic("pool is invalid");
+        status = panic("invalid compare");
+    } else if(!pool || pool->size < sizeof(struct map_node)) {
+        status = panic("invalid pool");
     } else {
         map->compare = compare;
         map->pool = pool;
         map->root = NULL;
-        map->iter = NULL;
     }
 
     return status;
 }
 
 void map_destroy(struct map * map) {
-    struct map_node * node;
-
-    if(map->root) {
-        while(map->root != map->root->next) {
-            node = map->root->next;
-            map_node_detach(node);
-            map_node_destroy(map, node);
-        }
-        map_node_destroy(map, map->root);
-        map->root = NULL;
-    }
-    map->iter = NULL;
+    map_clear(map);
 }
 
 void map_clear(struct map * map) {
-    map_destroy(map);
-}
-
-int map_copy(struct map * result, struct map * map) {
-    int status = 0;
-    struct map_node * iter;
     struct map_node * node;
+    struct map_node * temp;
 
-    if(map_create(result, map->compare, map->pool)) {
-        status = panic("failed to create map object");
-    } else {
-        if(map->root) {
-            iter = map->root;
-            do {
-                if(map_node_create(result, iter->key, iter->value, &node)) {
-                    status = panic("failed to create node object");
+    node = map->root;
+    while(node) {
+        while(node->left)
+            node = node->left;
+        if(node->right) {
+            node = node->right;
+        } else {
+            temp = node;
+            node = node->parent;
+            if(node) {
+                if(temp == node->left) {
+                    node->left = NULL;
                 } else {
-                    map_insert_node(result, node);
+                    node->right = NULL;
                 }
-                iter = iter->next;
-            } while(iter != map->root && !status);
+            }
+            map_node_destroy(map, temp);
         }
-
-        if(status)
-            map_destroy(result);
     }
-
-    return status;
+    map->root = NULL;
 }
 
 int map_insert(struct map * map, void * key, void * value) {
@@ -382,10 +335,13 @@ int map_insert(struct map * map, void * key, void * value) {
     if(node) {
         node->key = key;
         node->value = value;
-    } else if(map_node_create(map, key, value, &node)) {
-        status = panic("failed to create node object");
     } else {
-        map_insert_node(map, node);
+        node = map_node_create(map, key, value);
+        if(!node) {
+            status = panic("failed to create node object");
+        } else {
+            map_insert_node(map, node);
+        }
     }
 
     return status;
@@ -397,7 +353,7 @@ int map_delete(struct map * map, void * key) {
 
     node = map_search_node(map, key);
     if(!node) {
-        status = panic("key does not exist in map object");
+        status = panic("invalid key");
     } else {
         map_delete_node(map, node);
         map_node_destroy(map, node);
@@ -409,21 +365,4 @@ int map_delete(struct map * map, void * key) {
 void * map_search(struct map * map, void * key) {
     struct map_node * node = map_search_node(map, key);
     return node ? node->value : NULL;
-}
-
-struct map_pair map_start(struct map * map) {
-    map->iter = map->root;
-    return map_next(map);
-}
-
-struct map_pair map_next(struct map * map) {
-    struct map_pair pair = { NULL, NULL };
-
-    if(map->iter) {
-        pair.key = map->iter->key;
-        pair.value = map->iter->value;
-        map->iter = map->iter->next == map->root ? NULL : map->iter->next;
-    }
-
-    return pair;
 }

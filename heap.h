@@ -8,7 +8,9 @@
 struct pool_map {
     size_t size;
     struct pool object_pool;
+    struct pool list_pool;
     struct pool map_pool;
+    struct list list;
     struct map map;
 };
 

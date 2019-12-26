@@ -39,7 +39,6 @@ int schema_push(struct schema *, enum type, int, char *);
 void schema_pop(struct schema *);
 struct data * schema_top(struct schema *);
 struct data * schema_load(struct schema *, struct markup *);
-void schema_print(struct schema *);
 
 enum parser_event {
     start,
