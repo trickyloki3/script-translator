@@ -46,7 +46,7 @@ int json_parse(struct json * json, const char * path, size_t size, event_cb call
             } else {
                 buffer = json_create_buffer(file, size, scanner);
                 if(!buffer) {
-                    status = panic("faield to create buffer state object");
+                    status = panic("failed to create buffer state object");
                 } else {
                     jsonpush_buffer_state(buffer, scanner);
                     if(json_parse_loop(json, scanner, parser))
