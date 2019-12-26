@@ -3,8 +3,8 @@
 static inline long range_min(long, long);
 static inline long range_max(long, long);
 
-int range_node_create(struct range *, long, long, struct range_node **);
-void range_node_destroy(struct range *, struct range_node *);
+static inline struct range_node * range_node_create(struct range *, long, long);
+static inline void range_node_destroy(struct range *, struct range_node *);
 static inline void range_node_attach(struct range_node *, struct range_node *);
 static inline void range_node_detach(struct range_node *);
 
@@ -16,25 +16,21 @@ static inline long range_max(long x, long y) {
     return x < y ? y : x;
 }
 
-int range_node_create(struct range * range, long min, long max, struct range_node ** result) {
-    int status = 0;
+static inline struct range_node * range_node_create(struct range * range, long min, long max) {
     struct range_node * node;
 
     node = pool_get(range->pool);
-    if(!node) {
-        status = panic("out of memory");
-    } else {
+    if(node) {
         node->min = min;
         node->max = max;
         node->next = node;
         node->prev = node;
-        *result = node;
     }
 
-    return status;
+    return node;
 }
 
-void range_node_destroy(struct range * range, struct range_node * node) {
+static inline void range_node_destroy(struct range * range, struct range_node * node) {
     pool_put(range->pool, node);
 }
 
@@ -55,13 +51,12 @@ static inline void range_node_detach(struct range_node * x) {
 int range_create(struct range * range, struct pool * pool) {
     int status = 0;
 
-    if(!pool) {
-        status = panic("pool is zero");
-    } else if(pool->size != sizeof(struct range_node)) {
-        status = panic("pool is invalid");
+    if(!pool || pool->size < sizeof(struct range_node)) {
+        status = panic("invalid pool");
     } else {
         range->pool = pool;
-        if(range_node_create(range, 0, 0, &range->root))
+        range->root = range_node_create(range, 0, 0);
+        if(!range->root)
             status = panic("failed to create node object");
     }
 
@@ -122,7 +117,8 @@ int range_add(struct range * range, long x, long y) {
     }
 
     if(range->root == range->root->next) {
-        if(range_node_create(range, min, max, &node)) {
+        node = range_node_create(range, min, max);
+        if(!node) {
             status = panic("failed to create node object");
         } else {
             range_node_attach(range->root, node);
@@ -135,13 +131,15 @@ int range_add(struct range * range, long x, long y) {
             iter = iter->next;
 
         if(iter->max + 1 < min) {
-            if(range_node_create(range, min, max, &node)) {
+            node = range_node_create(range, min, max);
+            if(!node) {
                 status = panic("failed to create node object");
             } else {
                 range_node_attach(iter, node);
             }
         } else if(iter->min - 1 > max) {
-            if(range_node_create(range, min, max, &node)) {
+            node = range_node_create(range, min, max);
+            if(!node) {
                 status = panic("failed to create node object");
             } else {
                 range_node_attach(node, iter);
@@ -186,7 +184,8 @@ int range_remove(struct range *  range, long x, long y) {
         while(iter != range->root && iter->max >= min && iter->min <= max && !status) {
             if(iter->min < min) {
                 if(iter->max > max) {
-                    if(range_node_create(range, iter->min, min - 1, &node)) {
+                    node = range_node_create(range, iter->min, min - 1);
+                    if(!node) {
                         status = panic("failed to create node object");
                     } else {
                         range_node_attach(node, iter);
