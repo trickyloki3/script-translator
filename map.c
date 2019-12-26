@@ -292,6 +292,7 @@ int map_create(struct map * map, map_compare_cb compare, struct pool * pool) {
         map->compare = compare;
         map->pool = pool;
         map->root = NULL;
+        map->iter = NULL;
     }
 
     return status;
@@ -325,6 +326,7 @@ void map_clear(struct map * map) {
         }
     }
     map->root = NULL;
+    map->iter = NULL;
 }
 
 int map_insert(struct map * map, void * key, void * value) {
@@ -365,4 +367,35 @@ int map_delete(struct map * map, void * key) {
 void * map_search(struct map * map, void * key) {
     struct map_node * node = map_search_node(map, key);
     return node ? node->value : NULL;
+}
+
+struct map_kv map_start(struct map * map) {
+    map->iter = map->root;
+    if(map->iter)
+        while(map->iter->left)
+            map->iter = map->iter->left;
+    return map_next(map);
+}
+
+struct map_kv map_next(struct map * map) {
+    struct map_kv kv = { NULL, NULL };
+    struct map_node * node;
+
+    node = map->iter;
+    if(node) {
+        kv.key = node->key;
+        kv.value = node->value;
+        if(node->right) {
+            node = node->right;
+            while(node->left)
+                node = node->left;
+        } else {
+            while(node->parent && node->parent->right == node)
+                node = node->parent;
+            node = node->parent;
+        }
+        map->iter = node;
+    }
+
+    return kv;
 }

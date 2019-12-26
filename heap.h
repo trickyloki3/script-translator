@@ -8,9 +8,7 @@
 struct pool_map {
     size_t size;
     struct pool object_pool;
-    struct pool list_pool;
     struct pool map_pool;
-    struct list list;
     struct map map;
 };
 
@@ -20,9 +18,9 @@ struct pool * pool_map_get(struct pool_map *, size_t);
 
 struct heap {
     struct pool_map pool_map;
-    struct pool * list_pool;
     struct pool * map_pool;
     struct pool * range_pool;
+    struct pool * list_pool;
 };
 
 int heap_create(struct heap *, size_t);

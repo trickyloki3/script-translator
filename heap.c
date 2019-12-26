@@ -18,25 +18,13 @@ int pool_map_create(struct pool_map * pool_map, size_t size) {
         if(pool_create(&pool_map->object_pool, sizeof(struct pool), pool_map->size / sizeof(struct pool))) {
             status = panic("failed to create pool object");
         } else {
-            if(pool_create(&pool_map->list_pool, sizeof(struct list_node), pool_map->size / sizeof(struct list_node))) {
+            if(pool_create(&pool_map->map_pool, sizeof(struct map_node), pool_map->size / sizeof(struct map_node))) {
                 status = panic("failed to create pool object");
             } else {
-                if(pool_create(&pool_map->map_pool, sizeof(struct map_node), pool_map->size / sizeof(struct map_node))) {
-                    status = panic("failed to create pool object");
-                } else {
-                    if(list_create(&pool_map->list, &pool_map->list_pool)) {
-                        status = panic("failed to create list object");
-                    } else {
-                        if(map_create(&pool_map->map, size_compare, &pool_map->map_pool))
-                            status = panic("failed to create map object");
-                        if(status)
-                            list_destroy(&pool_map->list);
-                    }
-                    if(status)
-                        pool_destroy(&pool_map->map_pool);
-                }
+                if(map_create(&pool_map->map, size_compare, &pool_map->map_pool))
+                    status = panic("failed to create map object");
                 if(status)
-                    pool_destroy(&pool_map->list_pool);
+                    pool_destroy(&pool_map->map_pool);
             }
             if(status)
                 pool_destroy(&pool_map->object_pool);
@@ -47,19 +35,17 @@ int pool_map_create(struct pool_map * pool_map, size_t size) {
 }
 
 void pool_map_destroy(struct pool_map * pool_map) {
-    struct pool * pool;
+    struct map_kv kv;
 
-    pool = list_pop(&pool_map->list);
-    while(pool) {
-        pool_destroy(pool);
-        pool_put(&pool_map->object_pool, pool);
-        pool = list_pop(&pool_map->list);
+    kv = map_start(&pool_map->map);
+    while(kv.value) {
+        pool_destroy(kv.value);
+        pool_put(&pool_map->object_pool, kv.value);
+        kv = map_next(&pool_map->map);
     }
 
     map_destroy(&pool_map->map);
-    list_destroy(&pool_map->list);
     pool_destroy(&pool_map->map_pool);
-    pool_destroy(&pool_map->list_pool);
     pool_destroy(&pool_map->object_pool);
 }
 
@@ -76,14 +62,8 @@ struct pool * pool_map_get(struct pool_map * pool_map, size_t size) {
             if(pool_create(pool, size, pool_map->size / size)) {
                 status = panic("failed to create pool object");
             } else {
-                if(list_push(&pool_map->list, pool)) {
-                    status = panic("failed to push list object");
-                } else {
-                    if(map_insert(&pool_map->map, &pool->size, pool))
-                        status = panic("failed to insert map object");
-                    if(status)
-                        list_pop(&pool_map->list);
-                }
+                if(map_insert(&pool_map->map, &pool->size, pool))
+                    status = panic("failed to insert map object");
                 if(status)
                     pool_destroy(pool);
             }

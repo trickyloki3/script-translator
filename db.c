@@ -2,6 +2,7 @@
 
 static inline struct data * data_create(struct schema *, enum type, int, struct pool *);
 static inline void data_destroy(struct schema *, struct data *);
+void data_print(struct data *, int, char *);
 
 int parser_node(struct parser *, enum event_type, struct string *, struct data *);
 int parser_event(enum event_type, struct string *, void *);
@@ -29,6 +30,36 @@ static inline void data_destroy(struct schema * schema, struct data * data) {
     map_destroy(&data->map);
     pool_put(schema->pool, data);
 }
+
+void data_print(struct data * data, int indent, char * key) {
+    int i;
+    struct map_kv kv;
+
+    for(i = 0; i < indent; i++)
+        fputs("    ", stdout);
+
+    if(key)
+        fprintf(stdout, "[%s]", key);
+
+    switch(data->type) {
+        case list:
+            fprintf(stdout, "[list:%d]\n", data->mark);
+            data_print(data->data, indent + 1, NULL);
+            break;
+        case map:
+            fprintf(stdout, "[map:%d]\n", data->mark);
+            kv = map_start(&data->map);
+            while(kv.key) {
+                data_print(kv.value, indent + 1, kv.key);
+                kv = map_next(&data->map);
+            }
+            break;
+        case string:
+            fprintf(stdout, "[string:%d]\n", data->mark);
+            break;
+    }
+}
+
 
 int schema_create(struct schema * schema, struct heap * heap) {
     int status = 0;
@@ -148,6 +179,10 @@ struct data * schema_load(struct schema * schema, struct markup * markup) {
     }
 
     return status ? NULL : schema_top(schema);
+}
+
+void schema_print(struct data * data) {
+    data_print(data, 0, NULL);
 }
 
 int parser_create(struct parser * parser, size_t size, struct heap * heap) {
