@@ -217,7 +217,6 @@ int range_remove(struct range *  range, long x, long y) {
 void range_print(struct range * range) {
     struct range_node * node;
 
-    fprintf(stdout, "global:[%ld,%ld],range:", range->root->min, range->root->max);
     if(range->root == range->root->next) {
         fprintf(stdout, "empty");
     } else {
