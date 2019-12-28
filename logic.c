@@ -236,6 +236,8 @@ int logic_pop(struct logic * logic) {
     struct logic_node * node;
     struct logic_node * iter;
     struct logic_node * copy;
+    struct logic_node * x;
+    struct logic_node * y;
 
     r = logic_node_pop(logic->root);
     if(!r) {
@@ -358,10 +360,37 @@ int logic_pop(struct logic * logic) {
                             logic_node_push(logic->root, copy);
                         }
                     }
-                } else if(r->type == or) {
-
-                } else if(r->type == and_or) {
-
+                } else if(r->type == or || r->type == and_or) {
+                    node = logic_node_create(logic, and_or, NULL);
+                    if(!node) {
+                        status = panic("failed create logic node object");
+                    } else {
+                        x = r->root;
+                        while(x && !status) {
+                            y = l->root;
+                            while(y && !status) {
+                                copy = logic_node_copy(logic, y);
+                                if(!copy) {
+                                    status = panic("failed to copy logic node object");
+                                } else {
+                                    if(logic_and(logic, copy, x))
+                                        status = panic("failed to and logic object");
+                                    if(status) {
+                                        logic_node_destroy(logic, copy);
+                                    } else {
+                                        logic_node_push(node, copy);
+                                    }
+                                }
+                                y = y->next;
+                            }
+                            x = x->next;
+                        }
+                        if(status) {
+                            logic_node_destroy(logic, node);
+                        } else {
+                            logic_node_push(logic->root, node);
+                        }
+                    }
                 } else {
                     status = panic("invalid logic type");
                 }
