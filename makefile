@@ -1,11 +1,11 @@
 OBJECT+=utility.o
 OBJECT+=pool.o
+OBJECT+=array.o
 OBJECT+=list.o
 OBJECT+=map.o
 OBJECT+=range.o
-OBJECT+=array.o
-OBJECT+=heap.o
 OBJECT+=logic.o
+OBJECT+=heap.o
 OBJECT+=csv_parser.o
 OBJECT+=csv_scanner.o
 OBJECT+=csv.o

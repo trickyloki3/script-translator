@@ -90,8 +90,13 @@ int heap_create(struct heap * heap, size_t size) {
                 status = panic("failed to pool heap object");
             } else {
                 heap->range_pool = heap_pool(heap, sizeof(struct range_node));
-                if(!heap->range_pool)
+                if(!heap->range_pool) {
                     status = panic("failed to pool heap object");
+                } else {
+                    heap->logic_pool = heap_pool(heap, sizeof(struct logic_node));
+                    if(!heap->logic_pool)
+                        status = panic("failed to pool heap object");
+                }
             }
         }
         if(status)
