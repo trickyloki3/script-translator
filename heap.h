@@ -9,6 +9,7 @@
 struct pool_map {
     size_t size;
     struct pool object_pool;
+    struct pool range_pool;
     struct pool map_pool;
     struct map map;
 };
