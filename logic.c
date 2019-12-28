@@ -59,8 +59,8 @@ struct logic_node * logic_node_copy(struct logic * logic, struct logic_node * li
                 status = panic("failed to copy logic node object");
             } else {
                 logic_node_push(node, copy);
-                iter = iter->next;
             }
+            iter = iter->next;
         }
         if(status)
             logic_node_destroy(logic, node);
@@ -151,11 +151,9 @@ int logic_cond(struct logic * logic, struct logic_node * list, enum logic_type t
     } else if(list->type == and_or) {
         iter = list->root;
         while(iter && !status) {
-            if(logic_cond(logic, iter, type, data)) {
+            if(logic_cond(logic, iter, type, data))
                 status = panic("failed to cond logic object");
-            } else {
-                iter = iter->next;
-            }
+            iter = iter->next;
         }
     } else {
         status = panic("invalid logic type");
@@ -174,11 +172,9 @@ int logic_and(struct logic * logic, struct logic_node * list, struct logic_node 
     } else if(node->type == and) {
         iter = node->root;
         while(iter && !status) {
-            if(logic_and(logic, list, iter)) {
+            if(logic_and(logic, list, iter))
                 status = panic("failed to and logic object");
-            } else {
-                iter = iter->next;
-            }
+            iter = iter->next;
         }
     } else {
         status = panic("invalid logic type");
@@ -237,6 +233,9 @@ int logic_pop(struct logic * logic) {
     int status = 0;
     struct logic_node * r;
     struct logic_node * l;
+    struct logic_node * node;
+    struct logic_node * iter;
+    struct logic_node * copy;
 
     r = logic_node_pop(logic->root);
     if(!r) {
@@ -248,27 +247,117 @@ int logic_pop(struct logic * logic) {
         } else {
             if(l->type == and) {
                 if(r->type == and) {
-
+                    copy = logic_node_copy(logic, l);
+                    if(!copy) {
+                        status = panic("failed to copy logic node object");
+                    } else {
+                        if(logic_and(logic, copy, r))
+                            status = panic("failed to and logic object");
+                        if(status) {
+                            logic_node_destroy(logic, copy);
+                        } else {
+                            logic_node_push(logic->root, copy);
+                        }
+                    }
                 } else if(r->type == or) {
-
+                    node = logic_node_create(logic, and_or, NULL);
+                    if(!node) {
+                        status = panic("failed create logic node object");
+                    } else {
+                        iter = r->root;
+                        while(iter && !status) {
+                            copy = logic_node_copy(logic, l);
+                            if(!copy) {
+                                status = panic("failed to copy logic node object");
+                            } else {
+                                if(logic_and(logic, copy, iter))
+                                    status = panic("failed to and logic object");
+                                if(status) {
+                                    logic_node_destroy(logic, copy);
+                                } else {
+                                    logic_node_push(node, copy);
+                                }
+                            }
+                            iter = iter->next;
+                        }
+                        if(status) {
+                            logic_node_destroy(logic, node);
+                        } else {
+                            logic_node_push(logic->root, node);
+                        }
+                    }
                 } else if(r->type == and_or) {
-
+                    copy = logic_node_copy(logic, r);
+                    if(!copy) {
+                        status = panic("failed to copy logic node object");
+                    } else {
+                        iter = copy->root;
+                        while(iter && !status) {
+                            if(logic_and(logic, iter, l))
+                                status = panic("failed to and logic object");
+                            iter = iter->next;
+                        }
+                        if(status) {
+                            logic_node_destroy(logic, copy);
+                        } else {
+                            logic_node_push(logic->root, copy);
+                        }
+                    }
                 } else {
                     status = panic("invalid logic type");
                 }
             } else if(l->type == or) {
                 if(r->type == and) {
-
-                } else if(r->type == or) {
-
-                } else if(r->type == and_or) {
-
+                    copy = logic_node_copy(logic, l);
+                    if(!copy) {
+                        status = panic("failed to copy logic node object");
+                    } else {
+                        if(logic_or(logic, copy, r))
+                            status = panic("failed to or logic object");
+                        if(status) {
+                            logic_node_destroy(logic, copy);
+                        } else {
+                            logic_node_push(logic->root, copy);
+                        }
+                    }
+                } else if(r->type == or || r->type == and_or) {
+                    copy = logic_node_copy(logic, l);
+                    if(!copy) {
+                        status = panic("failed to copy logic node object");
+                    } else {
+                        iter = r->root;
+                        while(iter && !status) {
+                            if(logic_or(logic, copy, iter))
+                                status = panic("failed to or logic object");
+                            iter = iter->next;
+                        }
+                        if(status) {
+                            logic_node_destroy(logic, copy);
+                        } else {
+                            logic_node_push(logic->root, copy);
+                        }
+                    }
                 } else {
                     status = panic("invalid logic type");
                 }
             } else if(l->type == and_or) {
                 if(r->type == and) {
-
+                    copy = logic_node_copy(logic, l);
+                    if(!copy) {
+                        status = panic("failed to copy logic node object");
+                    } else {
+                        iter = copy->root;
+                        while(iter && !status) {
+                            if(logic_and(logic, iter, r))
+                                status = panic("failed to and logic object");
+                            iter = iter->next;
+                        }
+                        if(status) {
+                            logic_node_destroy(logic, copy);
+                        } else {
+                            logic_node_push(logic->root, copy);
+                        }
+                    }
                 } else if(r->type == or) {
 
                 } else if(r->type == and_or) {
