@@ -16,6 +16,7 @@ OBJECT+=yaml_parser.o
 OBJECT+=yaml_scanner.o
 OBJECT+=yaml.o
 OBJECT+=parser.o
+OBJECT+=lookup.o
 
 all: clean pj59
 
