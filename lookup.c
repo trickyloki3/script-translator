@@ -58,14 +58,14 @@ int string_strtol(struct string * string, int base, long * result) {
     int status = 0;
 
     long number;
-    char * end = NULL;
+    char * last;
 
     if(!string->length) {
         *result = 0;
     } else {
-        number = strtol(string->string, &end, base);
-        if(string->string + string->length != end) {
-            status = panic("invalid '%s' in '%s'", end, string->string);
+        number = strtol(string->string, &last, base);
+        if(string->string + string->length != last) {
+            status = panic("invalid '%s' in '%s'", last, string->string);
         } else {
             *result = number;
         }
