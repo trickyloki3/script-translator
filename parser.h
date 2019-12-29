@@ -1,5 +1,5 @@
-#ifndef db_h
-#define db_h
+#ifndef parser_h
+#define parser_h
 
 #include "csv.h"
 #include "json.h"

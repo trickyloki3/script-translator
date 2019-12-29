@@ -1,4 +1,4 @@
-#include "db.h"
+#include "parser.h"
 
 static inline struct schema_data * data_create(struct schema *, enum schema_type, int, struct pool *);
 static inline void data_destroy(struct schema *, struct schema_data *);

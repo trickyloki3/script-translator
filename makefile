@@ -15,7 +15,7 @@ OBJECT+=json.o
 OBJECT+=yaml_parser.o
 OBJECT+=yaml_scanner.o
 OBJECT+=yaml.o
-OBJECT+=db.o
+OBJECT+=parser.o
 
 all: clean pj59
 
