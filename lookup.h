@@ -50,6 +50,7 @@ struct pet_db {
 
 int pet_db_create(struct pet_db *, size_t, struct heap *);
 void pet_db_destroy(struct pet_db *);
+void pet_db_clear(struct pet_db *);
 int pet_db_parse(enum parser_event, int, struct string *, void *);
 
 struct lookup {

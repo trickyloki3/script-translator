@@ -99,6 +99,14 @@ void pet_db_destroy(struct pet_db * pet_db) {
     map_destroy(&pet_db->map);
 }
 
+void pet_db_clear(struct pet_db * pet_db) {
+    pet_db->req = NULL;
+    pet_db->evo = NULL;
+    pet_db->pet = NULL;
+    store_clear(&pet_db->store);
+    map_clear(&pet_db->map);
+}
+
 int pet_db_parse(enum parser_event event, int mark, struct string * string, void * context) {
     int status = 0;
     struct pet_db * pet_db = context;
@@ -196,6 +204,8 @@ void lookup_destroy(struct lookup * lookup) {
 int lookup_pet_db_parse(struct lookup * lookup, char * path) {
     int status = 0;
     struct schema_data * pet_db_schema;
+
+    pet_db_clear(&lookup->pet_db);
 
     pet_db_schema = schema_load(&lookup->schema, pet_db_markup);
     if(!pet_db_schema) {
