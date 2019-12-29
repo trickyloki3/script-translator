@@ -378,6 +378,19 @@ void store_destroy(struct store * store) {
     pool_destroy(&store->pool);
 }
 
+size_t store_size(struct store * store) {
+    size_t size = 0;
+    struct store_node * node;
+
+    node = store->root;
+    while(node) {
+        size++;
+        node = node->next;
+    }
+
+    return size *= store->pool.size;
+}
+
 void store_clear(struct store * store) {
     struct store_node * node;
 
