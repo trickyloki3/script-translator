@@ -1,15 +1,15 @@
 #include "db.h"
 
-static inline struct data * data_create(struct schema *, enum type, int, struct pool *);
-static inline void data_destroy(struct schema *, struct data *);
-void data_print(struct data *, int, char *);
+static inline struct schema_data * data_create(struct schema *, enum schema_type, int, struct pool *);
+static inline void data_destroy(struct schema *, struct schema_data *);
+void data_print(struct schema_data *, int, char *);
 
-int parser_node(struct parser *, enum event_type, struct string *, struct data *);
+int parser_node(struct parser *, enum event_type, struct string *, struct schema_data *);
 int parser_event(enum event_type, struct string *, void *);
 
-static inline struct data * data_create(struct schema * schema, enum type type, int mark, struct pool * pool) {
+static inline struct schema_data * data_create(struct schema * schema, enum schema_type type, int mark, struct pool * pool) {
     int status = 0;
-    struct data * data;
+    struct schema_data * data;
 
     data = pool_get(schema->pool);
     if(data) {
@@ -26,12 +26,12 @@ static inline struct data * data_create(struct schema * schema, enum type type, 
     return status ? NULL : data;
 }
 
-static inline void data_destroy(struct schema * schema, struct data * data) {
+static inline void data_destroy(struct schema * schema, struct schema_data * data) {
     map_destroy(&data->map);
     pool_put(schema->pool, data);
 }
 
-void data_print(struct data * data, int indent, char * key) {
+void data_print(struct schema_data * data, int indent, char * key) {
     int i;
     struct map_kv kv;
 
@@ -64,7 +64,7 @@ void data_print(struct data * data, int indent, char * key) {
 int schema_create(struct schema * schema, struct heap * heap) {
     int status = 0;
 
-    schema->pool = heap_pool(heap, sizeof(struct data));
+    schema->pool = heap_pool(heap, sizeof(struct schema_data));
     if(!schema->pool) {
         status = panic("failed to pool heap object");
     } else {
@@ -89,7 +89,7 @@ int schema_create(struct schema * schema, struct heap * heap) {
 }
 
 void schema_destroy(struct schema * schema) {
-    struct data * data;
+    struct schema_data * data;
 
     data = list_pop(&schema->list);
     while(data) {
@@ -99,9 +99,9 @@ void schema_destroy(struct schema * schema) {
     list_destroy(&schema->list);
 }
 
-int schema_push(struct schema * schema, enum type type, int mark, char * key) {
+int schema_push(struct schema * schema, enum schema_type type, int mark, char * key) {
     int status = 0;
-    struct data * data;
+    struct schema_data * data;
 
     data = data_create(schema, type, mark, schema->root->map.pool);
     if(!data) {
@@ -144,8 +144,8 @@ void schema_pop(struct schema * schema) {
         schema->root = schema->root->next;
 }
 
-struct data * schema_top(struct schema * schema) {
-    struct data * data = NULL;
+struct schema_data * schema_top(struct schema * schema) {
+    struct schema_data * data = NULL;
 
     if(schema->root->data) {
         data = schema->root->data;
@@ -155,9 +155,9 @@ struct data * schema_top(struct schema * schema) {
     return data;
 }
 
-struct data * schema_load(struct schema * schema, struct markup * markup) {
+struct schema_data * schema_load(struct schema * schema, struct schema_markup * markup) {
     int status = 0;
-    struct markup * root = NULL;
+    struct schema_markup * root = NULL;
 
     while(markup->level) {
         while(root && root->level >= markup->level) {
@@ -181,7 +181,7 @@ struct data * schema_load(struct schema * schema, struct markup * markup) {
     return status ? NULL : schema_top(schema);
 }
 
-void schema_print(struct data * data) {
+void schema_print(struct schema_data * data) {
     data_print(data, 0, NULL);
 }
 
@@ -214,7 +214,7 @@ void parser_destroy(struct parser * parser) {
     csv_destroy(&parser->csv);
 }
 
-int parser_node(struct parser * parser, enum event_type event, struct string * string, struct data * data) {
+int parser_node(struct parser * parser, enum event_type event, struct string * string, struct schema_data * data) {
     int status = 0;
 
     if(data->type == list) {
@@ -295,7 +295,7 @@ int parser_event(enum event_type event, struct string * string, void * context) 
     return status;
 }
 
-int parser_parse(struct parser * parser, const char * path, struct data * data, parser_cb callback, void * context) {
+int parser_parse(struct parser * parser, const char * path, struct schema_data * data, parser_cb callback, void * context) {
     int status = 0;
     char * ext;
 

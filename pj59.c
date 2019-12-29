@@ -1,6 +1,6 @@
 #include "db.h"
 
-struct markup pet_db_markup[] = {
+struct schema_markup pet_db_markup[] = {
     {1, map, 0, NULL},
     {2, map, 1, "Header"},
     {3, string, 2, "Type"},
@@ -82,7 +82,7 @@ int main(int argc, char ** argv) {
     struct heap heap;
     struct schema schema;
     struct parser parser;
-    struct data * pet_db_schema;
+    struct schema_data * pet_db_schema;
 
     if(heap_create(&heap, 4096)) {
         status = panic("failed to create heap object");
