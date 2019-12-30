@@ -53,14 +53,56 @@ void pet_db_destroy(struct pet_db *);
 void pet_db_clear(struct pet_db *);
 int pet_db_parse(enum parser_event, int, struct string *, void *);
 
+struct item {
+    long id;
+    struct string * aegis;
+    struct string * name;
+    long type;
+    long buy;
+    long sell;
+    long weight;
+    long atk;
+    long matk;
+    long def;
+    long range;
+    long slots;
+    unsigned long job;
+    unsigned long upper;
+    long gender;
+    unsigned long location;
+    long weapon_level;
+    long base_level;
+    long max_level;
+    long refineable;
+    long view;
+    struct string * bonus;
+    struct string * onequip;
+    struct string * onunequip;
+};
+
+struct item_db {
+    struct map map_id;
+    struct map map_aegis;
+    struct store store;
+    struct item * item;
+    size_t index;
+};
+
+int item_db_create(struct item_db *, size_t, struct heap *);
+void item_db_destroy(struct item_db *);
+void item_db_clear(struct item_db *);
+int item_db_parse(enum parser_event, int, struct string *, void *);
+
 struct lookup {
     struct schema schema;
     struct parser parser;
     struct pet_db pet_db;
+    struct item_db item_db;
 };
 
 int lookup_create(struct lookup *, size_t, struct heap *);
 void lookup_destroy(struct lookup *);
 int lookup_pet_db_parse(struct lookup *, char *);
+int lookup_item_db_parse(struct lookup *, char *);
 
 #endif

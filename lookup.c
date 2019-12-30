@@ -1,7 +1,11 @@
 #include "lookup.h"
 
+int long_compare(void *, void *);
+
 int string_store(struct store *, struct string *, struct string **);
 int string_strtol(struct string *, int, long *);
+int string_strtoul(struct string *, int, unsigned long *);
+int string_strtol_splitv(struct string *, int, int, ...);
 
 struct schema_markup pet_db_markup[] = {
     {1, map, 0, NULL},
@@ -41,6 +45,19 @@ struct schema_markup pet_db_markup[] = {
     {0, 0, 0},
 };
 
+struct schema_markup csv_markup[] = {
+    {1, list, 0, NULL},
+    {2, list, 1, NULL},
+    {3, string, 2, NULL},
+    {0, 0, 0},
+};
+
+int long_compare(void * x, void * y) {
+    long l = *((long *) x);
+    long r = *((long *) y);
+    return l < r ? -1 : l > r ? 1 : 0;
+}
+
 int string_store(struct store * store, struct string * string, struct string ** result) {
     int status = 0;
 
@@ -70,6 +87,47 @@ int string_strtol(struct string * string, int base, long * result) {
             *result = number;
         }
     }
+
+    return status;
+}
+
+int string_strtoul(struct string * string, int base, unsigned long * result) {
+    int status = 0;
+
+    unsigned long number;
+    char * last;
+
+    if(!string->length) {
+        *result = 0;
+    } else {
+        number = strtoul(string->string, &last, base);
+        if(string->string + string->length != last) {
+            status = panic("invalid '%s' in '%s'", last, string->string);
+        } else {
+            *result = number;
+        }
+    }
+
+    return status;
+}
+
+int string_strtol_splitv(struct string * string, int base, int split, ...) {
+    int status = 0;
+    va_list args;
+    long * value;
+    char * ptr;
+    char * end;
+
+    va_start(args, split);
+    value = va_arg(args, long *);
+    ptr = string->string;
+    while(value && ptr) {
+        *value = strtol(ptr, &end, base);
+        ptr = *end == split ? end + 1 : NULL;
+        if(!ptr && *end)
+            status = panic("invalid string '%s' in '%s'", end, string->string);
+    }
+    va_end(args);
 
     return status;
 }
@@ -174,6 +232,103 @@ int pet_db_parse(enum parser_event event, int mark, struct string * string, void
     return status;
 }
 
+int item_db_create(struct item_db * item_db, size_t size, struct heap * heap) {
+    int status = 0;
+
+    if(map_create(&item_db->map_id, long_compare, heap->map_pool)) {
+        status = panic("failed to create map object");
+    } else {
+        if(map_create(&item_db->map_aegis, (map_compare_cb) strcmp, heap->map_pool)) {
+            status = panic("failed to create map object");
+        } else {
+            if(store_create(&item_db->store, size)) {
+                status = panic("failed to create store object");
+            } else {
+                item_db->item = NULL;
+                item_db->index = 0;
+            }
+            if(status)
+                map_destroy(&item_db->map_aegis);
+        }
+        if(status)
+            map_destroy(&item_db->map_id);
+    }
+
+    return status;
+}
+
+void item_db_destroy(struct item_db * item_db) {
+    store_destroy(&item_db->store);
+    map_destroy(&item_db->map_aegis);
+    map_destroy(&item_db->map_id);
+}
+
+void item_db_clear(struct item_db * item_db) {
+    item_db->index = 0;
+    item_db->item = NULL;
+    store_clear(&item_db->store);
+    map_clear(&item_db->map_aegis);
+    map_clear(&item_db->map_id);
+}
+
+int item_db_parse(enum parser_event event, int mark, struct string * string, void * context) {
+    int status = 0;
+    struct item_db * item_db = context;
+
+    switch(mark) {
+        case 1:
+            if(event == start) {
+                item_db->item = store_object(&item_db->store, sizeof(*item_db->item));
+                if(!item_db->item) {
+                    status = panic("failed to object store object");
+                } else {
+                    item_db->index = 0;
+                }
+            } else if(event == end) {
+                if(item_db->index != 22) {
+                    status = panic("invalid column");
+                } else if(!item_db->item->aegis) {
+                    status = panic("invalid string object");
+                } else if(map_insert(&item_db->map_id, &item_db->item->id, item_db->item)) {
+                    status = panic("failed to insert map object");
+                } else if(map_insert(&item_db->map_aegis, item_db->item->aegis->string, item_db->item)) {
+                    status = panic("failed to insert map object");
+                }
+            }
+            break;
+        case 2:
+            switch(item_db->index) {
+                case 0: status = string_strtol(string, 10, &item_db->item->id); break;
+                case 1: status = string_store(&item_db->store, string, &item_db->item->aegis); break;
+                case 2: status = string_store(&item_db->store, string, &item_db->item->name); break;
+                case 3: status = string_strtol(string, 10, &item_db->item->type); break;
+                case 4: status = string_strtol(string, 10, &item_db->item->buy); break;
+                case 5: status = string_strtol(string, 10, &item_db->item->sell); break;
+                case 6: status = string_strtol(string, 10, &item_db->item->weight); break;
+                case 7: status = string_strtol_splitv(string, 10, ':', &item_db->item->atk, &item_db->item->matk, NULL); break;
+                case 8: status = string_strtol(string, 10, &item_db->item->def); break;
+                case 9: status = string_strtol(string, 10, &item_db->item->range); break;
+                case 10: status = string_strtol(string, 10, &item_db->item->slots); break;
+                case 11: status = string_strtoul(string, 16, &item_db->item->job); break;
+                case 12: status = string_strtoul(string, 10, &item_db->item->upper); break;
+                case 13: status = string_strtol(string, 10, &item_db->item->gender); break;
+                case 14: status = string_strtoul(string, 10, &item_db->item->location); break;
+                case 15: status = string_strtol(string, 10, &item_db->item->weapon_level); break;
+                case 16: status = string_strtol_splitv(string, 10, ':', &item_db->item->base_level, &item_db->item->max_level, NULL); break;
+                case 17: status = string_strtol(string, 10, &item_db->item->refineable); break;
+                case 18: status = string_strtol(string, 10, &item_db->item->view); break;
+                case 19: status = string_store(&item_db->store, string, &item_db->item->bonus); break;
+                case 20: status = string_store(&item_db->store, string, &item_db->item->onequip); break;
+                case 21: status = string_store(&item_db->store, string, &item_db->item->onunequip); break;
+                default: status = panic("invalid column"); break;
+            }
+            item_db->index++;
+            break;
+    }
+
+    return status;
+}
+
 int lookup_create(struct lookup * lookup, size_t size, struct heap * heap) {
     int status = 0;
 
@@ -183,8 +338,14 @@ int lookup_create(struct lookup * lookup, size_t size, struct heap * heap) {
         if(parser_create(&lookup->parser, size, heap)) {
             status = panic("failed to create parser object");
         } else {
-            if(pet_db_create(&lookup->pet_db, size, heap))
+            if(pet_db_create(&lookup->pet_db, size, heap)) {
                 status = panic("failed to create pet db object");
+            } else {
+                if(item_db_create(&lookup->item_db, size, heap))
+                    status = panic("failed to create item db object");
+                if(status)
+                    pet_db_destroy(&lookup->pet_db);
+            }
             if(status)
                 parser_destroy(&lookup->parser);
         }
@@ -196,6 +357,7 @@ int lookup_create(struct lookup * lookup, size_t size, struct heap * heap) {
 }
 
 void lookup_destroy(struct lookup * lookup) {
+    item_db_destroy(&lookup->item_db);
     pet_db_destroy(&lookup->pet_db);
     parser_destroy(&lookup->parser);
     schema_destroy(&lookup->schema);
@@ -211,6 +373,22 @@ int lookup_pet_db_parse(struct lookup * lookup, char * path) {
     if(!pet_db_schema) {
         status = panic("failed to load schema object");
     } else if(parser_parse(&lookup->parser, path, pet_db_schema, pet_db_parse, &lookup->pet_db)) {
+        status = panic("failed to parse parser object");
+    }
+
+    return status;
+}
+
+int lookup_item_db_parse(struct lookup * lookup, char * path) {
+    int status = 0;
+    struct schema_data * item_db_schema;
+
+    item_db_clear(&lookup->item_db);
+
+    item_db_schema = schema_load(&lookup->schema, csv_markup);
+    if(!item_db_schema) {
+        status = panic("failed to load schema object");
+    } else if(parser_parse(&lookup->parser, path, item_db_schema, item_db_parse, &lookup->item_db)) {
         status = panic("failed to parse parser object");
     }
 
