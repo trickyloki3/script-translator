@@ -11,8 +11,12 @@ int csv_create(struct csv * csv, size_t size, struct heap * heap) {
     if(strbuf_create(&csv->strbuf, size)) {
         status = panic("failed to create strbuf object");
     } else {
-        if(list_create(&csv->list, heap->list_pool))
-            status = panic("failed to create list object");
+        csv->pool = heap_pool(heap, sizeof(struct csv_node));
+        if(!csv->pool) {
+            status = panic("failed to pool heap object");
+        } else {
+            csv->root = NULL;
+        }
         if(status)
             strbuf_destroy(&csv->strbuf);
     }
@@ -21,7 +25,6 @@ int csv_create(struct csv * csv, size_t size, struct heap * heap) {
 }
 
 void csv_destroy(struct csv * csv) {
-    list_destroy(&csv->list);
     strbuf_destroy(&csv->strbuf);
 }
 
@@ -101,13 +104,21 @@ int csv_parse_loop(struct csv * csv, yyscan_t scanner, csvpstate * parser) {
 
 int csv_push(struct csv * csv) {
     int status = 0;
-    struct string * string;
+    struct csv_node * node;
 
-    string = strbuf_string(&csv->strbuf);
-    if(!string) {
-        status = panic("failed to string strbuf object");
-    } else if(list_push(&csv->list, string)) {
-        status = panic("failed to push list object");
+    node = pool_get(csv->pool);
+    if(!node) {
+        status = panic("out of memory");
+    } else {
+        node->string = strbuf_string(&csv->strbuf);
+        if(!node->string) {
+            status = panic("failed to string strbuf object");
+        } else {
+            node->next = csv->root;
+            csv->root = node;
+        }
+        if(status)
+            pool_put(csv->pool, node);
     }
 
     return status;
@@ -115,20 +126,29 @@ int csv_push(struct csv * csv) {
 
 int csv_pop(struct csv * csv) {
     int status = 0;
-    struct string * string;
+    struct csv_node * list;
+    struct csv_node * node;
 
-    if(list_top(&csv->list)) {
+    if(csv->root) {
         if(csv->callback(list_begin, NULL, csv->context)) {
             status = panic("failed to process list start event");
         } else {
-            string = list_start(&csv->list);
-            while(string && !status) {
-                if(csv->callback(scalar, string, csv->context)) {
-                    status = panic("failed to process string event");
-                } else {
-                    string = list_next(&csv->list);
-                }
+            list = NULL;
+            while(csv->root) {
+                node = csv->root;
+                csv->root = csv->root->next;
+                node->next = list;
+                list = node;
             }
+            csv->root = list;
+
+            node = csv->root;
+            while(node && !status) {
+                if(csv->callback(scalar, node->string, csv->context))
+                    status = panic("failed to process string event");
+                node = node->next;
+            }
+
             if(status) {
                 /* skip list end on error */
             } else if(csv->callback(list_end, NULL, csv->context)) {
@@ -143,6 +163,13 @@ int csv_pop(struct csv * csv) {
 }
 
 void csv_reset(struct csv * csv) {
-    list_clear(&csv->list);
+    struct csv_node * node;
+
+    while(csv->root) {
+        node = csv->root;
+        csv->root = csv->root->next;
+        pool_put(csv->pool, node);
+    }
+
     strbuf_clear(&csv->strbuf);
 }

@@ -4,9 +4,15 @@
 #include "event.h"
 #include "heap.h"
 
+struct csv_node {
+    struct string * string;
+    struct csv_node * next;
+};
+
 struct csv {
     struct strbuf strbuf;
-    struct list list;
+    struct pool * pool;
+    struct csv_node * root;
     event_cb callback;
     void * context;
 };
