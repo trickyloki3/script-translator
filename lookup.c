@@ -285,7 +285,7 @@ int item_db_parse(enum parser_event event, int mark, struct string * string, voi
                     item_db->index = 0;
                 }
             } else if(event == end) {
-                if(item_db->index != 22) {
+                if(item_db->index != 20) {
                     status = panic("invalid column");
                 } else if(!item_db->item->aegis) {
                     status = panic("invalid string object");
@@ -317,9 +317,7 @@ int item_db_parse(enum parser_event event, int mark, struct string * string, voi
                 case 16: status = string_strtol_splitv(string, 10, ':', &item_db->item->base_level, &item_db->item->max_level, NULL); break;
                 case 17: status = string_strtol(string, 10, &item_db->item->refineable); break;
                 case 18: status = string_strtol(string, 10, &item_db->item->view); break;
-                case 19: status = string_store(&item_db->store, string, &item_db->item->bonus); break;
-                case 20: status = string_store(&item_db->store, string, &item_db->item->onequip); break;
-                case 21: status = string_store(&item_db->store, string, &item_db->item->onunequip); break;
+                case 19: status = string_store(&item_db->store, string, &item_db->item->script); break;
                 default: status = panic("invalid column"); break;
             }
             item_db->index++;

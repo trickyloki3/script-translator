@@ -38,26 +38,8 @@ TEXTDATA    [\x9\x20-\x21\x23-\x2B\x2D-\x7A\x7C\x7E]
     return CSV_COMMENT;
 }
 
-{CURLY} {
-    int status = 0;
-    int count;
-    int symbol;
-
-    count = 1;
-    do {
-        symbol = input(yyscanner);
-        if(symbol == EOF || symbol == '\n') {
-            status = panic("unmatch curly bracket");
-        } else if(symbol == '{') {
-            count++;
-        } else if(symbol == '}') {
-            count--;
-        } else if(strbuf_putc(yyextra, symbol)) {
-            status = panic("failed to putc strbuf object");
-        }
-    } while(count && !status);
-
-    return status ? -1 : CSV_ESCAPED;
+{CURLY}.* {
+    return strbuf_strcpy(yyextra, yytext, yyleng) ? -1 : CSV_ESCAPED;
 }
 
 {DQUOTE}({TEXTDATA}|{COMMA})*{DQUOTE} {

@@ -75,9 +75,7 @@ struct item {
     long max_level;
     long refineable;
     long view;
-    struct string * bonus;
-    struct string * onequip;
-    struct string * onunequip;
+    struct string * script;
 };
 
 struct item_db {
