@@ -91,64 +91,72 @@ static inline void change_parent(struct map * map, struct map_node * x, struct m
 }
 
 static inline void map_insert_node(struct map * map, struct map_node * x) {
+    int c;
     struct map_node * p;
     struct map_node * i;
     struct map_node * s;
 
-    p = NULL;
-    i = map->root;
-    while(i) {
-        p = i;
-        i = 0 > map->compare(x->key, i->key) ? i->left : i->right;
-    }
-
-    x->parent = p;
-    if(is_nil(p)) {
+    if(!map->root) {
         map->root = x;
     } else {
-        if(0 > map->compare(x->key, p->key)) {
-            p->left = x;
-        } else {
-            p->right = x;
+        p = NULL;
+        i = map->root;
+        while(i) {
+            p = i;
+            c = map->compare(x->key, p->key);
+            i = 0 > c ? i->left : i->right;
         }
-    }
 
-    while(is_red(p)) {
-        if(is_left_child(p)) {
-            s = p->parent->right;
-            if(is_red(s)) {
-                p->color = black;
-                s->color = black;
-                p->parent->color = red;
-                x = p->parent;
-                p = x->parent;
-            } else {
-                if(is_right_child(x)) {
-                    x = x->parent;
-                    left_rotate(map, x);
-                    p = x->parent;
-                }
-                p->color = black;
-                p->parent->color = red;
-                right_rotate(map, p->parent);
-            }
+        if(!c)  {
+            p->key = x->key;
+            p->value = x->value;
+            map_node_destroy(map, x);
         } else {
-            s = p->parent->left;
-            if(is_red(s)) {
-                p->color = black;
-                s->color = black;
-                p->parent->color = red;
-                x = p->parent;
-                p = x->parent;
+            x->parent = p;
+            if(0 > c) {
+                p->left = x;
             } else {
-                if(is_left_child(x)) {
-                    x = x->parent;
-                    right_rotate(map, x);
-                    p = x->parent;
+                p->right = x;
+            }
+
+            while(is_red(p)) {
+                if(is_left_child(p)) {
+                    s = p->parent->right;
+                    if(is_red(s)) {
+                        p->color = black;
+                        s->color = black;
+                        p->parent->color = red;
+                        x = p->parent;
+                        p = x->parent;
+                    } else {
+                        if(is_right_child(x)) {
+                            x = x->parent;
+                            left_rotate(map, x);
+                            p = x->parent;
+                        }
+                        p->color = black;
+                        p->parent->color = red;
+                        right_rotate(map, p->parent);
+                    }
+                } else {
+                    s = p->parent->left;
+                    if(is_red(s)) {
+                        p->color = black;
+                        s->color = black;
+                        p->parent->color = red;
+                        x = p->parent;
+                        p = x->parent;
+                    } else {
+                        if(is_left_child(x)) {
+                            x = x->parent;
+                            right_rotate(map, x);
+                            p = x->parent;
+                        }
+                        p->color = black;
+                        p->parent->color = red;
+                        left_rotate(map, p->parent);
+                    }
                 }
-                p->color = black;
-                p->parent->color = red;
-                left_rotate(map, p->parent);
             }
         }
     }
@@ -333,17 +341,11 @@ int map_insert(struct map * map, void * key, void * value) {
     int status = 0;
     struct map_node * node;
 
-    node = map_search_node(map, key);
-    if(node) {
-        node->key = key;
-        node->value = value;
+    node = map_node_create(map, key, value);
+    if(!node) {
+        status = panic("failed to create node object");
     } else {
-        node = map_node_create(map, key, value);
-        if(!node) {
-            status = panic("failed to create node object");
-        } else {
-            map_insert_node(map, node);
-        }
+        map_insert_node(map, node);
     }
 
     return status;
