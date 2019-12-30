@@ -401,3 +401,34 @@ struct map_kv map_next(struct map * map) {
 
     return kv;
 }
+
+struct map_kv map_rstart(struct map * map) {
+    map->iter = map->root;
+    if(map->iter)
+        while(map->iter->right)
+            map->iter = map->iter->right;
+    return map_rnext(map);
+}
+
+struct map_kv map_rnext(struct map * map) {
+    struct map_kv kv = { NULL, NULL };
+    struct map_node * node;
+
+    node = map->iter;
+    if(node) {
+        kv.key = node->key;
+        kv.value = node->value;
+        if(node->left) {
+            node = node->left;
+            while(node->right)
+                node = node->right;
+        } else {
+            while(node->parent && node->parent->left == node)
+                node = node->parent;
+            node = node->parent;
+        }
+        map->iter = node;
+    }
+
+    return kv;
+}

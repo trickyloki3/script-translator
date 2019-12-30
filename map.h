@@ -39,5 +39,7 @@ int map_delete(struct map *, void *);
 void * map_search(struct map *, void *);
 struct map_kv map_start(struct map *);
 struct map_kv map_next(struct map *);
+struct map_kv map_rstart(struct map *);
+struct map_kv map_rnext(struct map *);
 
 #endif
