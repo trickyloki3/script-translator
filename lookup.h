@@ -192,6 +192,24 @@ void mob_db_destroy(struct mob_db *);
 void mob_db_clear(struct mob_db *);
 int mob_db_parse(enum parser_event, int, struct string *, void *);
 
+struct mob_race {
+    struct string * race;
+    struct long_array * id;
+};
+
+struct mob_race_db {
+    struct map map_race;
+    struct store store;
+    struct strbuf strbuf;
+    struct mob_race * mob_race;
+    size_t index;
+};
+
+int mob_race_db_create(struct mob_race_db *, size_t, struct heap *);
+void mob_race_db_destroy(struct mob_race_db *);
+void mob_race_db_clear(struct mob_race_db *);
+int mob_race_db_parse(enum parser_event, int, struct string *, void *);
+
 struct lookup {
     struct schema schema;
     struct parser parser;
@@ -199,6 +217,7 @@ struct lookup {
     struct item_db item_db;
     struct skill_db skill_db;
     struct mob_db mob_db;
+    struct mob_race_db mob_race_db;
 };
 
 int lookup_create(struct lookup *, size_t, struct heap *);
@@ -208,5 +227,6 @@ int lookup_item_db_parse(struct lookup *, char *);
 int lookup_item_combo_db_parse(struct lookup *, char *);
 int lookup_skill_db_parse(struct lookup *, char *);
 int lookup_mob_db_parse(struct lookup *, char *);
+int lookup_mob_race_db_parse(struct lookup *, char *);
 
 #endif

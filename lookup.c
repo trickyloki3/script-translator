@@ -660,6 +660,86 @@ int mob_db_parse(enum parser_event event, int mark, struct string * string, void
     return status;
 }
 
+int mob_race_db_create(struct mob_race_db * mob_race_db, size_t size, struct heap * heap) {
+    int status = 0;
+
+    if(map_create(&mob_race_db->map_race, (map_compare_cb) strcmp, heap->map_pool)) {
+        status = panic("failed to create map object");
+    } else {
+        if(store_create(&mob_race_db->store, size)) {
+            status = panic("failed to create store object");
+        } else {
+            if(strbuf_create(&mob_race_db->strbuf, size)) {
+                status = panic("failed to create strbuf object");
+            } else {
+                mob_race_db->mob_race = NULL;
+                mob_race_db->index = 0;
+            }
+            if(status)
+                store_destroy(&mob_race_db->store);
+        }
+        if(status)
+            map_destroy(&mob_race_db->map_race);
+    }
+
+    return status;
+}
+
+void mob_race_db_destroy(struct mob_race_db * mob_race_db) {
+    strbuf_destroy(&mob_race_db->strbuf);
+    store_destroy(&mob_race_db->store);
+    map_destroy(&mob_race_db->map_race);
+}
+
+void mob_race_db_clear(struct mob_race_db * mob_race_db) {
+    mob_race_db->index = 0;
+    mob_race_db->mob_race = NULL;
+    strbuf_clear(&mob_race_db->strbuf);
+    store_clear(&mob_race_db->store);
+    map_clear(&mob_race_db->map_race);
+}
+
+int mob_race_db_parse(enum parser_event event, int mark, struct string * string, void * context) {
+    int status = 0;
+    struct mob_race_db * mob_race_db = context;
+
+    struct string * id;
+
+    switch(mark) {
+        case 1:
+            if(event == start) {
+                mob_race_db->mob_race = store_object(&mob_race_db->store, sizeof(*mob_race_db->mob_race));
+                if(!mob_race_db->mob_race) {
+                    status = panic("failed to object store object");
+                } else {
+                    mob_race_db->index = 0;
+                }
+            } else if(event == end) {
+                id = strbuf_string(&mob_race_db->strbuf);
+                if(!id) {
+                    status = panic("failed to string strbuf object");
+                } else {
+                    if(string_strtol_split(id, 10, ',', &mob_race_db->store, &mob_race_db->mob_race->id)) {
+                        status = panic("failed to strtol split string object");
+                    } else if(map_insert(&mob_race_db->map_race, mob_race_db->mob_race->race->string, mob_race_db->mob_race)) {
+                        status = panic("failed to insert map object");
+                    }
+                }
+                strbuf_clear(&mob_race_db->strbuf);
+            }
+            break;
+        case 2:
+            switch(mob_race_db->index) {
+                case 0: status = string_store(string, &mob_race_db->store, &mob_race_db->mob_race->race); break;
+                default: status = strbuf_strcpy(&mob_race_db->strbuf, string->string, string->length) || strbuf_putc(&mob_race_db->strbuf, ','); break;
+            }
+            mob_race_db->index++;
+            break;
+    }
+
+    return status;
+}
+
 int lookup_create(struct lookup * lookup, size_t size, struct heap * heap) {
     int status = 0;
 
@@ -678,8 +758,14 @@ int lookup_create(struct lookup * lookup, size_t size, struct heap * heap) {
                     if(skill_db_create(&lookup->skill_db, size, heap)) {
                         status = panic("failed to create skill db object");
                     } else {
-                        if(mob_db_create(&lookup->mob_db, size, heap))
+                        if(mob_db_create(&lookup->mob_db, size, heap)) {
                             status = panic("failed to create mob db object");
+                        } else {
+                            if(mob_race_db_create(&lookup->mob_race_db, size, heap))
+                                status = panic("failed to create mob race db object");
+                            if(status)
+                                mob_db_destroy(&lookup->mob_db);
+                        }
                         if(status)
                             skill_db_destroy(&lookup->skill_db);
                     }
@@ -700,6 +786,7 @@ int lookup_create(struct lookup * lookup, size_t size, struct heap * heap) {
 }
 
 void lookup_destroy(struct lookup * lookup) {
+    mob_race_db_destroy(&lookup->mob_race_db);
     mob_db_destroy(&lookup->mob_db);
     skill_db_destroy(&lookup->skill_db);
     item_db_destroy(&lookup->item_db);
@@ -776,6 +863,20 @@ int lookup_mob_db_parse(struct lookup * lookup, char * path) {
     if(!mob_db_schema) {
         status = panic("failed to load schema object");
     } else if(parser_parse(&lookup->parser, path, mob_db_schema, mob_db_parse, &lookup->mob_db)) {
+        status = panic("failed to parse parser object");
+    }
+
+    return status;
+}
+
+int lookup_mob_race_db_parse(struct lookup * lookup, char * path) {
+    int status = 0;
+    struct schema_data * mob_race_schema;
+
+    mob_race_schema = schema_load(&lookup->schema, csv_markup);
+    if(!mob_race_schema) {
+        status = panic("failed to load schema object");
+    } else if(parser_parse(&lookup->parser, path, mob_race_schema, mob_race_db_parse, &lookup->mob_race_db)) {
         status = panic("failed to parse parser object");
     }
 
