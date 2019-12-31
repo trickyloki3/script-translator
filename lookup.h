@@ -140,12 +140,65 @@ void skill_db_destroy(struct skill_db *);
 void skill_db_clear(struct skill_db *);
 int skill_db_parse(enum parser_event, int, struct string *, void *);
 
+struct mob {
+    long id;
+    struct string * sprite;
+    struct string * kro;
+    struct string * iro;
+    long level;
+    long hp;
+    long sp;
+    long exp;
+    long jexp;
+    long range1;
+    long atk1;
+    long atk2;
+    long def;
+    long mdef;
+    long str;
+    long agi;
+    long vit;
+    long inte;
+    long dex;
+    long luk;
+    long range2;
+    long range3;
+    long scale;
+    long race;
+    long element;
+    long mode;
+    long speed;
+    long adelay;
+    long amotion;
+    long dmotion;
+    double mexp;
+    long mvp_drop_id[3];
+    long mvp_drop_chance[3];
+    long drop_id[9];
+    long drop_chance[9];
+    long drop_card_id;
+    long drop_card_chance;
+};
+
+struct mob_db {
+    struct map map_id;
+    struct store store;
+    struct mob * mob;
+    size_t index;
+};
+
+int mob_db_create(struct mob_db *, size_t, struct heap *);
+void mob_db_destroy(struct mob_db *);
+void mob_db_clear(struct mob_db *);
+int mob_db_parse(enum parser_event, int, struct string *, void *);
+
 struct lookup {
     struct schema schema;
     struct parser parser;
     struct pet_db pet_db;
     struct item_db item_db;
     struct skill_db skill_db;
+    struct mob_db mob_db;
 };
 
 int lookup_create(struct lookup *, size_t, struct heap *);
@@ -154,5 +207,6 @@ int lookup_pet_db_parse(struct lookup *, char *);
 int lookup_item_db_parse(struct lookup *, char *);
 int lookup_item_combo_db_parse(struct lookup *, char *);
 int lookup_skill_db_parse(struct lookup *, char *);
+int lookup_mob_db_parse(struct lookup *, char *);
 
 #endif

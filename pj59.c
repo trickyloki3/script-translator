@@ -22,6 +22,8 @@ int main(int argc, char ** argv) {
                     status = panic("failed to item combo db lookup object");
                 } else if(lookup_skill_db_parse(&lookup, "skill_db.txt")) {
                     status = panic("failed to skill db lookup object");
+                } else if(lookup_mob_db_parse(&lookup, "mob_db.txt")) {
+                    status = panic("failed to mob db lookup object");
                 }
                 lookup_destroy(&lookup);
             }

@@ -3,6 +3,7 @@
 int long_compare(void *, void *);
 
 int string_store(struct string *,struct store *,  struct string **);
+int string_strtod(struct string *, double *);
 int string_strtol(struct string *, int, long *);
 int string_strtoul(struct string *, int, unsigned long *);
 int string_strtol_split(struct string *, int, char, struct store *, struct long_array **);
@@ -67,6 +68,26 @@ int string_store(struct string * string, struct store * store, struct string ** 
         status = panic("failed to string store object");
     } else {
         *result = string;
+    }
+
+    return status;
+}
+
+int string_strtod(struct string * string, double * result) {
+    int status = 0;
+
+    long number;
+    char * last;
+
+    if(!string->length) {
+        *result = 0;
+    } else {
+        number = strtod(string->string, &last);
+        if(string->string + string->length != last) {
+            status = panic("invalid '%s' in '%s'", last, string->string);
+        } else {
+            *result = number;
+        }
     }
 
     return status;
@@ -519,6 +540,126 @@ int skill_db_parse(enum parser_event event, int mark, struct string * string, vo
     return status;
 }
 
+int mob_db_create(struct mob_db * mob_db, size_t size, struct heap * heap) {
+    int status = 0;
+
+    if(map_create(&mob_db->map_id, long_compare, heap->map_pool)) {
+        status = panic("failed to create map object");
+    } else {
+        if(store_create(&mob_db->store, size)) {
+            status = panic("failed to create store object");
+        } else {
+            mob_db->mob = NULL;
+            mob_db->index = 0;
+        }
+        if(status)
+            map_destroy(&mob_db->map_id);
+    }
+
+    return status;
+}
+
+void mob_db_destroy(struct mob_db * mob_db) {
+    store_destroy(&mob_db->store);
+    map_destroy(&mob_db->map_id);
+}
+
+void mob_db_clear(struct mob_db * mob_db) {
+    mob_db->index = 0;
+    mob_db->mob = NULL;
+    store_clear(&mob_db->store);
+    map_clear(&mob_db->map_id);
+}
+
+int mob_db_parse(enum parser_event event, int mark, struct string * string, void * context) {
+    int status = 0;
+    struct mob_db * mob_db = context;
+
+    switch(mark) {
+        case 1:
+            if(event == start) {
+                mob_db->mob = store_object(&mob_db->store, sizeof(*mob_db->mob));
+                if(!mob_db->mob) {
+                    status = panic("failed to object store object");
+                } else {
+                    mob_db->index = 0;
+                }
+            } else if(event == end) {
+                if(mob_db->index != 57) {
+                    status = panic("invalid column");
+                } else if(map_insert(&mob_db->map_id, &mob_db->mob->id, mob_db->mob)) {
+                    status = panic("failed to insert map object");
+                }
+            }
+            break;
+        case 2:
+            switch(mob_db->index) {
+                case 0: status = string_strtol(string, 10, &mob_db->mob->id); break;
+                case 1: status = string_store(string, &mob_db->store, &mob_db->mob->sprite); break;
+                case 2: status = string_store(string, &mob_db->store, &mob_db->mob->kro); break;
+                case 3: status = string_store(string, &mob_db->store, &mob_db->mob->iro); break;
+                case 4: status = string_strtol(string, 10, &mob_db->mob->level); break;
+                case 5: status = string_strtol(string, 10, &mob_db->mob->hp); break;
+                case 6: status = string_strtol(string, 10, &mob_db->mob->sp); break;
+                case 7: status = string_strtol(string, 10, &mob_db->mob->exp); break;
+                case 8: status = string_strtol(string, 10, &mob_db->mob->jexp); break;
+                case 9: status = string_strtol(string, 10, &mob_db->mob->range1); break;
+                case 10: status = string_strtol(string, 10, &mob_db->mob->atk1); break;
+                case 11: status = string_strtol(string, 10, &mob_db->mob->atk2); break;
+                case 12: status = string_strtol(string, 10, &mob_db->mob->def); break;
+                case 13: status = string_strtol(string, 10, &mob_db->mob->mdef); break;
+                case 14: status = string_strtol(string, 10, &mob_db->mob->str); break;
+                case 15: status = string_strtol(string, 10, &mob_db->mob->agi); break;
+                case 16: status = string_strtol(string, 10, &mob_db->mob->vit); break;
+                case 17: status = string_strtol(string, 10, &mob_db->mob->inte); break;
+                case 18: status = string_strtol(string, 10, &mob_db->mob->dex); break;
+                case 19: status = string_strtol(string, 10, &mob_db->mob->luk); break;
+                case 20: status = string_strtol(string, 10, &mob_db->mob->range2); break;
+                case 21: status = string_strtol(string, 10, &mob_db->mob->range3); break;
+                case 22: status = string_strtol(string, 10, &mob_db->mob->scale); break;
+                case 23: status = string_strtol(string, 10, &mob_db->mob->race); break;
+                case 24: status = string_strtol(string, 10, &mob_db->mob->element); break;
+                case 25: status = string_strtol(string, 16, &mob_db->mob->mode); break;
+                case 26: status = string_strtol(string, 10, &mob_db->mob->speed); break;
+                case 27: status = string_strtol(string, 10, &mob_db->mob->adelay); break;
+                case 28: status = string_strtol(string, 10, &mob_db->mob->amotion); break;
+                case 29: status = string_strtol(string, 10, &mob_db->mob->dmotion); break;
+                case 30: status = string_strtod(string, &mob_db->mob->mexp); break;
+                case 31: status = string_strtol(string, 10, &mob_db->mob->mvp_drop_id[0]); break;
+                case 32: status = string_strtol(string, 10, &mob_db->mob->mvp_drop_chance[0]); break;
+                case 33: status = string_strtol(string, 10, &mob_db->mob->mvp_drop_id[1]); break;
+                case 34: status = string_strtol(string, 10, &mob_db->mob->mvp_drop_chance[1]); break;
+                case 35: status = string_strtol(string, 10, &mob_db->mob->mvp_drop_id[2]); break;
+                case 36: status = string_strtol(string, 10, &mob_db->mob->mvp_drop_chance[2]); break;
+                case 37: status = string_strtol(string, 10, &mob_db->mob->drop_id[0]); break;
+                case 38: status = string_strtol(string, 10, &mob_db->mob->drop_chance[0]); break;
+                case 39: status = string_strtol(string, 10, &mob_db->mob->drop_id[1]); break;
+                case 40: status = string_strtol(string, 10, &mob_db->mob->drop_chance[1]); break;
+                case 41: status = string_strtol(string, 10, &mob_db->mob->drop_id[2]); break;
+                case 42: status = string_strtol(string, 10, &mob_db->mob->drop_chance[2]); break;
+                case 43: status = string_strtol(string, 10, &mob_db->mob->drop_id[3]); break;
+                case 44: status = string_strtol(string, 10, &mob_db->mob->drop_chance[3]); break;
+                case 45: status = string_strtol(string, 10, &mob_db->mob->drop_id[4]); break;
+                case 46: status = string_strtol(string, 10, &mob_db->mob->drop_chance[4]); break;
+                case 47: status = string_strtol(string, 10, &mob_db->mob->drop_id[5]); break;
+                case 48: status = string_strtol(string, 10, &mob_db->mob->drop_chance[5]); break;
+                case 49: status = string_strtol(string, 10, &mob_db->mob->drop_id[6]); break;
+                case 50: status = string_strtol(string, 10, &mob_db->mob->drop_chance[6]); break;
+                case 51: status = string_strtol(string, 10, &mob_db->mob->drop_id[7]); break;
+                case 52: status = string_strtol(string, 10, &mob_db->mob->drop_chance[7]); break;
+                case 53: status = string_strtol(string, 10, &mob_db->mob->drop_id[8]); break;
+                case 54: status = string_strtol(string, 10, &mob_db->mob->drop_chance[8]); break;
+                case 55: status = string_strtol(string, 10, &mob_db->mob->drop_card_id); break;
+                case 56: status = string_strtol(string, 10, &mob_db->mob->drop_card_chance); break;
+                default: status = panic("invalid column"); break;
+            }
+            mob_db->index++;
+            break;
+    }
+
+    return status;
+}
+
 int lookup_create(struct lookup * lookup, size_t size, struct heap * heap) {
     int status = 0;
 
@@ -534,8 +675,14 @@ int lookup_create(struct lookup * lookup, size_t size, struct heap * heap) {
                 if(item_db_create(&lookup->item_db, size, heap)) {
                     status = panic("failed to create item db object");
                 } else {
-                    if(skill_db_create(&lookup->skill_db, size, heap))
+                    if(skill_db_create(&lookup->skill_db, size, heap)) {
                         status = panic("failed to create skill db object");
+                    } else {
+                        if(mob_db_create(&lookup->mob_db, size, heap))
+                            status = panic("failed to create mob db object");
+                        if(status)
+                            skill_db_destroy(&lookup->skill_db);
+                    }
                     if(status)
                         item_db_destroy(&lookup->item_db);
                 }
@@ -553,6 +700,7 @@ int lookup_create(struct lookup * lookup, size_t size, struct heap * heap) {
 }
 
 void lookup_destroy(struct lookup * lookup) {
+    mob_db_destroy(&lookup->mob_db);
     skill_db_destroy(&lookup->skill_db);
     item_db_destroy(&lookup->item_db);
     pet_db_destroy(&lookup->pet_db);
@@ -614,6 +762,20 @@ int lookup_skill_db_parse(struct lookup * lookup, char * path) {
     if(!skill_db_schema) {
         status = panic("failed to load schema object");
     } else if(parser_parse(&lookup->parser, path, skill_db_schema, skill_db_parse, &lookup->skill_db)) {
+        status = panic("failed to parse parser object");
+    }
+
+    return status;
+}
+
+int lookup_mob_db_parse(struct lookup * lookup, char * path) {
+    int status = 0;
+    struct schema_data * mob_db_schema;
+
+    mob_db_schema = schema_load(&lookup->schema, csv_markup);
+    if(!mob_db_schema) {
+        status = panic("failed to load schema object");
+    } else if(parser_parse(&lookup->parser, path, mob_db_schema, mob_db_parse, &lookup->mob_db)) {
         status = panic("failed to parse parser object");
     }
 
