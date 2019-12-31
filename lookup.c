@@ -292,6 +292,8 @@ int item_db_create(struct item_db * item_db, size_t size, struct heap * heap) {
                 status = panic("failed to create store object");
             } else {
                 item_db->item = NULL;
+                item_db->id = NULL;
+                item_db->script = NULL;
                 item_db->index = 0;
             }
             if(status)
@@ -312,6 +314,8 @@ void item_db_destroy(struct item_db * item_db) {
 
 void item_db_clear(struct item_db * item_db) {
     item_db->index = 0;
+    item_db->script = NULL;
+    item_db->id = NULL;
     item_db->item = NULL;
     store_clear(&item_db->store);
     map_clear(&item_db->map_aegis);
@@ -340,6 +344,8 @@ int item_db_parse(enum parser_event event, int mark, struct string * string, voi
                     status = panic("failed to insert map object");
                 } else if(map_insert(&item_db->map_aegis, item_db->item->aegis->string, item_db->item)) {
                     status = panic("failed to insert map object");
+                } else {
+                    item_db->item->combo = NULL;
                 }
             }
             break;
@@ -365,6 +371,52 @@ int item_db_parse(enum parser_event event, int mark, struct string * string, voi
                 case 17: status = string_strtol(string, 10, &item_db->item->refineable); break;
                 case 18: status = string_strtol(string, 10, &item_db->item->view); break;
                 case 19: status = string_store(&item_db->store, string, &item_db->item->script); break;
+                default: status = panic("invalid column"); break;
+            }
+            item_db->index++;
+            break;
+    }
+
+    return status;
+}
+
+int item_combo_db_parse(enum parser_event event, int mark, struct string * string, void * context) {
+    int status = 0;
+    struct item_db * item_db = context;
+
+    size_t i;
+    struct item * item;
+    struct item_combo * combo;
+
+    switch(mark) {
+        case 1:
+            if(event == start) {
+                item_db->index = 0;
+            } else {
+                if(item_db->index != 2) {
+                    status = panic("invalid column");
+                } else {
+                    for(i = 0; i < item_db->id->count && !status; i++) {
+                        item = map_search(&item_db->map_id, &item_db->id->array[i]);
+                        if(item) {
+                            combo = store_object(&item_db->store, sizeof(*combo));
+                            if(!combo) {
+                                status = panic("failed to object store object");
+                            } else {
+                                combo->id = item_db->id;
+                                combo->script = item_db->script;
+                                combo->next = item->combo;
+                                item->combo = combo;
+                            }
+                        }
+                    }
+                }
+            }
+            break;
+        case 2:
+            switch(item_db->index) {
+                case 0: status = string_strtol_split(string, 10, ':', &item_db->store, &item_db->id); break;
+                case 1: status = string_store(&item_db->store, string, &item_db->script); break;
                 default: status = panic("invalid column"); break;
             }
             item_db->index++;
@@ -434,6 +486,20 @@ int lookup_item_db_parse(struct lookup * lookup, char * path) {
     if(!item_db_schema) {
         status = panic("failed to load schema object");
     } else if(parser_parse(&lookup->parser, path, item_db_schema, item_db_parse, &lookup->item_db)) {
+        status = panic("failed to parse parser object");
+    }
+
+    return status;
+}
+
+int lookup_item_combo_db_parse(struct lookup * lookup, char * path) {
+    int status = 0;
+    struct schema_data * item_combo_db_schema;
+
+    item_combo_db_schema = schema_load(&lookup->schema, csv_markup);
+    if(!item_combo_db_schema) {
+        status = panic("failed to load schema object");
+    } else if(parser_parse(&lookup->parser, path, item_combo_db_schema, item_combo_db_parse, &lookup->item_db)) {
         status = panic("failed to parse parser object");
     }
 

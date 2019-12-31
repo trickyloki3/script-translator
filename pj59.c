@@ -17,7 +17,9 @@ int main(int argc, char ** argv) {
                 if(lookup_pet_db_parse(&lookup, "pet_db.yml")) {
                     status = panic("failed to pet db lookup object");
                 } else if(lookup_item_db_parse(&lookup, "item_db.txt")) {
-                    status = panic("failed to pet db lookup object");
+                    status = panic("failed to item db lookup object");
+                } else if(lookup_item_combo_db_parse(&lookup, "item_combo_db.txt")) {
+                    status = panic("failed to item combo db lookup object");
                 }
                 lookup_destroy(&lookup);
             }

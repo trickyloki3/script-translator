@@ -58,6 +58,12 @@ void pet_db_destroy(struct pet_db *);
 void pet_db_clear(struct pet_db *);
 int pet_db_parse(enum parser_event, int, struct string *, void *);
 
+struct item_combo {
+    struct long_array * id;
+    struct string * script;
+    struct item_combo * next;
+};
+
 struct item {
     long id;
     struct string * aegis;
@@ -81,6 +87,7 @@ struct item {
     long refineable;
     long view;
     struct string * script;
+    struct item_combo * combo;
 };
 
 struct item_db {
@@ -88,6 +95,8 @@ struct item_db {
     struct map map_aegis;
     struct store store;
     struct item * item;
+    struct long_array * id;
+    struct string * script;
     size_t index;
 };
 
@@ -95,6 +104,7 @@ int item_db_create(struct item_db *, size_t, struct heap *);
 void item_db_destroy(struct item_db *);
 void item_db_clear(struct item_db *);
 int item_db_parse(enum parser_event, int, struct string *, void *);
+int item_combo_db_parse(enum parser_event, int, struct string *, void *);
 
 struct lookup {
     struct schema schema;
@@ -107,5 +117,6 @@ int lookup_create(struct lookup *, size_t, struct heap *);
 void lookup_destroy(struct lookup *);
 int lookup_pet_db_parse(struct lookup *, char *);
 int lookup_item_db_parse(struct lookup *, char *);
+int lookup_item_combo_db_parse(struct lookup *, char *);
 
 #endif
