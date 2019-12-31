@@ -2,7 +2,7 @@
 
 int long_compare(void *, void *);
 
-int string_store(struct store *, struct string *, struct string **);
+int string_store(struct string *,struct store *,  struct string **);
 int string_strtol(struct string *, int, long *);
 int string_strtoul(struct string *, int, unsigned long *);
 int string_strtol_split(struct string *, int, char, struct store *, struct long_array **);
@@ -59,7 +59,7 @@ int long_compare(void * x, void * y) {
     return l < r ? -1 : l > r ? 1 : 0;
 }
 
-int string_store(struct store * store, struct string * string, struct string ** result) {
+int string_store(struct string * string, struct store * store, struct string ** result) {
     int status = 0;
 
     string = store_string(store, string);
@@ -230,11 +230,11 @@ int pet_db_parse(enum parser_event event, int mark, struct string * string, void
                 }
             }
             break;
-        case 6: status = string_store(&pet_db->store, string, &pet_db->pet->mob); break;
-        case 7: status = string_store(&pet_db->store, string, &pet_db->pet->tame_item); break;
-        case 8: status = string_store(&pet_db->store, string, &pet_db->pet->egg_item); break;
-        case 9: status = string_store(&pet_db->store, string, &pet_db->pet->equip_item); break;
-        case 10: status = string_store(&pet_db->store, string, &pet_db->pet->food_item); break;
+        case 6: status = string_store(string, &pet_db->store, &pet_db->pet->mob); break;
+        case 7: status = string_store(string, &pet_db->store, &pet_db->pet->tame_item); break;
+        case 8: status = string_store(string, &pet_db->store, &pet_db->pet->egg_item); break;
+        case 9: status = string_store(string, &pet_db->store, &pet_db->pet->equip_item); break;
+        case 10: status = string_store(string, &pet_db->store, &pet_db->pet->food_item); break;
         case 11: status = string_strtol(string, 10, &pet_db->pet->fullness); break;
         case 12: status = string_strtol(string, 10, &pet_db->pet->hungry_delay); break;
         case 13: status = string_strtol(string, 10, &pet_db->pet->hunger_increase); break;
@@ -244,13 +244,13 @@ int pet_db_parse(enum parser_event event, int mark, struct string * string, void
         case 17: status = string_strtol(string, 10, &pet_db->pet->intimacy_hungry); break;
         case 18: status = string_strtol(string, 10, &pet_db->pet->intimacy_owner_die); break;
         case 19: status = string_strtol(string, 10, &pet_db->pet->capture_rate); break;
-        case 20: status = string_store(&pet_db->store, string, &pet_db->pet->special_performance); break;
+        case 20: status = string_store(string, &pet_db->store, &pet_db->pet->special_performance); break;
         case 21: status = string_strtol(string, 10, &pet_db->pet->attack_rate); break;
         case 22: status = string_strtol(string, 10, &pet_db->pet->retaliate_rate); break;
         case 23: status = string_strtol(string, 10, &pet_db->pet->change_target_rate); break;
-        case 24: status = string_store(&pet_db->store, string, &pet_db->pet->allow_auto_feed); break;
-        case 25: status = string_store(&pet_db->store, string, &pet_db->pet->script); break;
-        case 26: status = string_store(&pet_db->store, string, &pet_db->pet->support_script); break;
+        case 24: status = string_store(string, &pet_db->store, &pet_db->pet->allow_auto_feed); break;
+        case 25: status = string_store(string, &pet_db->store, &pet_db->pet->script); break;
+        case 26: status = string_store(string, &pet_db->store, &pet_db->pet->support_script); break;
         case 28:
             if(event == start) {
                 pet_db->evo = store_object(&pet_db->store, sizeof(*pet_db->evo));
@@ -261,7 +261,7 @@ int pet_db_parse(enum parser_event event, int mark, struct string * string, void
                 pet_db->pet->evolution = pet_db->evo;
             }
             break;
-        case 29: status = string_store(&pet_db->store, string, &pet_db->evo->target); break;
+        case 29: status = string_store(string, &pet_db->store, &pet_db->evo->target); break;
         case 31:
             if(event == start) {
                 pet_db->req = store_object(&pet_db->store, sizeof(*pet_db->req));
@@ -272,7 +272,7 @@ int pet_db_parse(enum parser_event event, int mark, struct string * string, void
                 pet_db->evo->requirement = pet_db->req;
             }
             break;
-        case 32: status = string_store(&pet_db->store, string, &pet_db->req->item); break;
+        case 32: status = string_store(string, &pet_db->store, &pet_db->req->item); break;
         case 33: status = string_strtol(string, 10, &pet_db->req->amount); break;
     }
 
@@ -352,8 +352,8 @@ int item_db_parse(enum parser_event event, int mark, struct string * string, voi
         case 2:
             switch(item_db->index) {
                 case 0: status = string_strtol(string, 10, &item_db->item->id); break;
-                case 1: status = string_store(&item_db->store, string, &item_db->item->aegis); break;
-                case 2: status = string_store(&item_db->store, string, &item_db->item->name); break;
+                case 1: status = string_store(string, &item_db->store, &item_db->item->aegis); break;
+                case 2: status = string_store(string, &item_db->store, &item_db->item->name); break;
                 case 3: status = string_strtol(string, 10, &item_db->item->type); break;
                 case 4: status = string_strtol(string, 10, &item_db->item->buy); break;
                 case 5: status = string_strtol(string, 10, &item_db->item->sell); break;
@@ -370,7 +370,7 @@ int item_db_parse(enum parser_event event, int mark, struct string * string, voi
                 case 16: status = string_strtol_splitv(string, 10, ':', &item_db->item->base_level, &item_db->item->max_level, NULL); break;
                 case 17: status = string_strtol(string, 10, &item_db->item->refineable); break;
                 case 18: status = string_strtol(string, 10, &item_db->item->view); break;
-                case 19: status = string_store(&item_db->store, string, &item_db->item->script); break;
+                case 19: status = string_store(string, &item_db->store, &item_db->item->script); break;
                 default: status = panic("invalid column"); break;
             }
             item_db->index++;
@@ -416,7 +416,7 @@ int item_combo_db_parse(enum parser_event event, int mark, struct string * strin
         case 2:
             switch(item_db->index) {
                 case 0: status = string_strtol_split(string, 10, ':', &item_db->store, &item_db->id); break;
-                case 1: status = string_store(&item_db->store, string, &item_db->script); break;
+                case 1: status = string_store(string, &item_db->store, &item_db->script); break;
                 default: status = panic("invalid column"); break;
             }
             item_db->index++;
@@ -501,15 +501,15 @@ int skill_db_parse(enum parser_event event, int mark, struct string * string, vo
                 case 6: status = string_strtol_split(string, 10, ':', &skill_db->store, &skill_db->skill->splash); break;
                 case 7: status = string_strtol(string, 10, &skill_db->skill->maxlv); break;
                 case 8: status = string_strtol_split(string, 10, ':', &skill_db->store, &skill_db->skill->hit_amount); break;
-                case 9: status = string_store(&skill_db->store, string, &skill_db->skill->cast_cancel); break;
+                case 9: status = string_store(string, &skill_db->store, &skill_db->skill->cast_cancel); break;
                 case 10: status = string_strtol(string, 10, &skill_db->skill->cast_def_reduce_rate); break;
                 case 11: status = string_strtol(string, 16, &skill_db->skill->inf2); break;
                 case 12: status = string_strtol_split(string, 10, ':', &skill_db->store, &skill_db->skill->max_count); break;
-                case 13: status = string_store(&skill_db->store, string, &skill_db->skill->type); break;
+                case 13: status = string_store(string, &skill_db->store, &skill_db->skill->type); break;
                 case 14: status = string_strtol_split(string, 10, ':', &skill_db->store, &skill_db->skill->blow_count); break;
                 case 15: status = string_strtol(string, 16, &skill_db->skill->inf3); break;
-                case 16: status = string_store(&skill_db->store, string, &skill_db->skill->macro); break;
-                case 17: status = string_store(&skill_db->store, string, &skill_db->skill->name); break;
+                case 16: status = string_store(string, &skill_db->store, &skill_db->skill->macro); break;
+                case 17: status = string_store(string, &skill_db->store, &skill_db->skill->name); break;
                 default: status = panic("invalid column"); break;
             }
             skill_db->index++;
