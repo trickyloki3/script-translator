@@ -145,7 +145,7 @@ int string_strtol_split(struct string * string, int base, char split, struct sto
     count = 0;
     while(ptr) {
         count++;
-        ptr = strchr(ptr, ':');
+        ptr = strchr(ptr, split);
         if(ptr)
             ptr++;
     }
