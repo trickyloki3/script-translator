@@ -3,6 +3,11 @@
 
 #include "parser.h"
 
+struct long_array {
+    long * array;
+    size_t count;
+};
+
 struct pet_req {
     struct string * item;
     long amount;

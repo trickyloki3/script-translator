@@ -5,6 +5,7 @@ int long_compare(void *, void *);
 int string_store(struct store *, struct string *, struct string **);
 int string_strtol(struct string *, int, long *);
 int string_strtoul(struct string *, int, unsigned long *);
+int string_strtol_split(struct string *, int, char, struct store *, struct long_array **);
 int string_strtol_splitv(struct string *, int, int, ...);
 
 struct schema_markup pet_db_markup[] = {
@@ -105,6 +106,52 @@ int string_strtoul(struct string * string, int base, unsigned long * result) {
             status = panic("invalid '%s' in '%s'", last, string->string);
         } else {
             *result = number;
+        }
+    }
+
+    return status;
+}
+
+int string_strtol_split(struct string * string, int base, char split, struct store * store, struct long_array ** result) {
+    int status = 0;
+    struct long_array * array;
+
+    char * ptr;
+    size_t count;
+    char * end;
+
+    ptr = string->string;
+    count = 0;
+    while(ptr) {
+        count++;
+        ptr = strchr(ptr, ':');
+        if(ptr)
+            ptr++;
+    }
+
+    array = store_object(store, sizeof(*array));
+    if(!array) {
+        status = panic("failed to object store object");
+    } else {
+        array->count = count;
+        array->array = store_object(store, sizeof(*array->array) * array->count);
+        if(!array->array) {
+            status = panic("failed to object store object");
+        } else {
+            ptr = string->string;
+            count = 0;
+            while(ptr && count < array->count) {
+                array->array[count++] = strtol(ptr, &end, base);
+                ptr = *end == split ? end + 1 : NULL;
+                if(!ptr && *end)
+                    status = panic("invalid string '%s' in '%s'", end, string->string);
+            }
+
+            if(status) {
+
+            } else {
+                *result = array;
+            }
         }
     }
 
