@@ -20,6 +20,8 @@ int main(int argc, char ** argv) {
                     status = panic("failed to item db lookup object");
                 } else if(lookup_item_combo_db_parse(&lookup, "item_combo_db.txt")) {
                     status = panic("failed to item combo db lookup object");
+                } else if(lookup_skill_db_parse(&lookup, "skill_db.txt")) {
+                    status = panic("failed to skill db lookup object");
                 }
                 lookup_destroy(&lookup);
             }

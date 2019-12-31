@@ -426,6 +426,99 @@ int item_combo_db_parse(enum parser_event event, int mark, struct string * strin
     return status;
 }
 
+int skill_db_create(struct skill_db * skill_db, size_t size, struct heap * heap) {
+    int status = 0;
+
+    if(map_create(&skill_db->map_id, long_compare, heap->map_pool)) {
+        status = panic("failed to create map object");
+    } else {
+        if(map_create(&skill_db->map_macro, (map_compare_cb) strcmp, heap->map_pool)) {
+            status = panic("failed to create map object");
+        } else {
+            if(store_create(&skill_db->store, size)) {
+                status = panic("failed to create store object");
+            } else {
+                skill_db->skill = NULL;
+                skill_db->index = 0;
+            }
+            if(status)
+                map_destroy(&skill_db->map_macro);
+        }
+        if(status)
+            map_destroy(&skill_db->map_id);
+    }
+
+    return status;
+}
+
+void skill_db_destroy(struct skill_db * skill_db) {
+    store_destroy(&skill_db->store);
+    map_destroy(&skill_db->map_macro);
+    map_destroy(&skill_db->map_id);
+}
+
+void skill_db_clear(struct skill_db * skill_db) {
+    skill_db->index = 0;
+    skill_db->skill = NULL;
+    store_clear(&skill_db->store);
+    map_clear(&skill_db->map_macro);
+    map_clear(&skill_db->map_id);
+}
+
+int skill_db_parse(enum parser_event event, int mark, struct string * string, void * context) {
+    int status = 0;
+    struct skill_db * skill_db = context;
+
+    switch(mark) {
+        case 1:
+            if(event == start) {
+                skill_db->skill = store_object(&skill_db->store, sizeof(*skill_db->skill));
+                if(!skill_db->skill) {
+                    status = panic("failed to object store object");
+                } else {
+                    skill_db->index = 0;
+                }
+            } else if(event == end) {
+                if(skill_db->index != 18) {
+                    status = panic("invalid column");
+                } else if(!skill_db->skill->macro) {
+                    status = panic("invalid string object");
+                } else if(map_insert(&skill_db->map_id, &skill_db->skill->id, skill_db->skill)) {
+                    status = panic("failed to insert map object");
+                } else if(map_insert(&skill_db->map_macro, skill_db->skill->macro->string, skill_db->skill)) {
+                    status = panic("failed to insert map object");
+                }
+            }
+            break;
+        case 2:
+            switch(skill_db->index) {
+                case 0: status = string_strtol(string, 10, &skill_db->skill->id); break;
+                case 1: status = string_strtol_split(string, 10, ':', &skill_db->store, &skill_db->skill->range); break;
+                case 2: status = string_strtol(string, 10, &skill_db->skill->hit); break;
+                case 3: status = string_strtol(string, 10, &skill_db->skill->inf); break;
+                case 4: status = string_strtol_split(string, 10, ':', &skill_db->store, &skill_db->skill->element); break;
+                case 5: status = string_strtol(string, 16, &skill_db->skill->nk); break;
+                case 6: status = string_strtol_split(string, 10, ':', &skill_db->store, &skill_db->skill->splash); break;
+                case 7: status = string_strtol(string, 10, &skill_db->skill->maxlv); break;
+                case 8: status = string_strtol_split(string, 10, ':', &skill_db->store, &skill_db->skill->hit_amount); break;
+                case 9: status = string_store(&skill_db->store, string, &skill_db->skill->cast_cancel); break;
+                case 10: status = string_strtol(string, 10, &skill_db->skill->cast_def_reduce_rate); break;
+                case 11: status = string_strtol(string, 16, &skill_db->skill->inf2); break;
+                case 12: status = string_strtol_split(string, 10, ':', &skill_db->store, &skill_db->skill->max_count); break;
+                case 13: status = string_store(&skill_db->store, string, &skill_db->skill->type); break;
+                case 14: status = string_strtol_split(string, 10, ':', &skill_db->store, &skill_db->skill->blow_count); break;
+                case 15: status = string_strtol(string, 16, &skill_db->skill->inf3); break;
+                case 16: status = string_store(&skill_db->store, string, &skill_db->skill->macro); break;
+                case 17: status = string_store(&skill_db->store, string, &skill_db->skill->name); break;
+                default: status = panic("invalid column"); break;
+            }
+            skill_db->index++;
+            break;
+    }
+
+    return status;
+}
+
 int lookup_create(struct lookup * lookup, size_t size, struct heap * heap) {
     int status = 0;
 
@@ -438,8 +531,14 @@ int lookup_create(struct lookup * lookup, size_t size, struct heap * heap) {
             if(pet_db_create(&lookup->pet_db, size, heap)) {
                 status = panic("failed to create pet db object");
             } else {
-                if(item_db_create(&lookup->item_db, size, heap))
+                if(item_db_create(&lookup->item_db, size, heap)) {
                     status = panic("failed to create item db object");
+                } else {
+                    if(skill_db_create(&lookup->skill_db, size, heap))
+                        status = panic("failed to create skill db object");
+                    if(status)
+                        item_db_destroy(&lookup->item_db);
+                }
                 if(status)
                     pet_db_destroy(&lookup->pet_db);
             }
@@ -454,6 +553,7 @@ int lookup_create(struct lookup * lookup, size_t size, struct heap * heap) {
 }
 
 void lookup_destroy(struct lookup * lookup) {
+    skill_db_destroy(&lookup->skill_db);
     item_db_destroy(&lookup->item_db);
     pet_db_destroy(&lookup->pet_db);
     parser_destroy(&lookup->parser);
@@ -500,6 +600,20 @@ int lookup_item_combo_db_parse(struct lookup * lookup, char * path) {
     if(!item_combo_db_schema) {
         status = panic("failed to load schema object");
     } else if(parser_parse(&lookup->parser, path, item_combo_db_schema, item_combo_db_parse, &lookup->item_db)) {
+        status = panic("failed to parse parser object");
+    }
+
+    return status;
+}
+
+int lookup_skill_db_parse(struct lookup * lookup, char * path) {
+    int status = 0;
+    struct schema_data * skill_db_schema;
+
+    skill_db_schema = schema_load(&lookup->schema, csv_markup);
+    if(!skill_db_schema) {
+        status = panic("failed to load schema object");
+    } else if(parser_parse(&lookup->parser, path, skill_db_schema, skill_db_parse, &lookup->skill_db)) {
         status = panic("failed to parse parser object");
     }
 
