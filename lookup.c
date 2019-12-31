@@ -845,6 +845,8 @@ int lookup_skill_db_parse(struct lookup * lookup, char * path) {
     int status = 0;
     struct schema_data * skill_db_schema;
 
+    skill_db_clear(&lookup->skill_db);
+
     skill_db_schema = schema_load(&lookup->schema, csv_markup);
     if(!skill_db_schema) {
         status = panic("failed to load schema object");
@@ -859,6 +861,8 @@ int lookup_mob_db_parse(struct lookup * lookup, char * path) {
     int status = 0;
     struct schema_data * mob_db_schema;
 
+    mob_db_clear(&lookup->mob_db);
+
     mob_db_schema = schema_load(&lookup->schema, csv_markup);
     if(!mob_db_schema) {
         status = panic("failed to load schema object");
@@ -872,6 +876,8 @@ int lookup_mob_db_parse(struct lookup * lookup, char * path) {
 int lookup_mob_race_db_parse(struct lookup * lookup, char * path) {
     int status = 0;
     struct schema_data * mob_race_schema;
+
+    mob_race_db_clear(&lookup->mob_race_db);
 
     mob_race_schema = schema_load(&lookup->schema, csv_markup);
     if(!mob_race_schema) {
