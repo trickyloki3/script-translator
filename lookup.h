@@ -210,6 +210,47 @@ void mob_race_db_destroy(struct mob_race_db *);
 void mob_race_db_clear(struct mob_race_db *);
 int mob_race_db_parse(enum parser_event, int, struct string *, void *);
 
+struct mercenary {
+    long id;
+    struct string * sprite;
+    struct string * name;
+    long level;
+    long hp;
+    long sp;
+    long range1;
+    long atk1;
+    long atk2;
+    long def;
+    long mdef;
+    long str;
+    long agi;
+    long vit;
+    long ini;
+    long dex;
+    long luk;
+    long range2;
+    long range3;
+    long scale;
+    long race;
+    long element;
+    long speed;
+    long adelay;
+    long amotion;
+    long dmotion;
+};
+
+struct mercenary_db {
+    struct map map_id;
+    struct store store;
+    struct mercenary * mercenary;
+    size_t index;
+};
+
+int mercenary_db_create(struct mercenary_db *, size_t, struct heap *);
+void mercenary_db_destroy(struct mercenary_db *);
+void mercenary_db_clear(struct mercenary_db *);
+int mercenary_db_parse(enum parser_event, int, struct string *, void *);
+
 struct lookup {
     struct schema schema;
     struct parser parser;
@@ -218,6 +259,7 @@ struct lookup {
     struct skill_db skill_db;
     struct mob_db mob_db;
     struct mob_race_db mob_race_db;
+    struct mercenary_db mercenary_db;
 };
 
 int lookup_create(struct lookup *, size_t, struct heap *);
@@ -228,5 +270,6 @@ int lookup_item_combo_db_parse(struct lookup *, char *);
 int lookup_skill_db_parse(struct lookup *, char *);
 int lookup_mob_db_parse(struct lookup *, char *);
 int lookup_mob_race_db_parse(struct lookup *, char *);
+int lookup_mercenary_parse(struct lookup *, char *);
 
 #endif

@@ -740,6 +740,95 @@ int mob_race_db_parse(enum parser_event event, int mark, struct string * string,
     return status;
 }
 
+int mercenary_db_create(struct mercenary_db * mercenary_db, size_t size, struct heap * heap) {
+    int status = 0;
+
+    if(map_create(&mercenary_db->map_id, long_compare, heap->map_pool)) {
+        status = panic("failed to create map object");
+    } else {
+        if(store_create(&mercenary_db->store, size)) {
+            status = panic("failed to create store object");
+        } else {
+            mercenary_db->mercenary = NULL;
+            mercenary_db->index = 0;
+        }
+        if(status)
+            map_destroy(&mercenary_db->map_id);
+    }
+
+    return status;
+}
+
+void mercenary_db_destroy(struct mercenary_db * mercenary_db) {
+    store_destroy(&mercenary_db->store);
+    map_destroy(&mercenary_db->map_id);
+}
+
+void mercenary_db_clear(struct mercenary_db * mercenary_db) {
+    mercenary_db->index = 0;
+    mercenary_db->mercenary = NULL;
+    store_clear(&mercenary_db->store);
+    map_clear(&mercenary_db->map_id);
+}
+
+int mercenary_db_parse(enum parser_event event, int mark, struct string * string, void * context) {
+    int status = 0;
+    struct mercenary_db * mercenary_db = context;
+
+    switch(mark) {
+        case 1:
+            if(event == start) {
+                mercenary_db->mercenary = store_object(&mercenary_db->store, sizeof(*mercenary_db->mercenary));
+                if(!mercenary_db->mercenary) {
+                    status = panic("failed to object store object");
+                } else {
+                    mercenary_db->index = 0;
+                }
+            } else if(event == end) {
+                if(mercenary_db->index != 26) {
+                    status = panic("invalid column");
+                } else if(map_insert(&mercenary_db->map_id, &mercenary_db->mercenary->id, mercenary_db->mercenary)) {
+                    status = panic("failed to insert map object");
+                }
+            }
+            break;
+        case 2:
+            switch(mercenary_db->index) {
+                case 0: status = string_strtol(string, 10, &mercenary_db->mercenary->id); break;
+                case 1: status = string_store(string, &mercenary_db->store, &mercenary_db->mercenary->sprite); break;
+                case 2: status = string_store(string, &mercenary_db->store, &mercenary_db->mercenary->name); break;
+                case 3: status = string_strtol(string, 10, &mercenary_db->mercenary->level); break;
+                case 4: status = string_strtol(string, 10, &mercenary_db->mercenary->hp); break;
+                case 5: status = string_strtol(string, 10, &mercenary_db->mercenary->sp); break;
+                case 6: status = string_strtol(string, 10, &mercenary_db->mercenary->range1); break;
+                case 7: status = string_strtol(string, 10, &mercenary_db->mercenary->atk1); break;
+                case 8: status = string_strtol(string, 10, &mercenary_db->mercenary->atk2); break;
+                case 9: status = string_strtol(string, 10, &mercenary_db->mercenary->def); break;
+                case 10: status = string_strtol(string, 10, &mercenary_db->mercenary->mdef); break;
+                case 11: status = string_strtol(string, 10, &mercenary_db->mercenary->str); break;
+                case 12: status = string_strtol(string, 10, &mercenary_db->mercenary->agi); break;
+                case 13: status = string_strtol(string, 10, &mercenary_db->mercenary->vit); break;
+                case 14: status = string_strtol(string, 10, &mercenary_db->mercenary->ini); break;
+                case 15: status = string_strtol(string, 10, &mercenary_db->mercenary->dex); break;
+                case 16: status = string_strtol(string, 10, &mercenary_db->mercenary->luk); break;
+                case 17: status = string_strtol(string, 10, &mercenary_db->mercenary->range2); break;
+                case 18: status = string_strtol(string, 10, &mercenary_db->mercenary->range3); break;
+                case 19: status = string_strtol(string, 10, &mercenary_db->mercenary->scale); break;
+                case 20: status = string_strtol(string, 10, &mercenary_db->mercenary->race); break;
+                case 21: status = string_strtol(string, 10, &mercenary_db->mercenary->element); break;
+                case 22: status = string_strtol(string, 10, &mercenary_db->mercenary->speed); break;
+                case 23: status = string_strtol(string, 10, &mercenary_db->mercenary->adelay); break;
+                case 24: status = string_strtol(string, 10, &mercenary_db->mercenary->amotion); break;
+                case 25: status = string_strtol(string, 10, &mercenary_db->mercenary->dmotion); break;
+                default: status = panic("invalid column"); break;
+            }
+            mercenary_db->index++;
+            break;
+    }
+
+    return status;
+}
+
 int lookup_create(struct lookup * lookup, size_t size, struct heap * heap) {
     int status = 0;
 
@@ -761,8 +850,14 @@ int lookup_create(struct lookup * lookup, size_t size, struct heap * heap) {
                         if(mob_db_create(&lookup->mob_db, size, heap)) {
                             status = panic("failed to create mob db object");
                         } else {
-                            if(mob_race_db_create(&lookup->mob_race_db, size, heap))
+                            if(mob_race_db_create(&lookup->mob_race_db, size, heap)) {
                                 status = panic("failed to create mob race db object");
+                            } else {
+                                if(mercenary_db_create(&lookup->mercenary_db, size, heap))
+                                    status = panic("failed to create mercenary db object");
+                                if(status)
+                                    mob_race_db_destroy(&lookup->mob_race_db);
+                            }
                             if(status)
                                 mob_db_destroy(&lookup->mob_db);
                         }
@@ -786,6 +881,7 @@ int lookup_create(struct lookup * lookup, size_t size, struct heap * heap) {
 }
 
 void lookup_destroy(struct lookup * lookup) {
+    mercenary_db_destroy(&lookup->mercenary_db);
     mob_race_db_destroy(&lookup->mob_race_db);
     mob_db_destroy(&lookup->mob_db);
     skill_db_destroy(&lookup->skill_db);
@@ -883,6 +979,22 @@ int lookup_mob_race_db_parse(struct lookup * lookup, char * path) {
     if(!mob_race_schema) {
         status = panic("failed to load schema object");
     } else if(parser_parse(&lookup->parser, path, mob_race_schema, mob_race_db_parse, &lookup->mob_race_db)) {
+        status = panic("failed to parse parser object");
+    }
+
+    return status;
+}
+
+int lookup_mercenary_parse(struct lookup * lookup, char * path) {
+    int status = 0;
+    struct schema_data * mercenary_db_schema;
+
+    mercenary_db_clear(&lookup->mercenary_db);
+
+    mercenary_db_schema = schema_load(&lookup->schema, csv_markup);
+    if(!mercenary_db_schema) {
+        status = panic("failed to load schema object");
+    } else if(parser_parse(&lookup->parser, path, mercenary_db_schema, mercenary_db_parse, &lookup->mercenary_db)) {
         status = panic("failed to parse parser object");
     }
 
