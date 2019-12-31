@@ -251,6 +251,28 @@ void mercenary_db_destroy(struct mercenary_db *);
 void mercenary_db_clear(struct mercenary_db *);
 int mercenary_db_parse(enum parser_event, int, struct string *, void *);
 
+struct produce {
+    long id;
+    long item_id;
+    long item_lv;
+    long skill_id;
+    long skill_lv;
+    struct long_array * material;
+};
+
+struct produce_db {
+    struct map map_id;
+    struct store store;
+    struct strbuf strbuf;
+    struct produce * produce;
+    size_t index;
+};
+
+int produce_db_create(struct produce_db *, size_t, struct heap *);
+void produce_db_destroy(struct produce_db *);
+void produce_db_clear(struct produce_db *);
+int produce_db_parse(enum parser_event, int, struct string *, void *);
+
 struct lookup {
     struct schema schema;
     struct parser parser;
@@ -260,6 +282,7 @@ struct lookup {
     struct mob_db mob_db;
     struct mob_race_db mob_race_db;
     struct mercenary_db mercenary_db;
+    struct produce_db produce_db;
 };
 
 int lookup_create(struct lookup *, size_t, struct heap *);
@@ -271,5 +294,6 @@ int lookup_skill_db_parse(struct lookup *, char *);
 int lookup_mob_db_parse(struct lookup *, char *);
 int lookup_mob_race_db_parse(struct lookup *, char *);
 int lookup_mercenary_parse(struct lookup *, char *);
+int lookup_produce_parse(struct lookup *, char *);
 
 #endif

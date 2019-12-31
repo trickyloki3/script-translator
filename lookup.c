@@ -829,6 +829,90 @@ int mercenary_db_parse(enum parser_event event, int mark, struct string * string
     return status;
 }
 
+int produce_db_create(struct produce_db * produce_db, size_t size, struct heap * heap) {
+    int status = 0;
+
+    if(map_create(&produce_db->map_id, long_compare, heap->map_pool)) {
+        status = panic("failed to create map object");
+    } else {
+        if(store_create(&produce_db->store, size)) {
+            status = panic("failed to create store object");
+        } else {
+            if(strbuf_create(&produce_db->strbuf, size)) {
+                status = panic("failed to create strbuf object");
+            } else {
+                produce_db->produce = NULL;
+                produce_db->index = 0;
+            }
+            if(status)
+                store_destroy(&produce_db->store);
+        }
+        if(status)
+            map_destroy(&produce_db->map_id);
+    }
+
+    return status;
+}
+
+void produce_db_destroy(struct produce_db * produce_db) {
+    strbuf_destroy(&produce_db->strbuf);
+    store_destroy(&produce_db->store);
+    map_destroy(&produce_db->map_id);
+}
+
+void produce_db_clear(struct produce_db * produce_db) {
+    produce_db->index = 0;
+    produce_db->produce = NULL;
+    strbuf_clear(&produce_db->strbuf);
+    store_clear(&produce_db->store);
+    map_clear(&produce_db->map_id);
+}
+
+int produce_db_parse(enum parser_event event, int mark, struct string * string, void * context) {
+    int status = 0;
+    struct produce_db * produce_db = context;
+
+    struct string * material;
+
+    switch(mark) {
+        case 1:
+            if(event == start) {
+                produce_db->produce = store_object(&produce_db->store, sizeof(*produce_db->produce));
+                if(!produce_db->produce) {
+                    status = panic("failed to object store object");
+                } else {
+                    produce_db->index = 0;
+                }
+            } else if(event == end) {
+                material = strbuf_string(&produce_db->strbuf);
+                if(!material) {
+                    status = panic("failed to string strbuf object");
+                } else {
+                    if(string_strtol_split(material, 10, ',', &produce_db->store, &produce_db->produce->material)) {
+                        status = panic("failed to strtol split string object");
+                    } else if(map_insert(&produce_db->map_id, &produce_db->produce->id, produce_db->produce)) {
+                        status = panic("failed to insert map object");
+                    }
+                }
+                strbuf_clear(&produce_db->strbuf);
+            }
+            break;
+        case 2:
+            switch(produce_db->index) {
+                case 0: status = string_strtol(string, 10, &produce_db->produce->id); break;
+                case 1: status = string_strtol(string, 10, &produce_db->produce->item_id); break;
+                case 2: status = string_strtol(string, 10, &produce_db->produce->item_lv); break;
+                case 3: status = string_strtol(string, 10, &produce_db->produce->skill_id); break;
+                case 4: status = string_strtol(string, 10, &produce_db->produce->skill_lv); break;
+                default: status = strbuf_strcpy(&produce_db->strbuf, string->string, string->length) || strbuf_putc(&produce_db->strbuf, ','); break;
+            }
+            produce_db->index++;
+            break;
+    }
+
+    return status;
+}
+
 int lookup_create(struct lookup * lookup, size_t size, struct heap * heap) {
     int status = 0;
 
@@ -853,8 +937,14 @@ int lookup_create(struct lookup * lookup, size_t size, struct heap * heap) {
                             if(mob_race_db_create(&lookup->mob_race_db, size, heap)) {
                                 status = panic("failed to create mob race db object");
                             } else {
-                                if(mercenary_db_create(&lookup->mercenary_db, size, heap))
+                                if(mercenary_db_create(&lookup->mercenary_db, size, heap)) {
                                     status = panic("failed to create mercenary db object");
+                                } else {
+                                    if(produce_db_create(&lookup->produce_db, size, heap))
+                                        status = panic("failed to create produce db object");
+                                    if(status)
+                                        mercenary_db_destroy(&lookup->mercenary_db);
+                                }
                                 if(status)
                                     mob_race_db_destroy(&lookup->mob_race_db);
                             }
@@ -881,6 +971,7 @@ int lookup_create(struct lookup * lookup, size_t size, struct heap * heap) {
 }
 
 void lookup_destroy(struct lookup * lookup) {
+    produce_db_destroy(&lookup->produce_db);
     mercenary_db_destroy(&lookup->mercenary_db);
     mob_race_db_destroy(&lookup->mob_race_db);
     mob_db_destroy(&lookup->mob_db);
@@ -995,6 +1086,22 @@ int lookup_mercenary_parse(struct lookup * lookup, char * path) {
     if(!mercenary_db_schema) {
         status = panic("failed to load schema object");
     } else if(parser_parse(&lookup->parser, path, mercenary_db_schema, mercenary_db_parse, &lookup->mercenary_db)) {
+        status = panic("failed to parse parser object");
+    }
+
+    return status;
+}
+
+int lookup_produce_parse(struct lookup * lookup, char * path) {
+    int status = 0;
+    struct schema_data * produce_db_schema;
+
+    produce_db_clear(&lookup->produce_db);
+
+    produce_db_schema = schema_load(&lookup->schema, csv_markup);
+    if(!produce_db_schema) {
+        status = panic("failed to load schema object");
+    } else if(parser_parse(&lookup->parser, path, produce_db_schema, produce_db_parse, &lookup->produce_db)) {
         status = panic("failed to parse parser object");
     }
 

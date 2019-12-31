@@ -28,6 +28,8 @@ int main(int argc, char ** argv) {
                     status = panic("failed to mob race db lookup object");
                 } else if(lookup_mercenary_parse(&lookup, "mercenary_db.txt")) {
                     status = panic("failed to mercenary db lookup object");
+                } else if(lookup_produce_parse(&lookup, "produce_db.txt")) {
+                    status = panic("failed to produce db lookup object");
                 }
                 lookup_destroy(&lookup);
             }
