@@ -1006,66 +1006,38 @@ int constant_db_parse(enum parser_event event, int mark, struct string * string,
 }
 
 int lookup_create(struct lookup * lookup, size_t size, struct heap * heap) {
-    int status = 0;
+    if(schema_create(&lookup->schema, heap))
+        goto e0;
+    if(parser_create(&lookup->parser, size, heap))
+        goto e1;
+    if(pet_db_create(&lookup->pet_db, size, heap))
+        goto e2;
+    if(item_db_create(&lookup->item_db, size, heap))
+        goto e3;
+    if(skill_db_create(&lookup->skill_db, size, heap))
+        goto e4;
+    if(mob_db_create(&lookup->mob_db, size, heap))
+        goto e5;
+    if(mob_race_db_create(&lookup->mob_race_db, size, heap))
+        goto e6;
+    if(mercenary_db_create(&lookup->mercenary_db, size, heap))
+        goto e7;
+    if(produce_db_create(&lookup->produce_db, size, heap))
+        goto e8;
+    if(constant_db_create(&lookup->constant_db, size, heap))
+        goto e9;
+    return 0;
 
-    if(schema_create(&lookup->schema, heap)) {
-        status = panic("failed to create schema object");
-    } else {
-        if(parser_create(&lookup->parser, size, heap)) {
-            status = panic("failed to create parser object");
-        } else {
-            if(pet_db_create(&lookup->pet_db, size, heap)) {
-                status = panic("failed to create pet db object");
-            } else {
-                if(item_db_create(&lookup->item_db, size, heap)) {
-                    status = panic("failed to create item db object");
-                } else {
-                    if(skill_db_create(&lookup->skill_db, size, heap)) {
-                        status = panic("failed to create skill db object");
-                    } else {
-                        if(mob_db_create(&lookup->mob_db, size, heap)) {
-                            status = panic("failed to create mob db object");
-                        } else {
-                            if(mob_race_db_create(&lookup->mob_race_db, size, heap)) {
-                                status = panic("failed to create mob race db object");
-                            } else {
-                                if(mercenary_db_create(&lookup->mercenary_db, size, heap)) {
-                                    status = panic("failed to create mercenary db object");
-                                } else {
-                                    if(produce_db_create(&lookup->produce_db, size, heap)) {
-                                        status = panic("failed to create produce db object");
-                                    } else {
-                                        if(constant_db_create(&lookup->constant_db, size, heap))
-                                            status = panic("failed to create constant db object");
-                                        if(status)
-                                            produce_db_destroy(&lookup->produce_db);
-                                    }
-                                    if(status)
-                                        mercenary_db_destroy(&lookup->mercenary_db);
-                                }
-                                if(status)
-                                    mob_race_db_destroy(&lookup->mob_race_db);
-                            }
-                            if(status)
-                                mob_db_destroy(&lookup->mob_db);
-                        }
-                        if(status)
-                            skill_db_destroy(&lookup->skill_db);
-                    }
-                    if(status)
-                        item_db_destroy(&lookup->item_db);
-                }
-                if(status)
-                    pet_db_destroy(&lookup->pet_db);
-            }
-            if(status)
-                parser_destroy(&lookup->parser);
-        }
-        if(status)
-            schema_destroy(&lookup->schema);
-    }
-
-    return status;
+e9: produce_db_destroy(&lookup->produce_db);
+e8: mercenary_db_destroy(&lookup->mercenary_db);
+e7: mob_race_db_destroy(&lookup->mob_race_db);
+e6: mob_db_destroy(&lookup->mob_db);
+e5: skill_db_destroy(&lookup->skill_db);
+e4: item_db_destroy(&lookup->item_db);
+e3: pet_db_destroy(&lookup->pet_db);
+e2: parser_destroy(&lookup->parser);
+e1: schema_destroy(&lookup->schema);
+e0: return 1;
 }
 
 void lookup_destroy(struct lookup * lookup) {
