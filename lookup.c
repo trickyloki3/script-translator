@@ -54,6 +54,18 @@ struct schema_markup csv_markup[] = {
     {0, 0, 0},
 };
 
+struct schema_markup constant_db_markup[] = {
+    {1, map, 0, NULL},
+    {2, list, 1, "const"},
+    {3, map, 2, NULL},
+    {4, string, 3, "macro"},
+    {4, string, 4, "value"},
+    {4, string, 5, "label"},
+    {4, list, 6, "range"},
+    {5, string, 7, NULL},
+    {0, 0, 0},
+};
+
 int long_compare(void * x, void * y) {
     long l = *((long *) x);
     long r = *((long *) y);
@@ -192,8 +204,11 @@ int string_strtol_splitv(struct string * string, int base, int split, ...) {
     while(value && ptr) {
         *value = strtol(ptr, &end, base);
         ptr = *end == split ? end + 1 : NULL;
-        if(!ptr && *end)
+        if(!ptr && *end) {
             status = panic("invalid string '%s' in '%s'", end, string->string);
+        } else {
+            value = va_arg(args, long *);
+        }
     }
     va_end(args);
 
@@ -913,6 +928,83 @@ int produce_db_parse(enum parser_event event, int mark, struct string * string, 
     return status;
 }
 
+int constant_db_create(struct constant_db * constant_db, size_t size, struct heap * heap) {
+    int status = 0;
+
+    if(map_create(&constant_db->map_macro, (map_compare_cb) strcmp, heap->map_pool)) {
+        status = panic("failed to create map object");
+    } else {
+        if(store_create(&constant_db->store, size)) {
+            status = panic("failed to create store object");
+        } else {
+            if(strbuf_create(&constant_db->strbuf, size)) {
+                status = panic("failed to create strbuf object");
+            } else {
+                constant_db->constant = NULL;
+            }
+            if(status)
+                store_destroy(&constant_db->store);
+        }
+        if(status)
+            map_destroy(&constant_db->map_macro);
+    }
+
+    return status;
+}
+
+void constant_db_destroy(struct constant_db * constant_db) {
+    strbuf_destroy(&constant_db->strbuf);
+    store_destroy(&constant_db->store);
+    map_destroy(&constant_db->map_macro);
+}
+
+void constant_db_clear(struct constant_db * constant_db) {
+    constant_db->constant = NULL;
+    strbuf_clear(&constant_db->strbuf);
+    store_clear(&constant_db->store);
+    map_clear(&constant_db->map_macro);
+}
+
+int constant_db_parse(enum parser_event event, int mark, struct string * string, void * context) {
+    int status = 0;
+    struct constant_db * constant_db = context;
+
+    struct string * range;
+
+    switch(mark) {
+        case 2:
+            if(event == start) {
+                constant_db->constant = store_object(&constant_db->store, sizeof(*constant_db->constant));
+                if(!constant_db->constant)
+                    status = panic("failed to object store object");
+            } else if(event == end) {
+                if(!constant_db->constant->macro) {
+                    status = panic("invalid string object");
+                } else if(map_insert(&constant_db->map_macro, constant_db->constant->macro->string, constant_db->constant)) {
+                    status = panic("failed to insert map object");
+                }
+            }
+            break;
+        case 3: status = string_store(string, &constant_db->store, &constant_db->constant->macro); break;
+        case 4: status = string_strtol(string, 10, &constant_db->constant->value); break;
+        case 5: status = string_store(string, &constant_db->store, &constant_db->constant->label); break;
+        case 6:
+            if(event == end) {
+                range = strbuf_string(&constant_db->strbuf);
+                if(!range) {
+                    status = panic("failed to string strbuf object");
+                } else if(string_strtol_split(range, 10, ',', &constant_db->store, &constant_db->constant->range)) {
+                    status = panic("failed to strtol split string object");
+                }
+                strbuf_clear(&constant_db->strbuf);
+            }
+            break;
+        case 7: status = strbuf_strcpy(&constant_db->strbuf, string->string, string->length) || strbuf_putc(&constant_db->strbuf, ','); break;
+    }
+
+    return status;
+}
+
 int lookup_create(struct lookup * lookup, size_t size, struct heap * heap) {
     int status = 0;
 
@@ -940,8 +1032,14 @@ int lookup_create(struct lookup * lookup, size_t size, struct heap * heap) {
                                 if(mercenary_db_create(&lookup->mercenary_db, size, heap)) {
                                     status = panic("failed to create mercenary db object");
                                 } else {
-                                    if(produce_db_create(&lookup->produce_db, size, heap))
+                                    if(produce_db_create(&lookup->produce_db, size, heap)) {
                                         status = panic("failed to create produce db object");
+                                    } else {
+                                        if(constant_db_create(&lookup->constant_db, size, heap))
+                                            status = panic("failed to create constant db object");
+                                        if(status)
+                                            produce_db_destroy(&lookup->produce_db);
+                                    }
                                     if(status)
                                         mercenary_db_destroy(&lookup->mercenary_db);
                                 }
@@ -971,6 +1069,7 @@ int lookup_create(struct lookup * lookup, size_t size, struct heap * heap) {
 }
 
 void lookup_destroy(struct lookup * lookup) {
+    constant_db_destroy(&lookup->constant_db);
     produce_db_destroy(&lookup->produce_db);
     mercenary_db_destroy(&lookup->mercenary_db);
     mob_race_db_destroy(&lookup->mob_race_db);
@@ -1076,7 +1175,7 @@ int lookup_mob_race_db_parse(struct lookup * lookup, char * path) {
     return status;
 }
 
-int lookup_mercenary_parse(struct lookup * lookup, char * path) {
+int lookup_mercenary_db_parse(struct lookup * lookup, char * path) {
     int status = 0;
     struct schema_data * mercenary_db_schema;
 
@@ -1092,7 +1191,7 @@ int lookup_mercenary_parse(struct lookup * lookup, char * path) {
     return status;
 }
 
-int lookup_produce_parse(struct lookup * lookup, char * path) {
+int lookup_produce_db_parse(struct lookup * lookup, char * path) {
     int status = 0;
     struct schema_data * produce_db_schema;
 
@@ -1102,6 +1201,22 @@ int lookup_produce_parse(struct lookup * lookup, char * path) {
     if(!produce_db_schema) {
         status = panic("failed to load schema object");
     } else if(parser_parse(&lookup->parser, path, produce_db_schema, produce_db_parse, &lookup->produce_db)) {
+        status = panic("failed to parse parser object");
+    }
+
+    return status;
+}
+
+int lookup_constant_db_parse(struct lookup * lookup, char * path) {
+    int status = 0;
+    struct schema_data * constant_db_schema;
+
+    constant_db_clear(&lookup->constant_db);
+
+    constant_db_schema = schema_load(&lookup->schema, constant_db_markup);
+    if(!constant_db_schema) {
+        status = panic("failed to load schema object");
+    } else if(parser_parse(&lookup->parser, path, constant_db_schema, constant_db_parse, &lookup->constant_db)) {
         status = panic("failed to parse parser object");
     }
 

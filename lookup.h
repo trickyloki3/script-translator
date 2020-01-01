@@ -273,6 +273,25 @@ void produce_db_destroy(struct produce_db *);
 void produce_db_clear(struct produce_db *);
 int produce_db_parse(enum parser_event, int, struct string *, void *);
 
+struct constant {
+    struct string * macro;
+    long value;
+    struct string * label;
+    struct long_array * range;
+};
+
+struct constant_db {
+    struct map map_macro;
+    struct store store;
+    struct strbuf strbuf;
+    struct constant * constant;
+};
+
+int constant_db_create(struct constant_db *, size_t, struct heap *);
+void constant_db_destroy(struct constant_db *);
+void constant_db_clear(struct constant_db *);
+int constant_db_parse(enum parser_event, int, struct string *, void *);
+
 struct lookup {
     struct schema schema;
     struct parser parser;
@@ -283,6 +302,7 @@ struct lookup {
     struct mob_race_db mob_race_db;
     struct mercenary_db mercenary_db;
     struct produce_db produce_db;
+    struct constant_db constant_db;
 };
 
 int lookup_create(struct lookup *, size_t, struct heap *);
@@ -293,7 +313,8 @@ int lookup_item_combo_db_parse(struct lookup *, char *);
 int lookup_skill_db_parse(struct lookup *, char *);
 int lookup_mob_db_parse(struct lookup *, char *);
 int lookup_mob_race_db_parse(struct lookup *, char *);
-int lookup_mercenary_parse(struct lookup *, char *);
-int lookup_produce_parse(struct lookup *, char *);
+int lookup_mercenary_db_parse(struct lookup *, char *);
+int lookup_produce_db_parse(struct lookup *, char *);
+int lookup_constant_db_parse(struct lookup *, char *);
 
 #endif

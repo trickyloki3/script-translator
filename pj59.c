@@ -26,10 +26,12 @@ int main(int argc, char ** argv) {
                     status = panic("failed to mob db lookup object");
                 } else if(lookup_mob_race_db_parse(&lookup, "mob_race2_db.txt")) {
                     status = panic("failed to mob race db lookup object");
-                } else if(lookup_mercenary_parse(&lookup, "mercenary_db.txt")) {
+                } else if(lookup_mercenary_db_parse(&lookup, "mercenary_db.txt")) {
                     status = panic("failed to mercenary db lookup object");
-                } else if(lookup_produce_parse(&lookup, "produce_db.txt")) {
+                } else if(lookup_produce_db_parse(&lookup, "produce_db.txt")) {
                     status = panic("failed to produce db lookup object");
+                } else if(lookup_constant_db_parse(&lookup, "constant_db.yml")) {
+                    status = panic("failed to constant db lookup object");
                 }
                 lookup_destroy(&lookup);
             }
