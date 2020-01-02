@@ -30,16 +30,16 @@ struct schema_markup {
 struct schema {
     struct pool * pool;
     struct schema_node * root;
-    struct list list;
 };
 
 int schema_create(struct schema *, struct heap *);
 void schema_destroy(struct schema *);
+void schema_clear(struct schema *);
 int schema_push(struct schema *, enum schema_type, int, char *);
 void schema_pop(struct schema *);
 struct schema_node * schema_top(struct schema *);
 struct schema_node * schema_load(struct schema *, struct schema_markup *);
-void schema_print(struct schema_node *);
+void schema_print(struct schema *);
 
 enum parser_event {
     start,

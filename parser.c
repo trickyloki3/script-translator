@@ -31,6 +31,17 @@ static inline struct schema_node * schema_node_create(struct schema * schema, en
 }
 
 static inline void schema_node_destroy(struct schema * schema, struct schema_node * node) {
+    struct map_kv kv;
+
+    kv = map_start(&node->map);
+    while(kv.key) {
+        schema_node_destroy(schema, kv.value);
+        kv = map_next(&node->map);
+    }
+
+    if(node->data)
+        schema_node_destroy(schema, node->data);
+
     map_destroy(&node->map);
     pool_put(schema->pool, node);
 }
@@ -73,34 +84,22 @@ int schema_create(struct schema * schema, struct heap * heap) {
         status = panic("failed to pool heap object");
     } else {
         schema->root = schema_node_create(schema, list, 0, heap->map_pool);
-        if(!schema->root) {
+        if(!schema->root)
             status = panic("failed to create schema node object");
-        } else {
-            if(list_create(&schema->list, heap->list_pool)) {
-                status = panic("failed to create list object");
-            } else {
-                if(list_push(&schema->list, schema->root))
-                    status = panic("failed to push list object");
-                if(status)
-                    list_destroy(&schema->list);
-            }
-            if(status)
-                schema_node_destroy(schema, schema->root);
-        }
     }
 
     return status;
 }
 
 void schema_destroy(struct schema * schema) {
-    struct schema_node * node;
+    schema_node_destroy(schema, schema->root);
+}
 
-    node = list_pop(&schema->list);
-    while(node) {
-        schema_node_destroy(schema, node);
-        node = list_pop(&schema->list);
+void schema_clear(struct schema * schema) {
+    if(schema->root->data) {
+        schema_node_destroy(schema, schema->root->data);
+        schema->root->data = NULL;
     }
-    list_destroy(&schema->list);
 }
 
 int schema_push(struct schema * schema, enum schema_type type, int mark, char * key) {
@@ -111,30 +110,24 @@ int schema_push(struct schema * schema, enum schema_type type, int mark, char * 
     if(!node) {
         status = panic("failed to create schema node object");
     } else {
-        if(list_push(&schema->list, node)) {
-            status = panic("failed to push list object");
-        } else {
-            if(schema->root->type == list) {
-                if(schema->root->data) {
-                    status = panic("invalid data");
-                } else {
-                    schema->root->data = node;
-                }
-            } else if(schema->root->type == map) {
-                if(!key) {
-                    status = panic("invalid key");
-                } else if(map_insert(&schema->root->map, key, node)) {
-                    status = panic("failed to insert map object");
-                }
+        if(schema->root->type == list) {
+            if(schema->root->data) {
+                status = panic("invalid data");
+            } else {
+                schema->root->data = node;
             }
-            if(status) {
-                /* skip push on error */
-            } else if(node->type == list || node->type == map) {
-                node->next = schema->root;
-                schema->root = node;
+        } else if(schema->root->type == map) {
+            if(!key) {
+                status = panic("invalid key");
+            } else if(map_insert(&schema->root->map, key, node)) {
+                status = panic("failed to insert map object");
             }
-            if(status)
-                list_pop(&schema->list);
+        }
+        if(status) {
+            /* skip push on error */
+        } else if(node->type == list || node->type == map) {
+            node->next = schema->root;
+            schema->root = node;
         }
         if(status)
             schema_node_destroy(schema, node);
@@ -149,19 +142,14 @@ void schema_pop(struct schema * schema) {
 }
 
 struct schema_node * schema_top(struct schema * schema) {
-    struct schema_node * node = NULL;
-
-    if(schema->root->data) {
-        node = schema->root->data;
-        schema->root->data = NULL;
-    }
-
-    return node;
+    return schema->root->data;
 }
 
 struct schema_node * schema_load(struct schema * schema, struct schema_markup * markup) {
     int status = 0;
     struct schema_markup * root = NULL;
+
+    schema_clear(schema);
 
     while(markup->level) {
         while(root && root->level >= markup->level) {
@@ -185,8 +173,12 @@ struct schema_node * schema_load(struct schema * schema, struct schema_markup * 
     return status ? NULL : schema_top(schema);
 }
 
-void schema_print(struct schema_node * data) {
-    schema_node_print(data, 0, NULL);
+void schema_print(struct schema * schema) {
+    struct schema_node * node;
+
+    node = schema_top(schema);
+    if(node)
+        schema_node_print(node, 0, NULL);
 }
 
 int parser_create(struct parser * parser, size_t size, struct heap * heap) {
