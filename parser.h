@@ -38,7 +38,7 @@ void schema_clear(struct schema *);
 int schema_push(struct schema *, enum schema_type, int, char *);
 void schema_pop(struct schema *);
 struct schema_node * schema_top(struct schema *);
-struct schema_node * schema_load(struct schema *, struct schema_markup *);
+int schema_load(struct schema *, struct schema_markup *);
 void schema_print(struct schema *);
 
 enum parser_event {
@@ -62,6 +62,6 @@ struct parser {
 
 int parser_create(struct parser *, size_t, struct heap *);
 void parser_destroy(struct parser *);
-int parser_parse(struct parser *, const char *, struct schema_node *, parser_cb, void *);
+int parser_parse(struct parser *, const char *, struct schema *, parser_cb, void *);
 
 #endif

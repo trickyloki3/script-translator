@@ -1205,14 +1205,12 @@ void lookup_destroy(struct lookup * lookup) {
 
 int lookup_pet_db_parse(struct lookup * lookup, char * path) {
     int status = 0;
-    struct schema_node * pet_db_schema;
 
     pet_db_clear(&lookup->pet_db);
 
-    pet_db_schema = schema_load(&lookup->schema, pet_db_markup);
-    if(!pet_db_schema) {
+    if(schema_load(&lookup->schema, pet_db_markup)) {
         status = panic("failed to load schema object");
-    } else if(parser_parse(&lookup->parser, path, pet_db_schema, pet_db_parse, &lookup->pet_db)) {
+    } else if(parser_parse(&lookup->parser, path, &lookup->schema, pet_db_parse, &lookup->pet_db)) {
         status = panic("failed to parse parser object");
     }
 
@@ -1221,14 +1219,12 @@ int lookup_pet_db_parse(struct lookup * lookup, char * path) {
 
 int lookup_item_db_parse(struct lookup * lookup, char * path) {
     int status = 0;
-    struct schema_node * item_db_schema;
 
     item_db_clear(&lookup->item_db);
 
-    item_db_schema = schema_load(&lookup->schema, csv_markup);
-    if(!item_db_schema) {
+    if(schema_load(&lookup->schema, csv_markup)) {
         status = panic("failed to load schema object");
-    } else if(parser_parse(&lookup->parser, path, item_db_schema, item_db_parse, &lookup->item_db)) {
+    } else if(parser_parse(&lookup->parser, path, &lookup->schema, item_db_parse, &lookup->item_db)) {
         status = panic("failed to parse parser object");
     }
 
@@ -1237,12 +1233,10 @@ int lookup_item_db_parse(struct lookup * lookup, char * path) {
 
 int lookup_item_combo_db_parse(struct lookup * lookup, char * path) {
     int status = 0;
-    struct schema_node * item_combo_db_schema;
 
-    item_combo_db_schema = schema_load(&lookup->schema, csv_markup);
-    if(!item_combo_db_schema) {
+    if(schema_load(&lookup->schema, csv_markup)) {
         status = panic("failed to load schema object");
-    } else if(parser_parse(&lookup->parser, path, item_combo_db_schema, item_combo_db_parse, &lookup->item_db)) {
+    } else if(parser_parse(&lookup->parser, path, &lookup->schema, item_combo_db_parse, &lookup->item_db)) {
         status = panic("failed to parse parser object");
     }
 
@@ -1251,14 +1245,12 @@ int lookup_item_combo_db_parse(struct lookup * lookup, char * path) {
 
 int lookup_skill_db_parse(struct lookup * lookup, char * path) {
     int status = 0;
-    struct schema_node * skill_db_schema;
 
     skill_db_clear(&lookup->skill_db);
 
-    skill_db_schema = schema_load(&lookup->schema, csv_markup);
-    if(!skill_db_schema) {
+    if(schema_load(&lookup->schema, csv_markup)) {
         status = panic("failed to load schema object");
-    } else if(parser_parse(&lookup->parser, path, skill_db_schema, skill_db_parse, &lookup->skill_db)) {
+    } else if(parser_parse(&lookup->parser, path, &lookup->schema, skill_db_parse, &lookup->skill_db)) {
         status = panic("failed to parse parser object");
     }
 
@@ -1267,14 +1259,12 @@ int lookup_skill_db_parse(struct lookup * lookup, char * path) {
 
 int lookup_mob_db_parse(struct lookup * lookup, char * path) {
     int status = 0;
-    struct schema_node * mob_db_schema;
 
     mob_db_clear(&lookup->mob_db);
 
-    mob_db_schema = schema_load(&lookup->schema, csv_markup);
-    if(!mob_db_schema) {
+    if(schema_load(&lookup->schema, csv_markup)) {
         status = panic("failed to load schema object");
-    } else if(parser_parse(&lookup->parser, path, mob_db_schema, mob_db_parse, &lookup->mob_db)) {
+    } else if(parser_parse(&lookup->parser, path, &lookup->schema, mob_db_parse, &lookup->mob_db)) {
         status = panic("failed to parse parser object");
     }
 
@@ -1283,14 +1273,12 @@ int lookup_mob_db_parse(struct lookup * lookup, char * path) {
 
 int lookup_mob_race_db_parse(struct lookup * lookup, char * path) {
     int status = 0;
-    struct schema_node * mob_race_schema;
 
     mob_race_db_clear(&lookup->mob_race_db);
 
-    mob_race_schema = schema_load(&lookup->schema, csv_markup);
-    if(!mob_race_schema) {
+    if(schema_load(&lookup->schema, csv_markup)) {
         status = panic("failed to load schema object");
-    } else if(parser_parse(&lookup->parser, path, mob_race_schema, mob_race_db_parse, &lookup->mob_race_db)) {
+    } else if(parser_parse(&lookup->parser, path, &lookup->schema, mob_race_db_parse, &lookup->mob_race_db)) {
         status = panic("failed to parse parser object");
     }
 
@@ -1299,14 +1287,12 @@ int lookup_mob_race_db_parse(struct lookup * lookup, char * path) {
 
 int lookup_mercenary_db_parse(struct lookup * lookup, char * path) {
     int status = 0;
-    struct schema_node * mercenary_db_schema;
 
     mercenary_db_clear(&lookup->mercenary_db);
 
-    mercenary_db_schema = schema_load(&lookup->schema, csv_markup);
-    if(!mercenary_db_schema) {
+    if(schema_load(&lookup->schema, csv_markup)) {
         status = panic("failed to load schema object");
-    } else if(parser_parse(&lookup->parser, path, mercenary_db_schema, mercenary_db_parse, &lookup->mercenary_db)) {
+    } else if(parser_parse(&lookup->parser, path, &lookup->schema, mercenary_db_parse, &lookup->mercenary_db)) {
         status = panic("failed to parse parser object");
     }
 
@@ -1315,14 +1301,12 @@ int lookup_mercenary_db_parse(struct lookup * lookup, char * path) {
 
 int lookup_produce_db_parse(struct lookup * lookup, char * path) {
     int status = 0;
-    struct schema_node * produce_db_schema;
 
     produce_db_clear(&lookup->produce_db);
 
-    produce_db_schema = schema_load(&lookup->schema, csv_markup);
-    if(!produce_db_schema) {
+    if(schema_load(&lookup->schema, csv_markup)) {
         status = panic("failed to load schema object");
-    } else if(parser_parse(&lookup->parser, path, produce_db_schema, produce_db_parse, &lookup->produce_db)) {
+    } else if(parser_parse(&lookup->parser, path, &lookup->schema, produce_db_parse, &lookup->produce_db)) {
         status = panic("failed to parse parser object");
     }
 
@@ -1331,14 +1315,12 @@ int lookup_produce_db_parse(struct lookup * lookup, char * path) {
 
 int lookup_constant_db_parse(struct lookup * lookup, char * path) {
     int status = 0;
-    struct schema_node * constant_db_schema;
 
     constant_db_clear(&lookup->constant_db);
 
-    constant_db_schema = schema_load(&lookup->schema, constant_db_markup);
-    if(!constant_db_schema) {
+    if(schema_load(&lookup->schema, constant_db_markup)) {
         status = panic("failed to load schema object");
-    } else if(parser_parse(&lookup->parser, path, constant_db_schema, constant_db_parse, &lookup->constant_db)) {
+    } else if(parser_parse(&lookup->parser, path, &lookup->schema, constant_db_parse, &lookup->constant_db)) {
         status = panic("failed to parse parser object");
     }
 
@@ -1347,12 +1329,10 @@ int lookup_constant_db_parse(struct lookup * lookup, char * path) {
 
 int lookup_constant_group_parse(struct lookup * lookup, char * path) {
     int status = 0;
-    struct schema_node * constant_group_schema;
 
-    constant_group_schema = schema_load(&lookup->schema, constant_group_markup);
-    if(!constant_group_schema) {
+    if(schema_load(&lookup->schema, constant_group_markup)) {
         status = panic("failed to load schema object");
-    } else if(parser_parse(&lookup->parser, path, constant_group_schema, constant_group_parse, &lookup->constant_db)) {
+    } else if(parser_parse(&lookup->parser, path, &lookup->schema, constant_group_parse, &lookup->constant_db)) {
         status = panic("failed to parse parser object");
     }
 

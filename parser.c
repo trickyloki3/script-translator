@@ -141,7 +141,7 @@ struct schema_node * schema_top(struct schema * schema) {
     return schema->root->data;
 }
 
-struct schema_node * schema_load(struct schema * schema, struct schema_markup * markup) {
+int schema_load(struct schema * schema, struct schema_markup * markup) {
     int status = 0;
     struct schema_markup * root = NULL;
 
@@ -166,7 +166,7 @@ struct schema_node * schema_load(struct schema * schema, struct schema_markup * 
         root = root->next;
     }
 
-    return status ? NULL : schema_top(schema);
+    return status;
 }
 
 void schema_print(struct schema * schema) {
@@ -287,12 +287,12 @@ int parser_event(enum event_type event, struct string * string, void * context) 
     return status;
 }
 
-int parser_parse(struct parser * parser, const char * path, struct schema_node * data, parser_cb callback, void * context) {
+int parser_parse(struct parser * parser, const char * path, struct schema * schema, parser_cb callback, void * context) {
     int status = 0;
     char * ext;
 
     parser->root = NULL;
-    parser->data = data;
+    parser->data = schema_top(schema);
     parser->callback = callback;
     parser->context = context;
 
