@@ -52,6 +52,16 @@ void store_destroy(struct store * store) {
     pool_destroy(&store->pool);
 }
 
+void store_clear(struct store * store) {
+    struct store_node * node;
+
+    while(store->root) {
+        node = store->root;
+        store->root = store->root->next;
+        store_node_destroy(store, node);
+    }
+}
+
 size_t store_size(struct store * store) {
     size_t size = 0;
     struct store_node * node;
@@ -63,16 +73,6 @@ size_t store_size(struct store * store) {
     }
 
     return size *= store->pool.size;
-}
-
-void store_clear(struct store * store) {
-    struct store_node * node;
-
-    while(store->root) {
-        node = store->root;
-        store->root = store->root->next;
-        store_node_destroy(store, node);
-    }
 }
 
 void * store_object(struct store * store, size_t size) {
