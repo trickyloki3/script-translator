@@ -32,6 +32,8 @@ int main(int argc, char ** argv) {
                     status = panic("failed to produce db lookup object");
                 } else if(lookup_constant_db_parse(&lookup, "constant_db.yml")) {
                     status = panic("failed to constant db lookup object");
+                } else if(lookup_constant_group_parse(&lookup, "constant_group.yml")) {
+                    status = panic("failed to constant group lookup object");
                 }
                 lookup_destroy(&lookup);
             }
