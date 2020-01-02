@@ -5,6 +5,7 @@
 #include "map.h"
 #include "range.h"
 #include "logic.h"
+#include "store.h"
 
 struct pool_map {
     size_t size;
