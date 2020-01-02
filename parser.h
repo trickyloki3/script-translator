@@ -64,23 +64,4 @@ int parser_create(struct parser *, size_t, struct heap *);
 void parser_destroy(struct parser *);
 int parser_parse(struct parser *, const char *, struct schema_node *, parser_cb, void *);
 
-struct store_node {
-    size_t offset;
-    size_t length;
-    char * buffer;
-    struct store_node * next;
-};
-
-struct store {
-    struct pool pool;
-    struct store_node * root;
-};
-
-int store_create(struct store *, size_t);
-void store_destroy(struct store *);
-void store_clear(struct store *);
-size_t store_size(struct store *);
-void * store_object(struct store *, size_t);
-struct string * store_string(struct store *, struct string *);
-
 #endif

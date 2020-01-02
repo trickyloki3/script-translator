@@ -5,6 +5,7 @@ OBJECT+=list.o
 OBJECT+=map.o
 OBJECT+=range.o
 OBJECT+=logic.o
+OBJECT+=store.o
 OBJECT+=heap.o
 OBJECT+=csv_parser.o
 OBJECT+=csv_scanner.o

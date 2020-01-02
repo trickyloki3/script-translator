@@ -1,6 +1,7 @@
 #ifndef lookup_h
 #define lookup_h
 
+#include "store.h"
 #include "parser.h"
 
 struct long_array {
