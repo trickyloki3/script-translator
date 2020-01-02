@@ -269,8 +269,8 @@ int pet_db_create(struct pet_db * pet_db, size_t size, struct heap * heap) {
             status = panic("failed to create store object");
         } else {
             pet_db->pet = NULL;
-            pet_db->evo = NULL;
-            pet_db->req = NULL;
+            pet_db->evolve = NULL;
+            pet_db->require = NULL;
         }
         if(status)
             map_destroy(&pet_db->map);
@@ -285,8 +285,8 @@ void pet_db_destroy(struct pet_db * pet_db) {
 }
 
 void pet_db_clear(struct pet_db * pet_db) {
-    pet_db->req = NULL;
-    pet_db->evo = NULL;
+    pet_db->require = NULL;
+    pet_db->evolve = NULL;
     pet_db->pet = NULL;
     store_clear(&pet_db->store);
     map_clear(&pet_db->map);
@@ -333,27 +333,27 @@ int pet_db_parse(enum parser_event event, int mark, struct string * string, void
         case 26: status = string_store(string, &pet_db->store, &pet_db->pet->support_script); break;
         case 28:
             if(event == start) {
-                pet_db->evo = store_object(&pet_db->store, sizeof(*pet_db->evo));
-                if(!pet_db->evo)
+                pet_db->evolve = store_object(&pet_db->store, sizeof(*pet_db->evolve));
+                if(!pet_db->evolve)
                     status = panic("failed to object store object");
             } else if(event == end) {
-                pet_db->evo->next = pet_db->pet->evolution;
-                pet_db->pet->evolution = pet_db->evo;
+                pet_db->evolve->next = pet_db->pet->evolve;
+                pet_db->pet->evolve = pet_db->evolve;
             }
             break;
-        case 29: status = string_store(string, &pet_db->store, &pet_db->evo->target); break;
+        case 29: status = string_store(string, &pet_db->store, &pet_db->evolve->target); break;
         case 31:
             if(event == start) {
-                pet_db->req = store_object(&pet_db->store, sizeof(*pet_db->req));
-                if(!pet_db->req)
+                pet_db->require = store_object(&pet_db->store, sizeof(*pet_db->require));
+                if(!pet_db->require)
                     status = panic("failed to object store object");
             } else if(event == end) {
-                pet_db->req->next = pet_db->evo->requirement;
-                pet_db->evo->requirement = pet_db->req;
+                pet_db->require->next = pet_db->evolve->require;
+                pet_db->evolve->require = pet_db->require;
             }
             break;
-        case 32: status = string_store(string, &pet_db->store, &pet_db->req->item); break;
-        case 33: status = string_strtol(string, 10, &pet_db->req->amount); break;
+        case 32: status = string_store(string, &pet_db->store, &pet_db->require->item); break;
+        case 33: status = string_strtol(string, 10, &pet_db->require->amount); break;
     }
 
     return status;

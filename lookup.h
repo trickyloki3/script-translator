@@ -8,16 +8,16 @@ struct long_array {
     size_t count;
 };
 
-struct pet_req {
+struct pet_require {
     struct string * item;
     long amount;
-    struct pet_req * next;
+    struct pet_require * next;
 };
 
-struct pet_evo {
+struct pet_evolve {
     struct string * target;
-    struct pet_req * requirement;
-    struct pet_evo * next;
+    struct pet_require * require;
+    struct pet_evolve * next;
 };
 
 struct pet {
@@ -42,15 +42,15 @@ struct pet {
     struct string * allow_auto_feed;
     struct string * script;
     struct string * support_script;
-    struct pet_evo * evolution;
+    struct pet_evolve * evolve;
 };
 
 struct pet_db {
     struct map map;
     struct store store;
     struct pet * pet;
-    struct pet_evo * evo;
-    struct pet_req * req;
+    struct pet_evolve * evolve;
+    struct pet_require * require;
 };
 
 int pet_db_create(struct pet_db *, size_t, struct heap *);
