@@ -95,18 +95,3 @@ void * store_object(struct store * store, size_t size) {
 
     return object;
 }
-
-struct string * store_string(struct store * store, struct string * string) {
-    struct string * object;
-
-    object = store_object(store, sizeof(*string) + string->length + 1);
-    if(object) {
-        object->string = (char *) object + sizeof(*string);
-        object->length = string->length;
-
-        memcpy(object->string, string->string, string->length);
-        object->string[object->length] = 0;
-    }
-
-    return object;
-}

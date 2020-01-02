@@ -111,12 +111,19 @@ int long_compare(void * x, void * y) {
 
 int string_store(struct string * string, struct store * store, struct string ** result) {
     int status = 0;
+    struct string * object;
 
-    string = store_string(store, string);
-    if(!string) {
-        status = panic("failed to string store object");
+    object = store_object(store, sizeof(*string) + string->length + 1);
+    if(!object) {
+        status = panic("failed to object store object");
     } else {
-        *result = string;
+        object->string = (char *) object + sizeof(*string);
+        object->length = string->length;
+
+        memcpy(object->string, string->string, string->length);
+        object->string[object->length] = 0;
+
+        *result = object;
     }
 
     return status;
