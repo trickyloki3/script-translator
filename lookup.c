@@ -1198,7 +1198,7 @@ void lookup_destroy(struct lookup * lookup) {
 
 int lookup_pet_db_parse(struct lookup * lookup, char * path) {
     int status = 0;
-    struct schema_data * pet_db_schema;
+    struct schema_node * pet_db_schema;
 
     pet_db_clear(&lookup->pet_db);
 
@@ -1214,7 +1214,7 @@ int lookup_pet_db_parse(struct lookup * lookup, char * path) {
 
 int lookup_item_db_parse(struct lookup * lookup, char * path) {
     int status = 0;
-    struct schema_data * item_db_schema;
+    struct schema_node * item_db_schema;
 
     item_db_clear(&lookup->item_db);
 
@@ -1230,7 +1230,7 @@ int lookup_item_db_parse(struct lookup * lookup, char * path) {
 
 int lookup_item_combo_db_parse(struct lookup * lookup, char * path) {
     int status = 0;
-    struct schema_data * item_combo_db_schema;
+    struct schema_node * item_combo_db_schema;
 
     item_combo_db_schema = schema_load(&lookup->schema, csv_markup);
     if(!item_combo_db_schema) {
@@ -1244,7 +1244,7 @@ int lookup_item_combo_db_parse(struct lookup * lookup, char * path) {
 
 int lookup_skill_db_parse(struct lookup * lookup, char * path) {
     int status = 0;
-    struct schema_data * skill_db_schema;
+    struct schema_node * skill_db_schema;
 
     skill_db_clear(&lookup->skill_db);
 
@@ -1260,7 +1260,7 @@ int lookup_skill_db_parse(struct lookup * lookup, char * path) {
 
 int lookup_mob_db_parse(struct lookup * lookup, char * path) {
     int status = 0;
-    struct schema_data * mob_db_schema;
+    struct schema_node * mob_db_schema;
 
     mob_db_clear(&lookup->mob_db);
 
@@ -1276,7 +1276,7 @@ int lookup_mob_db_parse(struct lookup * lookup, char * path) {
 
 int lookup_mob_race_db_parse(struct lookup * lookup, char * path) {
     int status = 0;
-    struct schema_data * mob_race_schema;
+    struct schema_node * mob_race_schema;
 
     mob_race_db_clear(&lookup->mob_race_db);
 
@@ -1292,7 +1292,7 @@ int lookup_mob_race_db_parse(struct lookup * lookup, char * path) {
 
 int lookup_mercenary_db_parse(struct lookup * lookup, char * path) {
     int status = 0;
-    struct schema_data * mercenary_db_schema;
+    struct schema_node * mercenary_db_schema;
 
     mercenary_db_clear(&lookup->mercenary_db);
 
@@ -1308,7 +1308,7 @@ int lookup_mercenary_db_parse(struct lookup * lookup, char * path) {
 
 int lookup_produce_db_parse(struct lookup * lookup, char * path) {
     int status = 0;
-    struct schema_data * produce_db_schema;
+    struct schema_node * produce_db_schema;
 
     produce_db_clear(&lookup->produce_db);
 
@@ -1324,7 +1324,7 @@ int lookup_produce_db_parse(struct lookup * lookup, char * path) {
 
 int lookup_constant_db_parse(struct lookup * lookup, char * path) {
     int status = 0;
-    struct schema_data * constant_db_schema;
+    struct schema_node * constant_db_schema;
 
     constant_db_clear(&lookup->constant_db);
 
@@ -1340,7 +1340,7 @@ int lookup_constant_db_parse(struct lookup * lookup, char * path) {
 
 int lookup_constant_group_parse(struct lookup * lookup, char * path) {
     int status = 0;
-    struct schema_data * constant_group_schema;
+    struct schema_node * constant_group_schema;
 
     constant_group_schema = schema_load(&lookup->schema, constant_group_markup);
     if(!constant_group_schema) {

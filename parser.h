@@ -11,11 +11,11 @@ enum schema_type {
     string
 };
 
-struct schema_data {
+struct schema_node {
     enum schema_type type;
     int mark;
-    struct schema_data * data;
-    struct schema_data * next;
+    struct schema_node * data;
+    struct schema_node * next;
     struct map map;
 };
 
@@ -29,7 +29,7 @@ struct schema_markup {
 
 struct schema {
     struct pool * pool;
-    struct schema_data * root;
+    struct schema_node * root;
     struct list list;
 };
 
@@ -37,9 +37,9 @@ int schema_create(struct schema *, struct heap *);
 void schema_destroy(struct schema *);
 int schema_push(struct schema *, enum schema_type, int, char *);
 void schema_pop(struct schema *);
-struct schema_data * schema_top(struct schema *);
-struct schema_data * schema_load(struct schema *, struct schema_markup *);
-void schema_print(struct schema_data *);
+struct schema_node * schema_top(struct schema *);
+struct schema_node * schema_load(struct schema *, struct schema_markup *);
+void schema_print(struct schema_node *);
 
 enum parser_event {
     start,
@@ -54,15 +54,15 @@ struct parser {
     struct csv csv;
     struct json json;
     struct yaml yaml;
-    struct schema_data * root;
-    struct schema_data * data;
+    struct schema_node * root;
+    struct schema_node * data;
     parser_cb callback;
     void * context;
 };
 
 int parser_create(struct parser *, size_t, struct heap *);
 void parser_destroy(struct parser *);
-int parser_parse(struct parser *, const char *, struct schema_data *, parser_cb, void *);
+int parser_parse(struct parser *, const char *, struct schema_node *, parser_cb, void *);
 
 struct store_node {
     size_t offset;

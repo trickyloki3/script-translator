@@ -1,41 +1,41 @@
 #include "parser.h"
 
-static inline struct schema_data * data_create(struct schema *, enum schema_type, int, struct pool *);
-static inline void data_destroy(struct schema *, struct schema_data *);
-void data_print(struct schema_data *, int, char *);
+static inline struct schema_node * schema_node_create(struct schema *, enum schema_type, int, struct pool *);
+static inline void schema_node_destroy(struct schema *, struct schema_node *);
+void schema_node_print(struct schema_node *, int, char *);
 
-int parser_node(struct parser *, enum event_type, struct string *, struct schema_data *);
+int parser_node(struct parser *, enum event_type, struct string *, struct schema_node *);
 int parser_event(enum event_type, struct string *, void *);
 
 static inline struct store_node * store_node_create(struct store *);
 static inline void store_node_destroy(struct store *, struct store_node *);
 static inline void * store_node_alloc(struct store_node *, size_t);
 
-static inline struct schema_data * data_create(struct schema * schema, enum schema_type type, int mark, struct pool * pool) {
+static inline struct schema_node * schema_node_create(struct schema * schema, enum schema_type type, int mark, struct pool * pool) {
     int status = 0;
-    struct schema_data * data;
+    struct schema_node * node;
 
-    data = pool_get(schema->pool);
-    if(data) {
-        data->type = type;
-        data->mark = mark;
-        data->data = NULL;
-        data->next = NULL;
-        if(map_create(&data->map, (map_compare_cb) strcmp, pool))
+    node = pool_get(schema->pool);
+    if(node) {
+        node->type = type;
+        node->mark = mark;
+        node->data = NULL;
+        node->next = NULL;
+        if(map_create(&node->map, (map_compare_cb) strcmp, pool))
             status = panic("failed to create map object");
         if(status)
-            pool_put(schema->pool, data);
+            pool_put(schema->pool, node);
     }
 
-    return status ? NULL : data;
+    return status ? NULL : node;
 }
 
-static inline void data_destroy(struct schema * schema, struct schema_data * data) {
-    map_destroy(&data->map);
-    pool_put(schema->pool, data);
+static inline void schema_node_destroy(struct schema * schema, struct schema_node * node) {
+    map_destroy(&node->map);
+    pool_put(schema->pool, node);
 }
 
-void data_print(struct schema_data * data, int indent, char * key) {
+void schema_node_print(struct schema_node * node, int indent, char * key) {
     int i;
     struct map_kv kv;
 
@@ -45,21 +45,21 @@ void data_print(struct schema_data * data, int indent, char * key) {
     if(key)
         fprintf(stdout, "[%s]", key);
 
-    switch(data->type) {
+    switch(node->type) {
         case list:
-            fprintf(stdout, "[list:%d]\n", data->mark);
-            data_print(data->data, indent + 1, NULL);
+            fprintf(stdout, "[list:%d]\n", node->mark);
+            schema_node_print(node->data, indent + 1, NULL);
             break;
         case map:
-            fprintf(stdout, "[map:%d]\n", data->mark);
-            kv = map_start(&data->map);
+            fprintf(stdout, "[map:%d]\n", node->mark);
+            kv = map_start(&node->map);
             while(kv.key) {
-                data_print(kv.value, indent + 1, kv.key);
-                kv = map_next(&data->map);
+                schema_node_print(kv.value, indent + 1, kv.key);
+                kv = map_next(&node->map);
             }
             break;
         case string:
-            fprintf(stdout, "[string:%d]\n", data->mark);
+            fprintf(stdout, "[string:%d]\n", node->mark);
             break;
     }
 }
@@ -68,13 +68,13 @@ void data_print(struct schema_data * data, int indent, char * key) {
 int schema_create(struct schema * schema, struct heap * heap) {
     int status = 0;
 
-    schema->pool = heap_pool(heap, sizeof(struct schema_data));
+    schema->pool = heap_pool(heap, sizeof(struct schema_node));
     if(!schema->pool) {
         status = panic("failed to pool heap object");
     } else {
-        schema->root = data_create(schema, list, 0, heap->map_pool);
+        schema->root = schema_node_create(schema, list, 0, heap->map_pool);
         if(!schema->root) {
-            status = panic("failed to create data object");
+            status = panic("failed to create schema node object");
         } else {
             if(list_create(&schema->list, heap->list_pool)) {
                 status = panic("failed to create list object");
@@ -85,7 +85,7 @@ int schema_create(struct schema * schema, struct heap * heap) {
                     list_destroy(&schema->list);
             }
             if(status)
-                data_destroy(schema, schema->root);
+                schema_node_destroy(schema, schema->root);
         }
     }
 
@@ -93,51 +93,51 @@ int schema_create(struct schema * schema, struct heap * heap) {
 }
 
 void schema_destroy(struct schema * schema) {
-    struct schema_data * data;
+    struct schema_node * node;
 
-    data = list_pop(&schema->list);
-    while(data) {
-        data_destroy(schema, data);
-        data = list_pop(&schema->list);
+    node = list_pop(&schema->list);
+    while(node) {
+        schema_node_destroy(schema, node);
+        node = list_pop(&schema->list);
     }
     list_destroy(&schema->list);
 }
 
 int schema_push(struct schema * schema, enum schema_type type, int mark, char * key) {
     int status = 0;
-    struct schema_data * data;
+    struct schema_node * node;
 
-    data = data_create(schema, type, mark, schema->root->map.pool);
-    if(!data) {
-        status = panic("failed to create data object");
+    node = schema_node_create(schema, type, mark, schema->root->map.pool);
+    if(!node) {
+        status = panic("failed to create schema node object");
     } else {
-        if(list_push(&schema->list, data)) {
+        if(list_push(&schema->list, node)) {
             status = panic("failed to push list object");
         } else {
             if(schema->root->type == list) {
                 if(schema->root->data) {
                     status = panic("invalid data");
                 } else {
-                    schema->root->data = data;
+                    schema->root->data = node;
                 }
             } else if(schema->root->type == map) {
                 if(!key) {
                     status = panic("invalid key");
-                } else if(map_insert(&schema->root->map, key, data)) {
+                } else if(map_insert(&schema->root->map, key, node)) {
                     status = panic("failed to insert map object");
                 }
             }
             if(status) {
                 /* skip push on error */
-            } else if(data->type == list || data->type == map) {
-                data->next = schema->root;
-                schema->root = data;
+            } else if(node->type == list || node->type == map) {
+                node->next = schema->root;
+                schema->root = node;
             }
             if(status)
                 list_pop(&schema->list);
         }
         if(status)
-            data_destroy(schema, data);
+            schema_node_destroy(schema, node);
     }
 
     return status;
@@ -148,18 +148,18 @@ void schema_pop(struct schema * schema) {
         schema->root = schema->root->next;
 }
 
-struct schema_data * schema_top(struct schema * schema) {
-    struct schema_data * data = NULL;
+struct schema_node * schema_top(struct schema * schema) {
+    struct schema_node * node = NULL;
 
     if(schema->root->data) {
-        data = schema->root->data;
+        node = schema->root->data;
         schema->root->data = NULL;
     }
 
-    return data;
+    return node;
 }
 
-struct schema_data * schema_load(struct schema * schema, struct schema_markup * markup) {
+struct schema_node * schema_load(struct schema * schema, struct schema_markup * markup) {
     int status = 0;
     struct schema_markup * root = NULL;
 
@@ -185,8 +185,8 @@ struct schema_data * schema_load(struct schema * schema, struct schema_markup * 
     return status ? NULL : schema_top(schema);
 }
 
-void schema_print(struct schema_data * data) {
-    data_print(data, 0, NULL);
+void schema_print(struct schema_node * data) {
+    schema_node_print(data, 0, NULL);
 }
 
 int parser_create(struct parser * parser, size_t size, struct heap * heap) {
@@ -218,7 +218,7 @@ void parser_destroy(struct parser * parser) {
     csv_destroy(&parser->csv);
 }
 
-int parser_node(struct parser * parser, enum event_type event, struct string * string, struct schema_data * data) {
+int parser_node(struct parser * parser, enum event_type event, struct string * string, struct schema_node * data) {
     int status = 0;
 
     if(data->type == list) {
@@ -299,7 +299,7 @@ int parser_event(enum event_type event, struct string * string, void * context) 
     return status;
 }
 
-int parser_parse(struct parser * parser, const char * path, struct schema_data * data, parser_cb callback, void * context) {
+int parser_parse(struct parser * parser, const char * path, struct schema_node * data, parser_cb callback, void * context) {
     int status = 0;
     char * ext;
 
