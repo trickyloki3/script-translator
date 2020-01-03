@@ -41,6 +41,21 @@ struct schema_node * schema_top(struct schema *);
 int schema_load(struct schema *, struct schema_markup *);
 void schema_print(struct schema *);
 
+/*
+ * parser_event and parser_node
+ * implements the grammar below
+ *
+ *  node : string
+ *       | start list end
+ *       | start map end
+ *
+ *  list : node
+ *       | list node
+ *
+ *  map  : string node
+ *       | map string node
+ */
+
 enum parser_event {
     start,
     next,
