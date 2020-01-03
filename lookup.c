@@ -1340,7 +1340,7 @@ int data_group_parse(enum parser_event event, int mark, struct string * string, 
             }
             break;
         case 3: status = string_store(string, &data_group->store, &data_group->data->name); break;
-        case 4: status = string_strtol(string, strncmp(string->string, "0x", 2) ? 10 : 16, &data_group->data->value); break;
+        case 4: status = string_strtoul(string, strncmp(string->string, "0x", 2) ? 10 : 16, &data_group->data->value); break;
         case 1: data_group->map = &data_group->getiteminfo_type; break;
         case 5: data_group->map = &data_group->item_location; break;
         case 6: data_group->map = &data_group->skill_flag; break;
