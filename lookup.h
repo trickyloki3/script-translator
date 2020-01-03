@@ -309,6 +309,38 @@ void constant_db_clear(struct constant_db *);
 int constant_db_parse(enum parser_event, int, struct string *, void *);
 int constant_group_parse(enum parser_event, int, struct string *, void *);
 
+struct data {
+    struct string * name;
+    unsigned long value;
+};
+
+struct data_group {
+    struct map getiteminfo_type;
+    struct map item_location;
+    struct map skill_flag;
+    struct map basejob;
+    struct map gender;
+    struct map ammo_type;
+    struct map item_type;
+    struct map job;
+    struct map bonus_script_flag;
+    struct map strcharinfo_type;
+    struct map refineable;
+    struct map weapon_type;
+    struct map job_group;
+    struct map searchstore_effect;
+    struct map class;
+    struct map class_group;
+    struct store store;
+    struct map * map;
+    struct data * data;
+};
+
+int data_group_create(struct data_group *, size_t, struct heap *);
+void data_group_destroy(struct data_group *);
+void data_group_clear(struct data_group *);
+int data_group_parse(enum parser_event, int, struct string *, void *);
+
 struct lookup {
     struct schema schema;
     struct parser parser;
@@ -320,6 +352,7 @@ struct lookup {
     struct mercenary_db mercenary_db;
     struct produce_db produce_db;
     struct constant_db constant_db;
+    struct data_group data_group;
 };
 
 int lookup_create(struct lookup *, size_t, struct heap *);
@@ -334,5 +367,6 @@ int lookup_mercenary_db_parse(struct lookup *, char *);
 int lookup_produce_db_parse(struct lookup *, char *);
 int lookup_constant_db_parse(struct lookup *, char *);
 int lookup_constant_group_parse(struct lookup *, char *);
+int lookup_data_group_parse(struct lookup *, char *);
 
 #endif
