@@ -1,0 +1,32 @@
+source: |
+  utility.h   ; header
+  pool.h      ; memory
+  array.h     ; memory
+  list.h      ; container ; doubly linked list
+  map.h       ; container ; red black tree
+  range.h     ; container
+  logic.h     ; container ; disjunctive normal form
+  store.h     ; container
+  heap.h      ; memory
+  csv.h       ; parser
+  json.h      ; parser
+  yaml.h      ; parser
+  parser.h    ; parser, schema
+  lookup.h    ; database
+
+layout: |
+  lookup.h
+    parser.h
+      csv.h
+      json.h
+      yaml.h
+        event.h
+        heap.h
+          list.h
+          map.h
+          range.h
+          logic.h
+          store.h
+          pool.h
+          array.h
+            utility.h
