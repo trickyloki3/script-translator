@@ -301,7 +301,7 @@ struct data {
 };
 
 struct data_group {
-    struct map group;
+    struct map map_group;
     struct store store;
     struct map * map;
     struct data * data;

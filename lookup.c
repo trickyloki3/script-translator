@@ -1100,7 +1100,7 @@ int constant_group_parse(enum parser_event event, int mark, struct string * stri
 int data_group_create(struct data_group * data_group, size_t size, struct heap * heap) {
     int status = 0;
 
-    if(map_create(&data_group->group, (map_compare_cb) strcmp, heap->map_pool)) {
+    if(map_create(&data_group->map_group, (map_compare_cb) strcmp, heap->map_pool)) {
         status = panic("failed to create map object");
     } else {
         if(store_create(&data_group->store, size)) {
@@ -1110,7 +1110,7 @@ int data_group_create(struct data_group * data_group, size_t size, struct heap *
             data_group->data = NULL;
         }
         if(status)
-            map_destroy(&data_group->group);
+            map_destroy(&data_group->map_group);
     }
 
     return status;
@@ -1119,22 +1119,22 @@ int data_group_create(struct data_group * data_group, size_t size, struct heap *
 void data_group_destroy(struct data_group * data_group) {
     data_group_clear(data_group);
     store_destroy(&data_group->store);
-    map_destroy(&data_group->group);
+    map_destroy(&data_group->map_group);
 }
 
 void data_group_clear(struct data_group * data_group) {
     struct map_kv kv;
 
-    kv = map_start(&data_group->group);
+    kv = map_start(&data_group->map_group);
     while(kv.key) {
         map_destroy(kv.value);
-        kv = map_next(&data_group->group);
+        kv = map_next(&data_group->map_group);
     }
 
     data_group->data = NULL;
     data_group->map = NULL;
     store_clear(&data_group->store);
-    map_clear(&data_group->group);
+    map_clear(&data_group->map_group);
 }
 
 int data_group_parse(enum parser_event event, int mark, struct string * string, void * context) {
@@ -1149,12 +1149,12 @@ int data_group_parse(enum parser_event event, int mark, struct string * string, 
             if(!data_group->map) {
                 status = panic("failed object string object");
             } else {
-                if(map_create(data_group->map, long_compare, data_group->group.pool)) {
+                if(map_create(data_group->map, long_compare, data_group->map_group.pool)) {
                     status = panic("failed to create map object");
                 } else {
                     if(string_store(string, &data_group->store, &label)) {
                         status = panic("failed to string store object");
-                    } else if(map_insert(&data_group->group, label->string, data_group->map)) {
+                    } else if(map_insert(&data_group->map_group, label->string, data_group->map)) {
                         status = panic("failed to insert map object");
                     }
                     if(status)
