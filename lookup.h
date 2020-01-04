@@ -298,18 +298,12 @@ int constant_group_parse(enum parser_event, int, struct string *, void *);
 struct data {
     struct string * string;
     unsigned long number;
-    struct data * next;
-};
-
-struct data_array {
-    struct string * label;
-    struct data * data;
 };
 
 struct data_group {
-    struct map map;
+    struct map group;
     struct store store;
-    struct data_array * array;
+    struct map * map;
     struct data * data;
 };
 

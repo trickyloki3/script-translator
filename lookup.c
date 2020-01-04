@@ -1093,64 +1093,76 @@ int constant_group_parse(enum parser_event event, int mark, struct string * stri
 int data_group_create(struct data_group * data_group, size_t size, struct heap * heap) {
     int status = 0;
 
-    if(map_create(&data_group->map, (map_compare_cb) strcmp, heap->map_pool)) {
+    if(map_create(&data_group->group, (map_compare_cb) strcmp, heap->map_pool)) {
         status = panic("failed to create map object");
     } else {
         if(store_create(&data_group->store, size)) {
             status = panic("failed to create store object");
         } else {
-            data_group->array = NULL;
+            data_group->map = NULL;
             data_group->data = NULL;
         }
         if(status)
-            map_destroy(&data_group->map);
+            map_destroy(&data_group->group);
     }
 
     return status;
 }
 
 void data_group_destroy(struct data_group * data_group) {
+    data_group_clear(data_group);
     store_destroy(&data_group->store);
-    map_destroy(&data_group->map);
+    map_destroy(&data_group->group);
 }
 
 void data_group_clear(struct data_group * data_group) {
+    struct map_kv kv;
+
+    kv = map_start(&data_group->group);
+    while(kv.key) {
+        map_destroy(kv.value);
+        kv = map_next(&data_group->group);
+    }
+
     data_group->data = NULL;
-    data_group->array = NULL;
+    data_group->map = NULL;
     store_clear(&data_group->store);
-    map_clear(&data_group->map);
+    map_clear(&data_group->group);
 }
 
 int data_group_parse(enum parser_event event, int mark, struct string * string, void * context) {
     int status = 0;
     struct data_group * data_group = context;
 
+    struct string * label;
+
     switch(mark) {
-        case 2:
-            if(event == start) {
-                data_group->array = store_object(&data_group->store, sizeof(*data_group->array));
-                if(!data_group->array) {
-                    status = panic("failed to object store object");
+        case 3:
+            data_group->map = store_object(&data_group->store, sizeof(*data_group->map));
+            if(!data_group->map) {
+                status = panic("failed object string object");
+            } else {
+                if(map_create(data_group->map, long_compare, data_group->group.pool)) {
+                    status = panic("failed to create map object");
                 } else {
-                    data_group->array->data = NULL;
-                }
-            } else if(event == end) {
-                if(!data_group->array->label) {
-                    status = panic("invalid string object");
-                } else if(map_insert(&data_group->map, data_group->array->label->string, data_group->array)) {
-                    status = panic("failed to insert map object");
+                    if(string_store(string, &data_group->store, &label)) {
+                        status = panic("failed to string store object");
+                    } else if(map_insert(&data_group->group, label->string, data_group->map)) {
+                        status = panic("failed to insert map object");
+                    }
+                    if(status)
+                        map_destroy(data_group->map);
                 }
             }
             break;
-        case 3: status = string_store(string, &data_group->store, &data_group->array->label); break;
         case 5:
             if(event == start) {
                 data_group->data = store_object(&data_group->store, sizeof(*data_group->data));
                 if(!data_group->data)
                     status = panic("failed to object store object");
             } else if(event == end) {
-                data_group->data->next = data_group->array->data;
-                data_group->array->data = data_group->data;
+                if(map_insert(data_group->map, &data_group->data->number, data_group->data))
+                    status = panic("failed to insert map object");
             }
             break;
         case 6: status = string_store(string, &data_group->store, &data_group->data->string); break;
