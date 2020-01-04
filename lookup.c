@@ -104,71 +104,13 @@ struct schema_markup constant_group_markup[] = {
 };
 
 struct schema_markup data_group_markup[] = {
-    {1, map, 0, NULL},
-    {2, list, 1, "getiteminfo_type"},
-    {3, map, 2, NULL},
-    {4, string, 3, "name"},
-    {4, string, 4, "value"},
-    {2, list, 5, "item_location"},
-    {3, map, 2, NULL},
-    {4, string, 3, "name"},
-    {4, string, 4, "value"},
-    {2, list, 6, "skill_flag"},
-    {3, map, 2, NULL},
-    {4, string, 3, "name"},
-    {4, string, 4, "value"},
-    {2, list, 7, "basejob"},
-    {3, map, 2, NULL},
-    {4, string, 3, "name"},
-    {4, string, 4, "value"},
-    {2, list, 8, "gender"},
-    {3, map, 2, NULL},
-    {4, string, 3, "name"},
-    {4, string, 4, "value"},
-    {2, list, 9, "ammo_type"},
-    {3, map, 2, NULL},
-    {4, string, 3, "name"},
-    {4, string, 4, "value"},
-    {2, list, 10, "item_type"},
-    {3, map, 2, NULL},
-    {4, string, 3, "name"},
-    {4, string, 4, "value"},
-    {2, list, 11, "job"},
-    {3, map, 2, NULL},
-    {4, string, 3, "name"},
-    {4, string, 4, "value"},
-    {2, list, 12, "bonus_script_flag"},
-    {3, map, 2, NULL},
-    {4, string, 3, "name"},
-    {4, string, 4, "value"},
-    {2, list, 13, "strcharinfo_type"},
-    {3, map, 2, NULL},
-    {4, string, 3, "name"},
-    {4, string, 4, "value"},
-    {2, list, 14, "refineable"},
-    {3, map, 2, NULL},
-    {4, string, 3, "name"},
-    {4, string, 4, "value"},
-    {2, list, 15, "weapon_type"},
-    {3, map, 2, NULL},
-    {4, string, 3, "name"},
-    {4, string, 4, "value"},
-    {2, list, 16, "job_group"},
-    {3, map, 2, NULL},
-    {4, string, 3, "name"},
-    {4, string, 4, "value"},
-    {2, list, 17, "searchstore_effect"},
-    {3, map, 2, NULL},
-    {4, string, 3, "name"},
-    {4, string, 4, "value"},
-    {2, list, 18, "class"},
-    {3, map, 2, NULL},
-    {4, string, 3, "name"},
-    {4, string, 4, "value"},
-    {2, list, 19, "class_group"},
-    {3, map, 2, NULL},
-    {4, string, 3, "name"},
-    {4, string, 4, "value"},
+    {1, list, 1, NULL},
+    {2, map, 2, NULL},
+    {3, string, 3, "label"},
+    {3, list, 4, "data"},
+    {4, map, 5, NULL},
+    {5, string, 6, "string"},
+    {5, string, 7, "number"},
     {0, 0, 0},
 };
 
@@ -1225,103 +1167,34 @@ int constant_group_parse(enum parser_event event, int mark, struct string * stri
 }
 
 int data_group_create(struct data_group * data_group, size_t size, struct heap * heap) {
-    if(map_create(&data_group->getiteminfo_type, long_compare, heap->map_pool))
-        goto e0;
-    if(map_create(&data_group->item_location, long_compare, heap->map_pool))
-        goto e1;
-    if(map_create(&data_group->skill_flag, long_compare, heap->map_pool))
-        goto e2;
-    if(map_create(&data_group->basejob, long_compare, heap->map_pool))
-        goto e3;
-    if(map_create(&data_group->gender, long_compare, heap->map_pool))
-        goto e4;
-    if(map_create(&data_group->ammo_type, long_compare, heap->map_pool))
-        goto e5;
-    if(map_create(&data_group->item_type, long_compare, heap->map_pool))
-        goto e6;
-    if(map_create(&data_group->job, long_compare, heap->map_pool))
-        goto e7;
-    if(map_create(&data_group->bonus_script_flag, long_compare, heap->map_pool))
-        goto e8;
-    if(map_create(&data_group->strcharinfo_type, long_compare, heap->map_pool))
-        goto e9;
-    if(map_create(&data_group->refineable, long_compare, heap->map_pool))
-        goto e10;
-    if(map_create(&data_group->weapon_type, long_compare, heap->map_pool))
-        goto e11;
-    if(map_create(&data_group->job_group, long_compare, heap->map_pool))
-        goto e12;
-    if(map_create(&data_group->searchstore_effect, long_compare, heap->map_pool))
-        goto e13;
-    if(map_create(&data_group->class, long_compare, heap->map_pool))
-        goto e14;
-    if(map_create(&data_group->class_group, long_compare, heap->map_pool))
-        goto e15;
-    if(store_create(&data_group->store, size))
-        goto e16;
-    data_group->map = NULL;
-    data_group->data = NULL;
-    return 0;
+    int status = 0;
 
-e16: map_destroy(&data_group->class_group);
-e15: map_destroy(&data_group->class);
-e14: map_destroy(&data_group->searchstore_effect);
-e13: map_destroy(&data_group->job_group);
-e12: map_destroy(&data_group->weapon_type);
-e11: map_destroy(&data_group->refineable);
-e10: map_destroy(&data_group->strcharinfo_type);
-e9: map_destroy(&data_group->bonus_script_flag);
-e8: map_destroy(&data_group->job);
-e7: map_destroy(&data_group->item_type);
-e6: map_destroy(&data_group->ammo_type);
-e5: map_destroy(&data_group->gender);
-e4: map_destroy(&data_group->basejob);
-e3: map_destroy(&data_group->skill_flag);
-e2: map_destroy(&data_group->item_location);
-e1: map_destroy(&data_group->getiteminfo_type);
-e0: return 1;
+    if(map_create(&data_group->map, (map_compare_cb) strcmp, heap->map_pool)) {
+        status = panic("failed to create map object");
+    } else {
+        if(store_create(&data_group->store, size)) {
+            status = panic("failed to create store object");
+        } else {
+            data_group->array = NULL;
+            data_group->data = NULL;
+        }
+        if(status)
+            map_destroy(&data_group->map);
+    }
+
+    return status;
 }
 
 void data_group_destroy(struct data_group * data_group) {
     store_destroy(&data_group->store);
-    map_destroy(&data_group->class_group);
-    map_destroy(&data_group->class);
-    map_destroy(&data_group->searchstore_effect);
-    map_destroy(&data_group->job_group);
-    map_destroy(&data_group->weapon_type);
-    map_destroy(&data_group->refineable);
-    map_destroy(&data_group->strcharinfo_type);
-    map_destroy(&data_group->bonus_script_flag);
-    map_destroy(&data_group->job);
-    map_destroy(&data_group->item_type);
-    map_destroy(&data_group->ammo_type);
-    map_destroy(&data_group->gender);
-    map_destroy(&data_group->basejob);
-    map_destroy(&data_group->skill_flag);
-    map_destroy(&data_group->item_location);
-    map_destroy(&data_group->getiteminfo_type);
+    map_destroy(&data_group->map);
 }
 
 void data_group_clear(struct data_group * data_group) {
     data_group->data = NULL;
-    data_group->map = NULL;
+    data_group->array = NULL;
     store_clear(&data_group->store);
-    map_clear(&data_group->class_group);
-    map_clear(&data_group->class);
-    map_clear(&data_group->searchstore_effect);
-    map_clear(&data_group->job_group);
-    map_clear(&data_group->weapon_type);
-    map_clear(&data_group->refineable);
-    map_clear(&data_group->strcharinfo_type);
-    map_clear(&data_group->bonus_script_flag);
-    map_clear(&data_group->job);
-    map_clear(&data_group->item_type);
-    map_clear(&data_group->ammo_type);
-    map_clear(&data_group->gender);
-    map_clear(&data_group->basejob);
-    map_clear(&data_group->skill_flag);
-    map_clear(&data_group->item_location);
-    map_clear(&data_group->getiteminfo_type);
+    map_clear(&data_group->map);
 }
 
 int data_group_parse(enum parser_event event, int mark, struct string * string, void * context) {
@@ -1331,37 +1204,37 @@ int data_group_parse(enum parser_event event, int mark, struct string * string, 
     switch(mark) {
         case 2:
             if(event == start) {
+                data_group->array = store_object(&data_group->store, sizeof(*data_group->array));
+                if(!data_group->array) {
+                    status = panic("failed to object store object");
+                } else {
+                    data_group->array->data = NULL;
+                }
+            } else if(event == end) {
+                if(!data_group->array->label) {
+                    status = panic("invalid string object");
+                } else if(map_insert(&data_group->map, data_group->array->label->string, data_group->array)) {
+                    status = panic("failed to insert map object");
+                }
+            }
+            break;
+        case 3: status = string_store(string, &data_group->store, &data_group->array->label); break;
+        case 5:
+            if(event == start) {
                 data_group->data = store_object(&data_group->store, sizeof(*data_group->data));
                 if(!data_group->data)
                     status = panic("failed to object store object");
             } else if(event == end) {
-                if(map_insert(data_group->map, &data_group->data->value, data_group->data))
-                    status = panic("failed to insert map object");
+                data_group->data->next = data_group->array->data;
+                data_group->array->data = data_group->data;
             }
             break;
-        case 3: status = string_store(string, &data_group->store, &data_group->data->name); break;
-        case 4: status = string_strtoul(string, strncmp(string->string, "0x", 2) ? 10 : 16, &data_group->data->value); break;
-        case 1: data_group->map = &data_group->getiteminfo_type; break;
-        case 5: data_group->map = &data_group->item_location; break;
-        case 6: data_group->map = &data_group->skill_flag; break;
-        case 7: data_group->map = &data_group->basejob; break;
-        case 8: data_group->map = &data_group->gender; break;
-        case 9: data_group->map = &data_group->ammo_type; break;
-        case 10: data_group->map = &data_group->item_type; break;
-        case 11: data_group->map = &data_group->job; break;
-        case 12: data_group->map = &data_group->bonus_script_flag; break;
-        case 13: data_group->map = &data_group->strcharinfo_type; break;
-        case 14: data_group->map = &data_group->refineable; break;
-        case 15: data_group->map = &data_group->weapon_type; break;
-        case 16: data_group->map = &data_group->job_group; break;
-        case 17: data_group->map = &data_group->searchstore_effect; break;
-        case 18: data_group->map = &data_group->class; break;
-        case 19: data_group->map = &data_group->class_group; break;
+        case 6: status = string_store(string, &data_group->store, &data_group->data->string); break;
+        case 7: status = string_strtoul(string, strncmp("0x", string->string, 2) ? 10 : 16, &data_group->data->number); break;
     }
 
     return status;
 }
-
 
 int lookup_create(struct lookup * lookup, size_t size, struct heap * heap) {
     if(schema_create(&lookup->schema, heap))

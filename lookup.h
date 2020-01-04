@@ -310,29 +310,20 @@ int constant_db_parse(enum parser_event, int, struct string *, void *);
 int constant_group_parse(enum parser_event, int, struct string *, void *);
 
 struct data {
-    struct string * name;
-    unsigned long value;
+    struct string * string;
+    unsigned long number;
+    struct data * next;
+};
+
+struct data_array {
+    struct string * label;
+    struct data * data;
 };
 
 struct data_group {
-    struct map getiteminfo_type;
-    struct map item_location;
-    struct map skill_flag;
-    struct map basejob;
-    struct map gender;
-    struct map ammo_type;
-    struct map item_type;
-    struct map job;
-    struct map bonus_script_flag;
-    struct map strcharinfo_type;
-    struct map refineable;
-    struct map weapon_type;
-    struct map job_group;
-    struct map searchstore_effect;
-    struct map class;
-    struct map class_group;
+    struct map map;
     struct store store;
-    struct map * map;
+    struct data_array * array;
     struct data * data;
 };
 
