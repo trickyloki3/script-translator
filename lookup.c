@@ -263,6 +263,7 @@ int pet_db_create(struct pet_db * pet_db, size_t size, struct heap * heap) {
 }
 
 void pet_db_destroy(struct pet_db * pet_db) {
+    pet_db_clear(pet_db);
     store_destroy(&pet_db->store);
     map_destroy(&pet_db->map);
 }
@@ -370,6 +371,7 @@ int item_db_create(struct item_db * item_db, size_t size, struct heap * heap) {
 }
 
 void item_db_destroy(struct item_db * item_db) {
+    item_db_clear(item_db);
     store_destroy(&item_db->store);
     map_destroy(&item_db->map_aegis);
     map_destroy(&item_db->map_id);
@@ -515,6 +517,7 @@ int skill_db_create(struct skill_db * skill_db, size_t size, struct heap * heap)
 }
 
 void skill_db_destroy(struct skill_db * skill_db) {
+    skill_db_clear(skill_db);
     store_destroy(&skill_db->store);
     map_destroy(&skill_db->map_macro);
     map_destroy(&skill_db->map_id);
@@ -602,6 +605,7 @@ int mob_db_create(struct mob_db * mob_db, size_t size, struct heap * heap) {
 }
 
 void mob_db_destroy(struct mob_db * mob_db) {
+    mob_db_clear(mob_db);
     store_destroy(&mob_db->store);
     map_destroy(&mob_db->map_id);
 }
@@ -728,6 +732,7 @@ int mob_race_db_create(struct mob_race_db * mob_race_db, size_t size, struct hea
 }
 
 void mob_race_db_destroy(struct mob_race_db * mob_race_db) {
+    mob_race_db_clear(mob_race_db);
     strbuf_destroy(&mob_race_db->strbuf);
     store_destroy(&mob_race_db->store);
     map_destroy(&mob_race_db->map_race);
@@ -802,6 +807,7 @@ int mercenary_db_create(struct mercenary_db * mercenary_db, size_t size, struct 
 }
 
 void mercenary_db_destroy(struct mercenary_db * mercenary_db) {
+    mercenary_db_clear(mercenary_db);
     store_destroy(&mercenary_db->store);
     map_destroy(&mercenary_db->map_id);
 }
@@ -897,6 +903,7 @@ int produce_db_create(struct produce_db * produce_db, size_t size, struct heap *
 }
 
 void produce_db_destroy(struct produce_db * produce_db) {
+    produce_db_clear(produce_db);
     strbuf_destroy(&produce_db->strbuf);
     store_destroy(&produce_db->store);
     map_destroy(&produce_db->map_id);
