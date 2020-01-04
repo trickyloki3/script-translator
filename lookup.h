@@ -282,25 +282,11 @@ struct constant {
 
 struct constant_db {
     struct map map_macro;
-    struct map vip_status;
-    struct map elements;
-    struct map jobs;
-    struct map sc_end;
-    struct map sizes;
-    struct map announces;
-    struct map sc_start;
-    struct map locations;
-    struct map readparam;
-    struct map itemgroups;
-    struct map races;
-    struct map effects;
-    struct map gettimes;
-    struct map classes;
-    struct map options;
-    struct map mapflags;
+    struct map map_group;
     struct store store;
     struct strbuf strbuf;
     struct constant * constant;
+    struct map * map;
 };
 
 int constant_db_create(struct constant_db *, size_t, struct heap *);

@@ -67,39 +67,11 @@ struct schema_markup constant_db_markup[] = {
 };
 
 struct schema_markup constant_group_markup[] = {
-    {1, map, 0, NULL},
-    {2, list, 1, "vip_status"},
-    {3, string, 2, NULL},
-    {2, list, 3, "elements"},
-    {3, string, 4, NULL},
-    {2, list, 5, "jobs"},
-    {3, string, 6, NULL},
-    {2, list, 7, "sc_end"},
-    {3, string, 8, NULL},
-    {2, list, 9, "sizes"},
-    {3, string, 10, NULL},
-    {2, list, 11, "announces"},
-    {3, string, 12, NULL},
-    {2, list, 13, "sc_start"},
-    {3, string, 14, NULL},
-    {2, list, 15, "locations"},
-    {3, string, 16, NULL},
-    {2, list, 17, "readparam"},
-    {3, string, 18, NULL},
-    {2, list, 19, "itemgroups"},
-    {3, string, 20, NULL},
-    {2, list, 21, "races"},
-    {3, string, 22, NULL},
-    {2, list, 23, "effects"},
-    {3, string, 24, NULL},
-    {2, list, 25, "gettimes"},
-    {3, string, 26, NULL},
-    {2, list, 27, "classes"},
-    {3, string, 28, NULL},
-    {2, list, 29, "options"},
-    {3, string, 30, NULL},
-    {2, list, 31, "mapflags"},
-    {3, string, 32, NULL},
+    {1, list, 1, NULL},
+    {2, map, 2, NULL},
+    {3, string, 3, "label"},
+    {3, list, 4, "data"},
+    {4, string, 5, NULL},
     {0, 0, 0},
 };
 
@@ -984,110 +956,58 @@ int produce_db_parse(enum parser_event event, int mark, struct string * string, 
 }
 
 int constant_db_create(struct constant_db * constant_db, size_t size, struct heap * heap) {
-    if(map_create(&constant_db->map_macro, (map_compare_cb) strcmp, heap->map_pool))
-        goto e0;
-    if(map_create(&constant_db->vip_status, (map_compare_cb) strcmp, heap->map_pool))
-        goto e1;
-    if(map_create(&constant_db->elements, (map_compare_cb) strcmp, heap->map_pool))
-        goto e2;
-    if(map_create(&constant_db->jobs, (map_compare_cb) strcmp, heap->map_pool))
-        goto e3;
-    if(map_create(&constant_db->sc_end, (map_compare_cb) strcmp, heap->map_pool))
-        goto e4;
-    if(map_create(&constant_db->sizes, (map_compare_cb) strcmp, heap->map_pool))
-        goto e5;
-    if(map_create(&constant_db->announces, (map_compare_cb) strcmp, heap->map_pool))
-        goto e6;
-    if(map_create(&constant_db->sc_start, (map_compare_cb) strcmp, heap->map_pool))
-        goto e7;
-    if(map_create(&constant_db->locations, (map_compare_cb) strcmp, heap->map_pool))
-        goto e8;
-    if(map_create(&constant_db->readparam, (map_compare_cb) strcmp, heap->map_pool))
-        goto e9;
-    if(map_create(&constant_db->itemgroups, (map_compare_cb) strcmp, heap->map_pool))
-        goto e10;
-    if(map_create(&constant_db->races, (map_compare_cb) strcmp, heap->map_pool))
-        goto e11;
-    if(map_create(&constant_db->effects, (map_compare_cb) strcmp, heap->map_pool))
-        goto e12;
-    if(map_create(&constant_db->gettimes, (map_compare_cb) strcmp, heap->map_pool))
-        goto e13;
-    if(map_create(&constant_db->classes, (map_compare_cb) strcmp, heap->map_pool))
-        goto e14;
-    if(map_create(&constant_db->options, (map_compare_cb) strcmp, heap->map_pool))
-        goto e15;
-    if(map_create(&constant_db->mapflags, (map_compare_cb) strcmp, heap->map_pool))
-        goto e16;
-    if(store_create(&constant_db->store, size))
-        goto e17;
-    if(strbuf_create(&constant_db->strbuf, size))
-        goto e18;
-    constant_db->constant = NULL;
-    return 0;
+    int status = 0;
 
-e18: store_destroy(&constant_db->store);
-e17: map_destroy(&constant_db->mapflags);
-e16: map_destroy(&constant_db->options);
-e15: map_destroy(&constant_db->classes);
-e14: map_destroy(&constant_db->gettimes);
-e13: map_destroy(&constant_db->effects);
-e12: map_destroy(&constant_db->races);
-e11: map_destroy(&constant_db->itemgroups);
-e10: map_destroy(&constant_db->readparam);
-e9: map_destroy(&constant_db->locations);
-e8: map_destroy(&constant_db->sc_start);
-e7: map_destroy(&constant_db->announces);
-e6: map_destroy(&constant_db->sizes);
-e5: map_destroy(&constant_db->sc_end);
-e4: map_destroy(&constant_db->jobs);
-e3: map_destroy(&constant_db->elements);
-e2: map_destroy(&constant_db->vip_status);
-e1: map_destroy(&constant_db->map_macro);
-e0: return 1;
+    if(map_create(&constant_db->map_macro, (map_compare_cb) strcmp, heap->map_pool)) {
+        status = panic("failed to create map object");
+    } else {
+        if(map_create(&constant_db->map_group, (map_compare_cb) strcmp, heap->map_pool)) {
+            status = panic("failed to create map object");
+        } else {
+            if(store_create(&constant_db->store, size)) {
+                status = panic("failed to create store object");
+            } else {
+                if(strbuf_create(&constant_db->strbuf, size)) {
+                    status = panic("failed to create strbuf object");
+                } else {
+                    constant_db->constant = NULL;
+                    constant_db->map = NULL;
+                }
+                if(status)
+                    store_destroy(&constant_db->store);
+            }
+            if(status)
+                map_destroy(&constant_db->map_group);
+        }
+        if(status)
+            map_destroy(&constant_db->map_macro);
+    }
+
+    return status;
 }
 
 void constant_db_destroy(struct constant_db * constant_db) {
+    constant_db_clear(constant_db);
     strbuf_destroy(&constant_db->strbuf);
     store_destroy(&constant_db->store);
-    map_destroy(&constant_db->mapflags);
-    map_destroy(&constant_db->options);
-    map_destroy(&constant_db->classes);
-    map_destroy(&constant_db->gettimes);
-    map_destroy(&constant_db->effects);
-    map_destroy(&constant_db->races);
-    map_destroy(&constant_db->itemgroups);
-    map_destroy(&constant_db->readparam);
-    map_destroy(&constant_db->locations);
-    map_destroy(&constant_db->sc_start);
-    map_destroy(&constant_db->announces);
-    map_destroy(&constant_db->sizes);
-    map_destroy(&constant_db->sc_end);
-    map_destroy(&constant_db->jobs);
-    map_destroy(&constant_db->elements);
-    map_destroy(&constant_db->vip_status);
+    map_destroy(&constant_db->map_group);
     map_destroy(&constant_db->map_macro);
 }
 
 void constant_db_clear(struct constant_db * constant_db) {
+    struct map_kv kv;
+
+    kv = map_start(&constant_db->map_group);
+    while(kv.key) {
+        map_destroy(kv.value);
+        kv = map_next(&constant_db->map_group);
+    }
+
+    constant_db->map = NULL;
     constant_db->constant = NULL;
     strbuf_clear(&constant_db->strbuf);
     store_clear(&constant_db->store);
-    map_clear(&constant_db->mapflags);
-    map_clear(&constant_db->options);
-    map_clear(&constant_db->classes);
-    map_clear(&constant_db->gettimes);
-    map_clear(&constant_db->effects);
-    map_clear(&constant_db->races);
-    map_clear(&constant_db->itemgroups);
-    map_clear(&constant_db->readparam);
-    map_clear(&constant_db->locations);
-    map_clear(&constant_db->sc_start);
-    map_clear(&constant_db->announces);
-    map_clear(&constant_db->sizes);
-    map_clear(&constant_db->sc_end);
-    map_clear(&constant_db->jobs);
-    map_clear(&constant_db->elements);
-    map_clear(&constant_db->vip_status);
+    map_clear(&constant_db->map_group);
     map_clear(&constant_db->map_macro);
 }
 
@@ -1135,32 +1055,36 @@ int constant_group_parse(enum parser_event event, int mark, struct string * stri
     int status = 0;
     struct constant_db * constant_db = context;
 
+    struct string * label;
     struct constant * constant;
 
-    if(string) {
-        constant = map_search(&constant_db->map_macro, string->string);
-        if(!constant) {
-            status = panic("invalid macro - %s", string->string);
-        } else {
-            switch(mark) {
-                case 2: status = map_insert(&constant_db->vip_status, constant->macro->string, constant); break;
-                case 4: status = map_insert(&constant_db->elements, constant->macro->string, constant); break;
-                case 6: status = map_insert(&constant_db->jobs, constant->macro->string, constant); break;
-                case 8: status = map_insert(&constant_db->sc_end, constant->macro->string, constant); break;
-                case 10: status = map_insert(&constant_db->sizes, constant->macro->string, constant); break;
-                case 12: status = map_insert(&constant_db->announces, constant->macro->string, constant); break;
-                case 14: status = map_insert(&constant_db->sc_start, constant->macro->string, constant); break;
-                case 16: status = map_insert(&constant_db->locations, constant->macro->string, constant); break;
-                case 18: status = map_insert(&constant_db->readparam, constant->macro->string, constant); break;
-                case 20: status = map_insert(&constant_db->itemgroups, constant->macro->string, constant); break;
-                case 22: status = map_insert(&constant_db->races, constant->macro->string, constant); break;
-                case 24: status = map_insert(&constant_db->effects, constant->macro->string, constant); break;
-                case 26: status = map_insert(&constant_db->gettimes, constant->macro->string, constant); break;
-                case 28: status = map_insert(&constant_db->classes, constant->macro->string, constant); break;
-                case 30: status = map_insert(&constant_db->options, constant->macro->string, constant); break;
-                case 32: status = map_insert(&constant_db->mapflags, constant->macro->string, constant); break;
+    switch(mark) {
+        case 3:
+            constant_db->map = store_object(&constant_db->store, sizeof(*constant_db->map));
+            if(!constant_db->map) {
+                status = panic("failed to object store object");
+            } else {
+                if(map_create(constant_db->map, (map_compare_cb) strcmp, constant_db->map_group.pool)) {
+                    status = panic("failed to create map object");
+                } else {
+                    if(string_store(string, &constant_db->store, &label)) {
+                        status = panic("failed to string store object");
+                    } else if(map_insert(&constant_db->map_group, label->string, constant_db->map)) {
+                        status = panic("failed to insert map object");
+                    }
+                    if(status)
+                        map_destroy(constant_db->map);
+                }
             }
-        }
+            break;
+        case 5:
+            constant = map_search(&constant_db->map_macro, string->string);
+            if(!constant) {
+                status = panic("invalid macro - %s", string->string);
+            } else if(map_insert(constant_db->map, constant->macro->string, constant)) {
+                status = panic("failed to insert map object");
+            }
+            break;
     }
 
     return status;
