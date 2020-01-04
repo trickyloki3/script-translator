@@ -57,8 +57,8 @@ s_l_block_node : ns_plain
 
 ns_plain : ns_plain_one_line s_l_comments
 
-l_block_scalar : { if(yaml_stack(yaml, yaml_c_literal)) YYABORT; } c_literal s_l_comments
-               | { if(yaml_stack(yaml, yaml_c_folded)) YYABORT; } c_folded s_l_comments
+l_block_scalar : { if(yaml_stack(yaml, yaml_c_literal)) YYABORT; else $$ = yaml->stack; } c_literal s_l_comments
+               | { if(yaml_stack(yaml, yaml_c_folded)) YYABORT; else $$ = yaml->stack; } c_folded s_l_comments
                | nb_char s_l_comments { $1->child = $2; $$ = $1; }
 
 l_block_sequence : { if(yaml_stack(yaml, yaml_c_sequence_entry)) YYABORT; else $$ = yaml->stack; } c_sequence_entry s_separate s_l_block_node {
