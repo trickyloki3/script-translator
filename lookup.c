@@ -86,6 +86,21 @@ struct schema_markup data_group_markup[] = {
     {0, 0, 0},
 };
 
+struct schema_markup prototype_group_markup[] = {
+    {1, list, 1, NULL},
+    {2, map, 2, NULL},
+    {3, string, 3, "label"},
+    {3, list, 4, "data"},
+    {4, map, 5, NULL},
+    {5, string, 6, "identifier"},
+    {5, list, 7, "argument"},
+    {6, map, 8, NULL},
+    {7, string, 9, "type"},
+    {7, string, 10, "index"},
+    {5, string, 11, "description"},
+    {0, 0, 0},
+};
+
 int long_compare(void * x, void * y) {
     long l = *((long *) x);
     long r = *((long *) y);
@@ -1179,6 +1194,108 @@ int data_group_parse(enum parser_event event, int mark, struct string * string, 
     return status;
 }
 
+int prototype_group_create(struct prototype_group * prototype_group, size_t size, struct heap * heap) {
+    int status = 0;
+
+    if(map_create(&prototype_group->map_group, (map_compare_cb) strcmp, heap->map_pool)) {
+        status = panic("failed to create map object");
+    } else {
+        if(store_create(&prototype_group->store, size)) {
+            status = panic("failed to create store object");
+        } else {
+            prototype_group->map = NULL;
+            prototype_group->prototype = NULL;
+            prototype_group->argument = NULL;
+        }
+        if(status)
+            map_destroy(&prototype_group->map_group);
+    }
+
+    return status;
+}
+
+void prototype_group_destroy(struct prototype_group * prototype_group) {
+    prototype_group_clear(prototype_group);
+    store_destroy(&prototype_group->store);
+    map_destroy(&prototype_group->map_group);
+}
+
+void prototype_group_clear(struct prototype_group * prototype_group) {
+    struct map_kv kv;
+
+    kv = map_start(&prototype_group->map_group);
+    while(kv.key) {
+        map_destroy(kv.value);
+        kv = map_next(&prototype_group->map_group);
+    }
+
+    prototype_group->argument = NULL;
+    prototype_group->prototype = NULL;
+    prototype_group->map = NULL;
+    store_clear(&prototype_group->store);
+    map_clear(&prototype_group->map_group);
+}
+
+int prototype_group_parse(enum parser_event event, int mark, struct string * string, void * context) {
+    int status = 0;
+    struct prototype_group * prototype_group = context;
+
+    struct string * label;
+
+    switch(mark) {
+        case 3:
+            prototype_group->map = store_object(&prototype_group->store, sizeof(*prototype_group->map));
+            if(!prototype_group->map) {
+                status = panic("failed to object store object");
+            } else {
+                if(map_create(prototype_group->map, (map_compare_cb) strcmp, prototype_group->map_group.pool)) {
+                    status = panic("failed to create map object");
+                } else {
+                    if(string_store(string, &prototype_group->store, &label)) {
+                        status = panic("failed to string store object");
+                    } else if(map_insert(&prototype_group->map_group, label->string, prototype_group->map)) {
+                        status = panic("failed to insert map object");
+                    }
+                    if(status)
+                        map_destroy(prototype_group->map);
+                }
+            }
+            break;
+        case 5:
+            if(event == start) {
+                prototype_group->prototype = store_object(&prototype_group->store, sizeof(*prototype_group->prototype));
+                if(!prototype_group->prototype) {
+                    status = panic("failed to object store object");
+                } else {
+                    prototype_group->prototype->argument = NULL;
+                }
+            } else if(event == end) {
+                if(!prototype_group->prototype->identifier) {
+                    status = panic("invalid string object");
+                } else if(map_insert(prototype_group->map, prototype_group->prototype->identifier->string, prototype_group->prototype)) {
+                    status = panic("failed to insert map object");
+                }
+            }
+            break;
+        case 6: status = string_store(string, &prototype_group->store, &prototype_group->prototype->identifier); break;
+        case 11: status = string_store(string, &prototype_group->store, &prototype_group->prototype->description); break;
+        case 8:
+            if(event == start) {
+                prototype_group->argument = store_object(&prototype_group->store, sizeof(*prototype_group->argument));
+                if(!prototype_group->argument)
+                    status = panic("failed to object store object");
+            } else if(event == end) {
+                prototype_group->argument->next = prototype_group->prototype->argument;
+                prototype_group->prototype->argument = prototype_group->argument;
+            }
+            break;
+        case 9: status = string_store(string, &prototype_group->store, &prototype_group->argument->type); break;
+        case 10: status = string_strtol(string, 10, &prototype_group->argument->index); break;
+    }
+
+    return status;
+}
+
 int lookup_create(struct lookup * lookup, size_t size, struct heap * heap) {
     if(schema_create(&lookup->schema, heap))
         goto e0;
@@ -1202,8 +1319,11 @@ int lookup_create(struct lookup * lookup, size_t size, struct heap * heap) {
         goto e9;
     if(data_group_create(&lookup->data_group, size, heap))
         goto e10;
+    if(prototype_group_create(&lookup->prototype_group, size, heap))
+        goto e11;
     return 0;
 
+e11: data_group_destroy(&lookup->data_group);
 e10: constant_db_destroy(&lookup->constant_db);
 e9: produce_db_destroy(&lookup->produce_db);
 e8: mercenary_db_destroy(&lookup->mercenary_db);
@@ -1218,6 +1338,7 @@ e0: return 1;
 }
 
 void lookup_destroy(struct lookup * lookup) {
+    prototype_group_destroy(&lookup->prototype_group);
     data_group_destroy(&lookup->data_group);
     constant_db_destroy(&lookup->constant_db);
     produce_db_destroy(&lookup->produce_db);
@@ -1375,6 +1496,20 @@ int lookup_data_group_parse(struct lookup * lookup, char * path) {
     if(schema_load(&lookup->schema, data_group_markup)) {
         status = panic("failed to load schema object");
     } else if(parser_parse(&lookup->parser, path, &lookup->schema, data_group_parse, &lookup->data_group)) {
+        status = panic("failed to parse parser object");
+    }
+
+    return status;
+}
+
+int lookup_prototype_group_parse(struct lookup * lookup, char * path) {
+    int status = 0;
+
+    prototype_group_clear(&lookup->prototype_group);
+
+    if(schema_load(&lookup->schema, prototype_group_markup)) {
+        status = panic("failed to load schema object");
+    } else if(parser_parse(&lookup->parser, path, &lookup->schema, prototype_group_parse, &lookup->prototype_group)) {
         status = panic("failed to parse parser object");
     }
 

@@ -312,6 +312,31 @@ void data_group_destroy(struct data_group *);
 void data_group_clear(struct data_group *);
 int data_group_parse(enum parser_event, int, struct string *, void *);
 
+struct argument {
+    struct string * type;
+    long index;
+    struct argument * next;
+};
+
+struct prototype {
+    struct string * identifier;
+    struct argument * argument;
+    struct string * description;
+};
+
+struct prototype_group {
+    struct map map_group;
+    struct store store;
+    struct map * map;
+    struct prototype * prototype;
+    struct argument * argument;
+};
+
+int prototype_group_create(struct prototype_group *, size_t, struct heap *);
+void prototype_group_destroy(struct prototype_group *);
+void prototype_group_clear(struct prototype_group *);
+int prototype_group_parse(enum parser_event, int, struct string *, void *);
+
 struct lookup {
     struct schema schema;
     struct parser parser;
@@ -324,6 +349,7 @@ struct lookup {
     struct produce_db produce_db;
     struct constant_db constant_db;
     struct data_group data_group;
+    struct prototype_group prototype_group;
 };
 
 int lookup_create(struct lookup *, size_t, struct heap *);
@@ -339,5 +365,6 @@ int lookup_produce_db_parse(struct lookup *, char *);
 int lookup_constant_db_parse(struct lookup *, char *);
 int lookup_constant_group_parse(struct lookup *, char *);
 int lookup_data_group_parse(struct lookup *, char *);
+int lookup_prototype_group_parse(struct lookup *, char *);
 
 #endif
