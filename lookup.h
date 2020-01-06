@@ -367,4 +367,9 @@ int lookup_constant_group_parse(struct lookup *, char *);
 int lookup_data_group_parse(struct lookup *, char *);
 int lookup_prototype_group_parse(struct lookup *, char *);
 
+struct item * lookup_item_db_start(struct lookup *);
+struct item * lookup_item_db_next(struct lookup *);
+struct item * lookup_item_db_by_id(struct lookup *, long);
+struct item * lookup_item_db_by_aegis(struct lookup *, char *);
+
 #endif

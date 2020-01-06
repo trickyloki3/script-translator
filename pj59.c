@@ -6,6 +6,8 @@ int main(int argc, char ** argv) {
     struct heap heap;
     struct lookup lookup;
 
+    struct item * item;
+
     if(chdir(argv[1])) {
         status = panic("failed to change directory");
     } else {
@@ -39,6 +41,21 @@ int main(int argc, char ** argv) {
                     status = panic("failed to data group lookup object");
                 } else if(lookup_prototype_group_parse(&lookup, "prototype_group.yml")) {
                     status = panic("failed to prototype group lookup object");
+                } else {
+                    if(argc > 2) {
+                        item = lookup_item_db_by_id(&lookup, strtol(argv[2], NULL, 10));
+                        if(!item) {
+                            status = panic("failed to item db by id lookup object");
+                        } else {
+
+                        }
+                    } else {
+                        item = lookup_item_db_start(&lookup);
+                        while(item) {
+
+                            item = lookup_item_db_next(&lookup);
+                        }
+                    }
                 }
                 lookup_destroy(&lookup);
             }

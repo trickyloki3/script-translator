@@ -1515,3 +1515,19 @@ int lookup_prototype_group_parse(struct lookup * lookup, char * path) {
 
     return status;
 }
+
+struct item * lookup_item_db_start(struct lookup * lookup) {
+    return map_start(&lookup->item_db.map_id).value;
+}
+
+struct item * lookup_item_db_next(struct lookup * lookup) {
+    return map_next(&lookup->item_db.map_id).value;
+}
+
+struct item * lookup_item_db_by_id(struct lookup * lookup, long id) {
+    return map_search(&lookup->item_db.map_id, &id);
+}
+
+struct item * lookup_item_db_by_aegis(struct lookup * lookup, char * aegis) {
+    return map_search(&lookup->item_db.map_aegis, aegis);
+}
