@@ -15,4 +15,9 @@ yaml_parser.h
 yaml_parser.output
 yaml_scanner.c
 yaml_scanner.h
+script_parser.c
+script_parser.h
+script_parser.output
+script_scanner.c
+script_scanner.h
 pj59

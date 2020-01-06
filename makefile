@@ -18,6 +18,9 @@ OBJECT+=yaml_scanner.o
 OBJECT+=yaml.o
 OBJECT+=parser.o
 OBJECT+=lookup.o
+OBJECT+=script_parser.o
+OBJECT+=script_scanner.o
+OBJECT+=script.o
 
 all: clean pj59
 
@@ -53,4 +56,9 @@ clean:
 	@rm -f yaml_parser.output
 	@rm -f yaml_scanner.c
 	@rm -f yaml_scanner.h
+	@rm -f script_parser.c
+	@rm -f script_parser.h
+	@rm -f script_parser.output
+	@rm -f script_scanner.c
+	@rm -f script_scanner.h
 	@rm -f pj59
