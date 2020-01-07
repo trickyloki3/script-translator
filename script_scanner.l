@@ -11,4 +11,20 @@
 %option backup warn
 %option noinput nounput
 
+curly-open      \x7B
+curly-close     \x7D
+
 %%
+
+{curly-open} {
+    return script_curly_open;
+}
+
+{curly-close} {
+    return script_curly_close;
+}
+
+.|\xA {
+    panic("invalid character (line %d)", yylineno);
+    return -1;
+}

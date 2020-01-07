@@ -17,6 +17,7 @@
 %define parse.error verbose
 %define parse.trace true
 
+%token curly_open curly_close
 %start script
 
 %code requires {
@@ -37,7 +38,7 @@ void yyerror(SCRIPTLTYPE *, struct script *, char const *);
 
 %%
 
-script : %empty
+script : curly_open curly_close
 
 %%
 
