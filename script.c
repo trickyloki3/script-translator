@@ -9,7 +9,6 @@ void script_state_pop(struct script *);
 int script_string_push(struct script *, struct string *);
 void script_string_pop(struct script *);
 
-void script_token_print(int, struct script_node *);
 int script_parse(struct script *, yyscan_t, scriptpstate *);
 
 int script_create(struct script * script, size_t size, struct heap * heap, struct lookup * lookup) {
@@ -108,13 +107,6 @@ int script_string_push(struct script * script, struct string * string) {
 
 void script_string_pop(struct script * script) {
     scriptpop_buffer_state(script->scanner);
-}
-
-void script_token_print(int token, struct script_node * node) {
-    switch(token) {
-        case script_curly_open:     fprintf(stdout, "curly_open "); break;
-        case script_curly_close:    fprintf(stdout, "curly_close "); break;
-    }
 }
 
 int script_parse(struct script * script, yyscan_t scanner, scriptpstate * parser) {
