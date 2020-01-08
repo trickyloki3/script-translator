@@ -65,15 +65,17 @@ statement_block : statement
 statement_list : statement
                | statement_list statement
 
-statement : expression semicolon
-          | semicolon
+statement : semicolon
           | if_statement
           | for_statement
+          | expression_statement
 
 if_statement : if round_open expression round_close statement_block
              | if round_open expression round_close statement_block else statement_block
 
 for_statement : for round_open expression semicolon expression semicolon expression round_close statement_block
+
+expression_statement : expression semicolon
 
 expression : expression increment_prefix %prec increment_postfix
            | expression decrement_prefix %prec decrement_postfix
