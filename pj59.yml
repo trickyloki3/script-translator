@@ -13,8 +13,10 @@ source: |
   yaml.h      ; parser
   parser.h    ; parser, schema
   lookup.h    ; database
+  script.h    ; translater
 
 layout: |
+  script.h
   lookup.h
     parser.h
       csv.h
