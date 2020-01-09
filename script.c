@@ -115,10 +115,9 @@ int script_parse(struct script * script, yyscan_t scanner, scriptpstate * parser
     SCRIPTSTYPE value;
     SCRIPTLTYPE location;
     int token;
-    int state;
+    int state = YYPUSH_MORE;
 
-    do {
-        value = NULL;
+    while(state == YYPUSH_MORE && !status) {
         token = scriptlex(&value, &location, scanner);
         if(token < 0) {
             status = panic("failed to get the next token");
@@ -127,7 +126,7 @@ int script_parse(struct script * script, yyscan_t scanner, scriptpstate * parser
             if(state && state != YYPUSH_MORE)
                 status = panic("failed to parse the current token");
         }
-    } while(token && state == YYPUSH_MORE && !status);
+    }
 
     return status;
 }

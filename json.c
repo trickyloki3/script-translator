@@ -69,9 +69,9 @@ int json_parse_loop(struct json * json, yyscan_t scanner, jsonpstate * parser) {
     JSONSTYPE value;
     JSONLTYPE location;
     int token;
-    int state;
+    int state = YYPUSH_MORE;
 
-    do {
+    while(state == YYPUSH_MORE && !status) {
         token = jsonlex(&value, &location, scanner);
         if(token < 0) {
             status = panic("failed to get the next token");
@@ -80,7 +80,7 @@ int json_parse_loop(struct json * json, yyscan_t scanner, jsonpstate * parser) {
             if(state && state != YYPUSH_MORE)
                 status = panic("failed to parse the current token");
         }
-    } while(token && state == YYPUSH_MORE && !status);
+    }
 
     if(status) {
         /* skip the last token on error */

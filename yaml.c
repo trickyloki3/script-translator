@@ -119,10 +119,10 @@ int yaml_parse_loop(struct yaml * yaml, yyscan_t scanner, yamlpstate * parser) {
     YAMLSTYPE value;
     YAMLLTYPE location;
     int token;
-    int state;
+    int state = YYPUSH_MORE;
     struct yaml_node * node;
 
-    do {
+    while(state == YYPUSH_MORE && !status) {
         token = yamllex(&value, &location, scanner);
         if(token < 0) {
             status = panic("failed to get the next token");
@@ -131,7 +131,7 @@ int yaml_parse_loop(struct yaml * yaml, yyscan_t scanner, yamlpstate * parser) {
             if(state && state != YYPUSH_MORE)
                 status = panic("failed to parse the current token");
         }
-    } while(token && state == YYPUSH_MORE && !status);
+    }
 
     /*
      * reset yaml object to initial state
