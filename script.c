@@ -6,10 +6,7 @@
 int script_state_push(struct script *);
 void script_state_pop(struct script *);
 
-int script_string_push(struct script *, struct string *);
-void script_string_pop(struct script *);
-
-int script_parse(struct script *, yyscan_t, scriptpstate *);
+int script_parse(struct script *, struct string *, yyscan_t, scriptpstate *);
 
 int script_create(struct script * script, size_t size, struct heap * heap, struct lookup * lookup) {
     int status = 0;
@@ -22,15 +19,15 @@ int script_create(struct script * script, size_t size, struct heap * heap, struc
         if(!script->lookup) {
             status = panic("invalid lookup object");
         } else {
-            if(scriptlex_init_extra(script, &script->scanner)) {
-                status = panic("failed to create scanner object");
+            if(strbuf_create(&script->strbuf, size)) {
+                status = panic("failed to create strbuf object");
             } else {
-                script->parser = scriptpstate_new();
-                if(!script->parser) {
-                    status = panic("failed to create parser object");
+                if(scriptlex_init_extra(script, &script->scanner)) {
+                    status = panic("failed to create scanner object");
                 } else {
-                    if(strbuf_create(&script->strbuf, size)) {
-                        status = panic("failed to create strbuf object");
+                    script->parser = scriptpstate_new();
+                    if(!script->parser) {
+                        status = panic("failed to create parser object");
                     } else {
                         if(store_create(&script->store, size)) {
                             status = panic("failed to create store object");
@@ -38,13 +35,13 @@ int script_create(struct script * script, size_t size, struct heap * heap, struc
                             script->state = NULL;
                         }
                         if(status)
-                            strbuf_destroy(&script->strbuf);
+                            scriptpstate_delete(script->parser);
                     }
                     if(status)
-                        scriptpstate_delete(script->parser);
+                        scriptlex_destroy(script->scanner);
                 }
                 if(status)
-                    scriptlex_destroy(script->scanner);
+                    strbuf_destroy(&script->strbuf);
             }
         }
     }
@@ -53,9 +50,9 @@ int script_create(struct script * script, size_t size, struct heap * heap, struc
 }
 void script_destroy(struct script * script) {
     store_destroy(&script->store);
-    strbuf_destroy(&script->strbuf);
     scriptpstate_delete(script->parser);
     scriptlex_destroy(script->scanner);
+    strbuf_destroy(&script->strbuf);
 }
 
 int script_state_push(struct script * script) {
@@ -76,16 +73,18 @@ int script_state_push(struct script * script) {
 void script_state_pop(struct script * script) {
     script->state = script->state->next;
 
-    if(!script->state) {
+    if(!script->state)
         store_clear(&script->store);
-        strbuf_clear(&script->strbuf);
-    }
 }
 
-int script_string_push(struct script * script, struct string * string) {
+int script_parse(struct script * script, struct string * string, yyscan_t scanner, scriptpstate * parser) {
     int status = 0;
 
     YY_BUFFER_STATE buffer;
+    SCRIPTSTYPE value;
+    SCRIPTLTYPE location;
+    int token;
+    int state = YYPUSH_MORE;
 
     if(strbuf_strcpy(&script->strbuf, string->string, string->length)) {
         status = panic("failed to strcpy strbuf object");
@@ -96,37 +95,26 @@ int script_string_push(struct script * script, struct string * string) {
         if(!string) {
             status = panic("failed to string strbuf object");
         } else {
-            buffer = script_scan_buffer(string->string, string->length, script->scanner);
-            if(!buffer)
+            buffer = script_scan_buffer(string->string, string->length, scanner);
+            if(!buffer) {
                 status = panic("failed to scan buffer scanner object");
+            } else {
+                while(state == YYPUSH_MORE && !status) {
+                    token = scriptlex(&value, &location, scanner);
+                    if(token < 0) {
+                        status = panic("failed to get the next token");
+                    } else {
+                        state = scriptpush_parse(parser, token, &value, &location, script);
+                        if(state && state != YYPUSH_MORE)
+                            status = panic("failed to parse the current token");
+                    }
+                }
+                scriptpop_buffer_state(scanner);
+            }
         }
     }
 
-    return status;
-}
-
-void script_string_pop(struct script * script) {
-    scriptpop_buffer_state(script->scanner);
-}
-
-int script_parse(struct script * script, yyscan_t scanner, scriptpstate * parser) {
-    int status = 0;
-
-    SCRIPTSTYPE value;
-    SCRIPTLTYPE location;
-    int token;
-    int state = YYPUSH_MORE;
-
-    while(state == YYPUSH_MORE && !status) {
-        token = scriptlex(&value, &location, scanner);
-        if(token < 0) {
-            status = panic("failed to get the next token");
-        } else {
-            state = scriptpush_parse(parser, token, &value, &location, script);
-            if(state && state != YYPUSH_MORE)
-                status = panic("failed to parse the current token");
-        }
-    }
+    strbuf_clear(&script->strbuf);
 
     return status;
 }
@@ -137,13 +125,8 @@ int script_translate(struct script * script, struct string * string) {
     if(script_state_push(script)) {
         status = panic("failed to state push script object");
     } else {
-        if(script_string_push(script, string)) {
-            status = panic("failed to string push script object");
-        } else {
-            if(script_parse(script, script->scanner, script->parser))
-                status = panic("failed to parse script object");
-            script_string_pop(script);
-        }
+        if(script_parse(script, string, script->scanner, script->parser))
+            status = panic("failed to parse script object");
         script_state_pop(script);
     }
 
