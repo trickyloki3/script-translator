@@ -17,6 +17,7 @@ OBJECT+=yaml_parser.o
 OBJECT+=yaml_scanner.o
 OBJECT+=yaml.o
 OBJECT+=parser.o
+OBJECT+=misc.o
 OBJECT+=lookup.o
 OBJECT+=script_parser.o
 OBJECT+=script_scanner.o

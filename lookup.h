@@ -2,11 +2,7 @@
 #define lookup_h
 
 #include "parser.h"
-
-struct long_array {
-    long * array;
-    size_t count;
-};
+#include "misc.h"
 
 struct pet_require {
     struct string * item;
