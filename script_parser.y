@@ -33,8 +33,8 @@
 %right assign plus_assign minus_assign
 %left comma
 %precedence for if else
-%token curly_open curly_close semicolon decimal hexadecimal string
-%precedence identifier
+%token curly_open curly_close semicolon
+%precedence integer identifier
 %start script
 
 %code requires {
@@ -112,9 +112,7 @@ expression : expression increment_prefix %prec increment_postfix
            | expression plus_assign expression
            | expression minus_assign expression
            | expression comma expression
-           | decimal
-           | hexadecimal
-           | string
+           | integer
            | identifier
            | identifier expression
 

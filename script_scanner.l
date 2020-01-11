@@ -222,15 +222,15 @@ block_comment       \x2F\x2A
 }
 
 {decimal} {
-    return script_decimal;
+    return script_integer;
 }
 
 {hexadecimal} {
-    return script_hexadecimal;
+    return script_integer;
 }
 
 {string} {
-    return script_string;
+    return script_identifier;
 }
 
 {identifier} {
