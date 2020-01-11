@@ -132,3 +132,60 @@ int script_translate(struct script * script, struct string * string) {
 
     return status;
 }
+
+struct script_node * script_node_create(struct script * script, enum script_type type) {
+    struct script_node * node;
+
+    node = store_object(&script->store, sizeof(*node));
+    if(node) {
+        node->type = type;
+        node->node = NULL;
+        node->next = NULL;
+    }
+
+    return node;
+}
+
+int script_node_token(struct script * script, int value, struct script_node ** result) {
+    struct script_node * node;
+
+    node = script_node_create(script, token);
+    if(node)
+        node->token = value;
+
+    return !(*result = node);
+}
+
+int script_node_integer(struct script * script, char * buffer, size_t length, int base, struct script_node ** result) {
+    int status = 0;
+    struct script_node * node;
+    struct string string = { length, buffer };
+
+    node = script_node_create(script, integer);
+    if(!node) {
+        status = panic("failed to object store object");
+    } else if(string_strtol(&string, base, &node->integer)) {
+        status = panic("failed to strtol string object");
+    } else {
+        *result = node;
+    }
+
+    return status;
+}
+
+int script_node_identifier(struct script * script, char * buffer, size_t length, struct script_node ** result) {
+    int status = 0;
+    struct script_node * node;
+    struct string string = { length, buffer };
+
+    node = script_node_create(script, identifier);
+    if(!node) {
+        status = panic("failed to object store object");
+    } else if(string_store(&string, &script->store, &node->identifier)) {
+        status = panic("failed to store string object");
+    } else {
+        *result = node;
+    }
+
+    return status;
+}

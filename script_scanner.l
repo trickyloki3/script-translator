@@ -86,115 +86,115 @@ block_comment       \x2F\x2A
 }
 
 {increment_prefix} {
-    return script_increment_prefix;
+    return script_node_token(yyextra, script_increment_prefix, yylval) ? -1 : script_increment_prefix;
 }
 
 {decrement_prefix} {
-    return script_decrement_prefix;
+    return script_node_token(yyextra, script_decrement_prefix, yylval) ? -1 : script_decrement_prefix;
 }
 
 {logic_not} {
-    return script_logic_not;
+    return script_node_token(yyextra, script_logic_not, yylval) ? -1 : script_logic_not;
 }
 
 {bit_not} {
-    return script_bit_not;
+    return script_node_token(yyextra, script_bit_not, yylval) ? -1 : script_bit_not;
 }
 
 {multiply} {
-    return script_multiply;
+    return script_node_token(yyextra, script_multiply, yylval) ? -1 : script_multiply;
 }
 
 {divide} {
-    return script_divide;
+    return script_node_token(yyextra, script_divide, yylval) ? -1 : script_divide;
 }
 
 {remainder} {
-    return script_remainder;
+    return script_node_token(yyextra, script_remainder, yylval) ? -1 : script_remainder;
 }
 
 {plus} {
-    return script_plus;
+    return script_node_token(yyextra, script_plus, yylval) ? -1 : script_plus;
 }
 
 {minus} {
-    return script_minus;
+    return script_node_token(yyextra, script_minus, yylval) ? -1 : script_minus;
 }
 
 {bit_left} {
-    return script_bit_left;
+    return script_node_token(yyextra, script_bit_left, yylval) ? -1 : script_bit_left;
 }
 
 {bit_right} {
-    return script_bit_right;
+    return script_node_token(yyextra, script_bit_right, yylval) ? -1 : script_bit_right;
 }
 
 {lesser} {
-    return script_lesser;
+    return script_node_token(yyextra, script_lesser, yylval) ? -1 : script_lesser;
 }
 
 {lesser_equal} {
-    return script_lesser_equal;
+    return script_node_token(yyextra, script_lesser_equal, yylval) ? -1 : script_lesser_equal;
 }
 
 {greater} {
-    return script_greater;
+    return script_node_token(yyextra, script_greater, yylval) ? -1 : script_greater;
 }
 
 {greater_equal} {
-    return script_greater_equal;
+    return script_node_token(yyextra, script_greater_equal, yylval) ? -1 : script_greater_equal;
 }
 
 {logic_equal} {
-    return script_logic_equal;
+    return script_node_token(yyextra, script_logic_equal, yylval) ? -1 : script_logic_equal;
 }
 
 {logic_not_equal} {
-    return script_logic_not_equal;
+    return script_node_token(yyextra, script_logic_not_equal, yylval) ? -1 : script_logic_not_equal;
 }
 
 {bit_and} {
-    return script_bit_and;
+    return script_node_token(yyextra, script_bit_and, yylval) ? -1 : script_bit_and;
 }
 
 {bit_xor} {
-    return script_bit_xor;
+    return script_node_token(yyextra, script_bit_xor, yylval) ? -1 : script_bit_xor;
 }
 
 {bit_or} {
-    return script_bit_or;
+    return script_node_token(yyextra, script_bit_or, yylval) ? -1 : script_bit_or;
 }
 
 {logic_and} {
-    return script_logic_and;
+    return script_node_token(yyextra, script_logic_and, yylval) ? -1 : script_logic_and;
 }
 
 {logic_or} {
-    return script_logic_or;
+    return script_node_token(yyextra, script_logic_or, yylval) ? -1 : script_logic_or;
 }
 
 {question} {
-    return script_question;
+    return script_node_token(yyextra, script_question, yylval) ? -1 : script_question;
 }
 
 {colon} {
-    return script_colon;
+    return script_node_token(yyextra, script_colon, yylval) ? -1 : script_colon;
 }
 
 {assign} {
-    return script_assign;
+    return script_node_token(yyextra, script_assign, yylval) ? -1 : script_assign;
 }
 
 {plus_assign} {
-    return script_plus_assign;
+    return script_node_token(yyextra, script_plus_assign, yylval) ? -1 : script_plus_assign;
 }
 
 {minus_assign} {
-    return script_minus_assign;
+    return script_node_token(yyextra, script_minus_assign, yylval) ? -1 : script_minus_assign;
 }
 
 {comma} {
-    return script_comma;
+    return script_node_token(yyextra, script_comma, yylval) ? -1 : script_comma;
 }
 
 {for} {
@@ -222,19 +222,19 @@ block_comment       \x2F\x2A
 }
 
 {decimal} {
-    return script_integer;
+    return script_node_integer(yyextra, yytext, yyleng, 10, yylval) ? -1 : script_integer;
 }
 
 {hexadecimal} {
-    return script_integer;
+    return script_node_integer(yyextra, yytext, yyleng, 16, yylval) ? -1 : script_integer;
 }
 
 {string} {
-    return script_identifier;
+    return script_node_identifier(yyextra, yytext + 1, yyleng - 1, yylval) ? -1 : script_identifier;
 }
 
 {identifier} {
-    return script_identifier;
+    return script_node_identifier(yyextra, yytext, yyleng, yylval) ? -1 : script_identifier;
 }
 
 {whitespace} {
