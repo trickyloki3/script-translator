@@ -189,3 +189,17 @@ int script_node_identifier(struct script * script, char * buffer, size_t length,
 
     return status;
 }
+
+void script_node_push(struct script_node * root, ...) {
+    va_list args;
+    struct script_node * node;
+
+    va_start(args, root);
+    node = va_arg(args, struct script_node *);
+    while(node) {
+        node->next = root->node;
+        root->node = node;
+        node = va_arg(args, struct script_node *);
+    }
+    va_end(args);
+}

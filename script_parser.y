@@ -55,66 +55,95 @@ void yyerror(SCRIPTLTYPE *, struct script *, char const *);
 
 %%
 
-script : statement_block
-       | script comma statement_block
+script :  statement_block {
+              struct script_node * node;
+
+              node = script_node_create(script, block);
+              if(!node) {
+                  YYABORT;
+              } else {
+                  script_node_push(node, $1, NULL);
+                  node->next = script->state->root;
+                  script->state->root = node;
+              }
+          }
+       |  script comma statement_block {
+              struct script_node * node;
+
+              node = script_node_create(script, block);
+              if(!node) {
+                  YYABORT;
+              } else {
+                  script_node_push(node, $3, NULL);
+                  node->next = script->state->root;
+                  script->state->root = node;
+              }
+          }
 
 statement_block : statement
-                | curly_open curly_close
-                | curly_open statement_list curly_close
+                | curly_open curly_close { $$ = script_node_create(script, null); if(!$$) YYABORT; }
+                | curly_open statement_list curly_close { $$ = $2; }
 
 statement_list : statement
-               | statement_list statement
+               | statement_list statement { $2->next = $1; $$ = $2; }
 
-statement : semicolon
+statement : semicolon { $$ = script_node_create(script, null); if(!$$) YYABORT; }
           | if_statement
           | for_statement
-          | expression_statement
+          | expression semicolon
 
-if_statement : if round_open expression round_close statement_block
-             | if round_open expression round_close statement_block else statement_block
+if_statement :  if round_open expression round_close statement_block {
+                    script_node_push($1, $5, $3, NULL);
+                    $$ = $1;
+                }
+             |  if round_open expression round_close statement_block else statement_block {
+                    script_node_push($6, $7, $5, $3, NULL);
+                    $$ = $6;
+                }
 
-for_statement : for round_open expression semicolon expression semicolon expression round_close statement_block
+for_statement : for round_open expression semicolon expression semicolon expression round_close statement_block {
+                    script_node_push($1, $9, $7, $5, $3, NULL);
+                    $$ = $1;
+                }
 
-expression_statement : expression semicolon
-
-expression : expression increment_prefix %prec increment_postfix
-           | expression decrement_prefix %prec decrement_postfix
-           | round_open round_close
-           | round_open expression round_close
-           | square_open expression square_close
-           | increment_prefix expression
-           | decrement_prefix expression
-           | plus expression %prec plus_unary
-           | minus expression %prec minus_unary
-           | logic_not expression
-           | bit_not expression
-           | expression multiply expression
-           | expression divide expression
-           | expression remainder expression
-           | expression plus expression
-           | expression minus expression
-           | expression bit_left expression
-           | expression bit_right expression
-           | expression lesser expression
-           | expression lesser_equal expression
-           | expression greater expression
-           | expression greater_equal expression
-           | expression logic_equal expression
-           | expression logic_not_equal expression
-           | expression bit_and expression
-           | expression bit_xor expression
-           | expression bit_or expression
-           | expression logic_and expression
-           | expression logic_or expression
-           | expression question expression
-           | expression colon expression
-           | expression assign expression
-           | expression plus_assign expression
-           | expression minus_assign expression
-           | expression comma expression
+expression : expression increment_prefix %prec increment_postfix { script_node_push($2, $1, NULL); $$ = $2; }
+           | expression decrement_prefix %prec decrement_postfix { script_node_push($2, $1, NULL); $$ = $2; }
+           | round_open round_close { $$ = script_node_create(script, null); if(!$$) YYABORT; }
+           | round_open expression round_close { $$ = $2; }
+           | square_open expression square_close { $$ = $2; }
+           | increment_prefix expression { script_node_push($1, $2, NULL); $$ = $1; }
+           | decrement_prefix expression { script_node_push($1, $2, NULL); $$ = $1; }
+           | plus expression %prec plus_unary { script_node_push($1, $2, NULL); $$ = $1; }
+           | minus expression %prec minus_unary { script_node_push($1, $2, NULL); $$ = $1; }
+           | logic_not expression { script_node_push($1, $2, NULL); $$ = $1; }
+           | bit_not expression { script_node_push($1, $2, NULL); $$ = $1; }
+           | expression multiply expression { script_node_push($2, $3, $1, NULL); $$ = $2; }
+           | expression divide expression { script_node_push($2, $3, $1, NULL); $$ = $2; }
+           | expression remainder expression { script_node_push($2, $3, $1, NULL); $$ = $2; }
+           | expression plus expression { script_node_push($2, $3, $1, NULL); $$ = $2; }
+           | expression minus expression { script_node_push($2, $3, $1, NULL); $$ = $2; }
+           | expression bit_left expression { script_node_push($2, $3, $1, NULL); $$ = $2; }
+           | expression bit_right expression { script_node_push($2, $3, $1, NULL); $$ = $2; }
+           | expression lesser expression { script_node_push($2, $3, $1, NULL); $$ = $2; }
+           | expression lesser_equal expression { script_node_push($2, $3, $1, NULL); $$ = $2; }
+           | expression greater expression { script_node_push($2, $3, $1, NULL); $$ = $2; }
+           | expression greater_equal expression { script_node_push($2, $3, $1, NULL); $$ = $2; }
+           | expression logic_equal expression { script_node_push($2, $3, $1, NULL); $$ = $2; }
+           | expression logic_not_equal expression { script_node_push($2, $3, $1, NULL); $$ = $2; }
+           | expression bit_and expression { script_node_push($2, $3, $1, NULL); $$ = $2; }
+           | expression bit_xor expression { script_node_push($2, $3, $1, NULL); $$ = $2; }
+           | expression bit_or expression { script_node_push($2, $3, $1, NULL); $$ = $2; }
+           | expression logic_and expression { script_node_push($2, $3, $1, NULL); $$ = $2; }
+           | expression logic_or expression { script_node_push($2, $3, $1, NULL); $$ = $2; }
+           | expression question expression { script_node_push($2, $3, $1, NULL); $$ = $2; }
+           | expression colon expression { script_node_push($2, $3, $1, NULL); $$ = $2; }
+           | expression assign expression { script_node_push($2, $3, $1, NULL); $$ = $2; }
+           | expression plus_assign expression { script_node_push($2, $3, $1, NULL); $$ = $2; }
+           | expression minus_assign expression { script_node_push($2, $3, $1, NULL); $$ = $2; }
+           | expression comma expression { script_node_push($2, $3, $1, NULL); $$ = $2; }
            | integer
            | identifier
-           | identifier expression
+           | identifier expression { script_node_push($1, $2, NULL); $$ = $1; }
 
 %%
 

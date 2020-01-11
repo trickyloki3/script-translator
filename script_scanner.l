@@ -198,15 +198,15 @@ block_comment       \x2F\x2A
 }
 
 {for} {
-    return script_for;
+    return script_node_token(yyextra, script_for, yylval) ? -1 : script_for;
 }
 
 {if} {
-   return script_if;
+    return script_node_token(yyextra, script_if, yylval) ? -1 : script_if;
 }
 
 {else} {
-    return script_else;
+    return script_node_token(yyextra, script_else, yylval) ? -1 : script_else;
 }
 
 {curly_open} {
