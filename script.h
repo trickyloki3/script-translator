@@ -46,5 +46,6 @@ int script_node_token(struct script *, int, struct script_node **);
 int script_node_integer(struct script *, char *, size_t, int, struct script_node **);
 int script_node_identifier(struct script *, char *, size_t, struct script_node **);
 void script_node_push(struct script_node *, ...);
+struct script_node * script_node_reverse(struct script_node *);
 
 #endif

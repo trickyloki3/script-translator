@@ -63,6 +63,7 @@ int script_state_push(struct script * script) {
     if(!state) {
         status = panic("failed to object store object");
     } else {
+        state->root = NULL;
         state->next = script->state;
         script->state = state;
     }
@@ -202,4 +203,19 @@ void script_node_push(struct script_node * root, ...) {
         node = va_arg(args, struct script_node *);
     }
     va_end(args);
+}
+
+struct script_node * script_node_reverse(struct script_node * root) {
+    struct script_node * list;
+    struct script_node * node;
+
+    list = NULL;
+    while(root) {
+        node = root;
+        root = root->next;
+        node->next = list;
+        list = node;
+    }
+
+    return list;
 }

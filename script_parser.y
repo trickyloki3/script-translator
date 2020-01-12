@@ -63,8 +63,7 @@ script :  statement_block {
                   YYABORT;
               } else {
                   script_node_push(node, $1, NULL);
-                  node->next = script->state->root;
-                  script->state->root = node;
+                  $$ = script->state->root = node;
               }
           }
        |  script comma statement_block {
@@ -75,8 +74,7 @@ script :  statement_block {
                   YYABORT;
               } else {
                   script_node_push(node, $3, NULL);
-                  node->next = script->state->root;
-                  script->state->root = node;
+                  $$ = $1->next = node;
               }
           }
 
@@ -87,7 +85,7 @@ statement_block : statement
                           YYABORT;
                   }
                 | curly_open statement_list curly_close {
-                      $$ = $2;
+                      $$ = script_node_reverse($2);
                   }
 
 statement_list :  statement
