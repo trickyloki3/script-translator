@@ -236,3 +236,207 @@ struct script_node * script_node_flip(struct script_node * root) {
 
     return list;
 }
+
+void script_node_print(struct script_node * root) {
+    struct script_node * node;
+
+    switch(root->type) {
+        case block:
+            while(root) {
+                node = root->node;
+                while(node) {
+                    script_node_print(node);
+                    node = node->next;
+                    fprintf(stdout, "\n");
+                }
+                root = root->next;
+                fprintf(stdout, "\n");
+            }
+            break;
+        case token:
+            switch(root->token) {
+                case script_increment_prefix:
+                    fprintf(stdout, "++ ");
+                    script_node_print(root->node);
+                    break;
+                case script_decrement_prefix:
+                    fprintf(stdout, "-- ");
+                    script_node_print(root->node);
+                    break;
+                case script_logic_not:
+                    fprintf(stdout, "! ");
+                    script_node_print(root->node);
+                    break;
+                case script_bit_not:
+                    fprintf(stdout, "~ ");
+                    script_node_print(root->node);
+                    break;
+                case script_multiply:
+                    script_node_print(root->node);
+                    fprintf(stdout, "* ");
+                    script_node_print(root->node->next);
+                    break;
+                case script_divide:
+                    script_node_print(root->node);
+                    fprintf(stdout, "/ ");
+                    script_node_print(root->node->next);
+                    break;
+                case script_remainder:
+                    script_node_print(root->node);
+                    fprintf(stdout, "% ");
+                    script_node_print(root->node->next);
+                    break;
+                case script_plus:
+                    script_node_print(root->node);
+                    fprintf(stdout, "+ ");
+                    if(root->node->next)
+                        script_node_print(root->node->next);
+                    break;
+                case script_minus:
+                    script_node_print(root->node);
+                    fprintf(stdout, "+ ");
+                    if(root->node->next)
+                        script_node_print(root->node->next);
+                    break;
+                case script_bit_left:
+                    script_node_print(root->node);
+                    fprintf(stdout, "<< ");
+                    script_node_print(root->node->next);
+                    break;
+                case script_bit_right:
+                    script_node_print(root->node);
+                    fprintf(stdout, ">> ");
+                    script_node_print(root->node->next);
+                    break;
+                case script_lesser:
+                    script_node_print(root->node);
+                    fprintf(stdout, "< ");
+                    script_node_print(root->node->next);
+                    break;
+                case script_lesser_equal:
+                    script_node_print(root->node);
+                    fprintf(stdout, "<= ");
+                    script_node_print(root->node->next);
+                    break;
+                case script_greater:
+                    script_node_print(root->node);
+                    fprintf(stdout, "> ");
+                    script_node_print(root->node->next);
+                    break;
+                case script_greater_equal:
+                    script_node_print(root->node);
+                    fprintf(stdout, ">= ");
+                    script_node_print(root->node->next);
+                    break;
+                case script_logic_equal:
+                    script_node_print(root->node);
+                    fprintf(stdout, "== ");
+                    script_node_print(root->node->next);
+                    break;
+                case script_logic_not_equal:
+                    script_node_print(root->node);
+                    fprintf(stdout, "!= ");
+                    script_node_print(root->node->next);
+                    break;
+                case script_bit_and:
+                    script_node_print(root->node);
+                    fprintf(stdout, "& ");
+                    script_node_print(root->node->next);
+                    break;
+                case script_bit_xor:
+                    script_node_print(root->node);
+                    fprintf(stdout, "^ ");
+                    script_node_print(root->node->next);
+                    break;
+                case script_bit_or:
+                    script_node_print(root->node);
+                    fprintf(stdout, "| ");
+                    script_node_print(root->node->next);
+                    break;
+                case script_logic_and:
+                    script_node_print(root->node);
+                    fprintf(stdout, "&& ");
+                    script_node_print(root->node->next);
+                    break;
+                case script_logic_or:
+                    script_node_print(root->node);
+                    fprintf(stdout, "|| ");
+                    script_node_print(root->node->next);
+                    break;
+                case script_question:
+                    script_node_print(root->node);
+                    fprintf(stdout, "? ");
+                    script_node_print(root->node->next);
+                    break;
+                case script_colon:
+                    script_node_print(root->node);
+                    fprintf(stdout, ": ");
+                    script_node_print(root->node->next);
+                    break;
+                case script_assign:
+                    script_node_print(root->node);
+                    fprintf(stdout, "= ");
+                    script_node_print(root->node->next);
+                    break;
+                case script_plus_assign:
+                    script_node_print(root->node);
+                    fprintf(stdout, "+= ");
+                    script_node_print(root->node->next);
+                    break;
+                case script_minus_assign:
+                    script_node_print(root->node);
+                    fprintf(stdout, "-= ");
+                    script_node_print(root->node->next);
+                    break;
+                case script_comma:
+                    script_node_print(root->node);
+                    fprintf(stdout, ", ");
+                    script_node_print(root->node->next);
+                    break;
+                case script_for:
+                    fprintf(stdout, "for ");
+                    node = root->node;
+                    while(node) {
+                        script_node_print(node);
+                        node = node->next;
+                        fprintf(stdout, "\n");
+                    }
+                    break;
+                case script_if:
+                    fprintf(stdout, "if ");
+                    node = root->node;
+                    while(node) {
+                        script_node_print(node);
+                        node = node->next;
+                        fprintf(stdout, "\n");
+                    }
+                    break;
+                case script_else:
+                    fprintf(stdout, "else ");
+                    node = root->node;
+                    while(node) {
+                        script_node_print(node);
+                        node = node->next;
+                        fprintf(stdout, "\n");
+                    }
+                    break;
+            }
+            break;
+        case integer:
+            fprintf(stdout, "%ld ", root->integer);
+            break;
+        case identifier:
+            fprintf(stdout, "%s ", root->identifier->string);
+            if(root->node) {
+                fprintf(stdout, "( ");
+                node = root->node;
+                while(node) {
+                    script_node_print(node);
+                    node = node->next;
+                }
+                fprintf(stdout, ") ");
+            }
+            break;
+    }
+
+}
