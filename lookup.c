@@ -149,19 +149,19 @@ int pet_db_parse(enum parser_event event, int mark, struct string * string, void
         case 8: status = string_store(string, &pet_db->store, &pet_db->pet->egg_item); break;
         case 9: status = string_store(string, &pet_db->store, &pet_db->pet->equip_item); break;
         case 10: status = string_store(string, &pet_db->store, &pet_db->pet->food_item); break;
-        case 11: status = string_strtol(string, 10, &pet_db->pet->fullness); break;
-        case 12: status = string_strtol(string, 10, &pet_db->pet->hungry_delay); break;
-        case 13: status = string_strtol(string, 10, &pet_db->pet->hunger_increase); break;
-        case 14: status = string_strtol(string, 10, &pet_db->pet->intimacy_start); break;
-        case 15: status = string_strtol(string, 10, &pet_db->pet->intimacy_fed); break;
-        case 16: status = string_strtol(string, 10, &pet_db->pet->intimacy_overfed); break;
-        case 17: status = string_strtol(string, 10, &pet_db->pet->intimacy_hungry); break;
-        case 18: status = string_strtol(string, 10, &pet_db->pet->intimacy_owner_die); break;
-        case 19: status = string_strtol(string, 10, &pet_db->pet->capture_rate); break;
+        case 11: status = string_strtol(string, &pet_db->pet->fullness); break;
+        case 12: status = string_strtol(string, &pet_db->pet->hungry_delay); break;
+        case 13: status = string_strtol(string, &pet_db->pet->hunger_increase); break;
+        case 14: status = string_strtol(string, &pet_db->pet->intimacy_start); break;
+        case 15: status = string_strtol(string, &pet_db->pet->intimacy_fed); break;
+        case 16: status = string_strtol(string, &pet_db->pet->intimacy_overfed); break;
+        case 17: status = string_strtol(string, &pet_db->pet->intimacy_hungry); break;
+        case 18: status = string_strtol(string, &pet_db->pet->intimacy_owner_die); break;
+        case 19: status = string_strtol(string, &pet_db->pet->capture_rate); break;
         case 20: status = string_store(string, &pet_db->store, &pet_db->pet->special_performance); break;
-        case 21: status = string_strtol(string, 10, &pet_db->pet->attack_rate); break;
-        case 22: status = string_strtol(string, 10, &pet_db->pet->retaliate_rate); break;
-        case 23: status = string_strtol(string, 10, &pet_db->pet->change_target_rate); break;
+        case 21: status = string_strtol(string, &pet_db->pet->attack_rate); break;
+        case 22: status = string_strtol(string, &pet_db->pet->retaliate_rate); break;
+        case 23: status = string_strtol(string, &pet_db->pet->change_target_rate); break;
         case 24: status = string_store(string, &pet_db->store, &pet_db->pet->allow_auto_feed); break;
         case 25: status = string_store(string, &pet_db->store, &pet_db->pet->script); break;
         case 26: status = string_store(string, &pet_db->store, &pet_db->pet->support_script); break;
@@ -187,7 +187,7 @@ int pet_db_parse(enum parser_event event, int mark, struct string * string, void
             }
             break;
         case 32: status = string_store(string, &pet_db->store, &pet_db->require->item); break;
-        case 33: status = string_strtol(string, 10, &pet_db->require->amount); break;
+        case 33: status = string_strtol(string, &pet_db->require->amount); break;
     }
 
     return status;
@@ -266,25 +266,25 @@ int item_db_parse(enum parser_event event, int mark, struct string * string, voi
             break;
         case 2:
             switch(item_db->index) {
-                case 0: status = string_strtol(string, 10, &item_db->item->id); break;
+                case 0: status = string_strtol(string, &item_db->item->id); break;
                 case 1: status = string_store(string, &item_db->store, &item_db->item->aegis); break;
                 case 2: status = string_store(string, &item_db->store, &item_db->item->name); break;
-                case 3: status = string_strtol(string, 10, &item_db->item->type); break;
-                case 4: status = string_strtol(string, 10, &item_db->item->buy); break;
-                case 5: status = string_strtol(string, 10, &item_db->item->sell); break;
-                case 6: status = string_strtol(string, 10, &item_db->item->weight); break;
-                case 7: status = string_strtol_splitv(string, 10, ':', &item_db->item->atk, &item_db->item->matk, NULL); break;
-                case 8: status = string_strtol(string, 10, &item_db->item->def); break;
-                case 9: status = string_strtol(string, 10, &item_db->item->range); break;
-                case 10: status = string_strtol(string, 10, &item_db->item->slots); break;
-                case 11: status = string_strtoul(string, 16, &item_db->item->job); break;
-                case 12: status = string_strtoul(string, 10, &item_db->item->upper); break;
-                case 13: status = string_strtol(string, 10, &item_db->item->gender); break;
-                case 14: status = string_strtoul(string, 10, &item_db->item->location); break;
-                case 15: status = string_strtol(string, 10, &item_db->item->weapon_level); break;
-                case 16: status = string_strtol_splitv(string, 10, ':', &item_db->item->base_level, &item_db->item->max_level, NULL); break;
-                case 17: status = string_strtol(string, 10, &item_db->item->refineable); break;
-                case 18: status = string_strtol(string, 10, &item_db->item->view); break;
+                case 3: status = string_strtol(string, &item_db->item->type); break;
+                case 4: status = string_strtol(string, &item_db->item->buy); break;
+                case 5: status = string_strtol(string, &item_db->item->sell); break;
+                case 6: status = string_strtol(string, &item_db->item->weight); break;
+                case 7: status = string_strtol_splitv(string, ':', &item_db->item->atk, &item_db->item->matk, NULL); break;
+                case 8: status = string_strtol(string, &item_db->item->def); break;
+                case 9: status = string_strtol(string, &item_db->item->range); break;
+                case 10: status = string_strtol(string, &item_db->item->slots); break;
+                case 11: status = string_strtoul(string, &item_db->item->job); break;
+                case 12: status = string_strtoul(string, &item_db->item->upper); break;
+                case 13: status = string_strtol(string, &item_db->item->gender); break;
+                case 14: status = string_strtoul(string, &item_db->item->location); break;
+                case 15: status = string_strtol(string, &item_db->item->weapon_level); break;
+                case 16: status = string_strtol_splitv(string, ':', &item_db->item->base_level, &item_db->item->max_level, NULL); break;
+                case 17: status = string_strtol(string, &item_db->item->refineable); break;
+                case 18: status = string_strtol(string, &item_db->item->view); break;
                 case 19: status = string_store(string, &item_db->store, &item_db->item->script); break;
                 default: status = panic("invalid column"); break;
             }
@@ -330,7 +330,7 @@ int item_combo_db_parse(enum parser_event event, int mark, struct string * strin
             break;
         case 2:
             switch(item_db->index) {
-                case 0: status = string_strtol_split(string, 10, ':', &item_db->store, &item_db->id); break;
+                case 0: status = string_strtol_split(string, ':', &item_db->store, &item_db->id); break;
                 case 1: status = string_store(string, &item_db->store, &item_db->script); break;
                 default: status = panic("invalid column"); break;
             }
@@ -408,22 +408,22 @@ int skill_db_parse(enum parser_event event, int mark, struct string * string, vo
             break;
         case 2:
             switch(skill_db->index) {
-                case 0: status = string_strtol(string, 10, &skill_db->skill->id); break;
-                case 1: status = string_strtol_split(string, 10, ':', &skill_db->store, &skill_db->skill->range); break;
-                case 2: status = string_strtol(string, 10, &skill_db->skill->hit); break;
-                case 3: status = string_strtol(string, 10, &skill_db->skill->inf); break;
-                case 4: status = string_strtol_split(string, 10, ':', &skill_db->store, &skill_db->skill->element); break;
-                case 5: status = string_strtol(string, 16, &skill_db->skill->nk); break;
-                case 6: status = string_strtol_split(string, 10, ':', &skill_db->store, &skill_db->skill->splash); break;
-                case 7: status = string_strtol(string, 10, &skill_db->skill->maxlv); break;
-                case 8: status = string_strtol_split(string, 10, ':', &skill_db->store, &skill_db->skill->hit_amount); break;
+                case 0: status = string_strtol(string, &skill_db->skill->id); break;
+                case 1: status = string_strtol_split(string, ':', &skill_db->store, &skill_db->skill->range); break;
+                case 2: status = string_strtol(string, &skill_db->skill->hit); break;
+                case 3: status = string_strtol(string, &skill_db->skill->inf); break;
+                case 4: status = string_strtol_split(string, ':', &skill_db->store, &skill_db->skill->element); break;
+                case 5: status = string_strtol(string, &skill_db->skill->nk); break;
+                case 6: status = string_strtol_split(string, ':', &skill_db->store, &skill_db->skill->splash); break;
+                case 7: status = string_strtol(string, &skill_db->skill->maxlv); break;
+                case 8: status = string_strtol_split(string, ':', &skill_db->store, &skill_db->skill->hit_amount); break;
                 case 9: status = string_store(string, &skill_db->store, &skill_db->skill->cast_cancel); break;
-                case 10: status = string_strtol(string, 10, &skill_db->skill->cast_def_reduce_rate); break;
-                case 11: status = string_strtol(string, 16, &skill_db->skill->inf2); break;
-                case 12: status = string_strtol_split(string, 10, ':', &skill_db->store, &skill_db->skill->max_count); break;
+                case 10: status = string_strtol(string, &skill_db->skill->cast_def_reduce_rate); break;
+                case 11: status = string_strtol(string, &skill_db->skill->inf2); break;
+                case 12: status = string_strtol_split(string, ':', &skill_db->store, &skill_db->skill->max_count); break;
                 case 13: status = string_store(string, &skill_db->store, &skill_db->skill->type); break;
-                case 14: status = string_strtol_split(string, 10, ':', &skill_db->store, &skill_db->skill->blow_count); break;
-                case 15: status = string_strtol(string, 16, &skill_db->skill->inf3); break;
+                case 14: status = string_strtol_split(string, ':', &skill_db->store, &skill_db->skill->blow_count); break;
+                case 15: status = string_strtol(string, &skill_db->skill->inf3); break;
                 case 16: status = string_store(string, &skill_db->store, &skill_db->skill->macro); break;
                 case 17: status = string_store(string, &skill_db->store, &skill_db->skill->name); break;
                 default: status = panic("invalid column"); break;
@@ -490,63 +490,63 @@ int mob_db_parse(enum parser_event event, int mark, struct string * string, void
             break;
         case 2:
             switch(mob_db->index) {
-                case 0: status = string_strtol(string, 10, &mob_db->mob->id); break;
+                case 0: status = string_strtol(string, &mob_db->mob->id); break;
                 case 1: status = string_store(string, &mob_db->store, &mob_db->mob->sprite); break;
                 case 2: status = string_store(string, &mob_db->store, &mob_db->mob->kro); break;
                 case 3: status = string_store(string, &mob_db->store, &mob_db->mob->iro); break;
-                case 4: status = string_strtol(string, 10, &mob_db->mob->level); break;
-                case 5: status = string_strtol(string, 10, &mob_db->mob->hp); break;
-                case 6: status = string_strtol(string, 10, &mob_db->mob->sp); break;
-                case 7: status = string_strtol(string, 10, &mob_db->mob->exp); break;
-                case 8: status = string_strtol(string, 10, &mob_db->mob->jexp); break;
-                case 9: status = string_strtol(string, 10, &mob_db->mob->range1); break;
-                case 10: status = string_strtol(string, 10, &mob_db->mob->atk1); break;
-                case 11: status = string_strtol(string, 10, &mob_db->mob->atk2); break;
-                case 12: status = string_strtol(string, 10, &mob_db->mob->def); break;
-                case 13: status = string_strtol(string, 10, &mob_db->mob->mdef); break;
-                case 14: status = string_strtol(string, 10, &mob_db->mob->str); break;
-                case 15: status = string_strtol(string, 10, &mob_db->mob->agi); break;
-                case 16: status = string_strtol(string, 10, &mob_db->mob->vit); break;
-                case 17: status = string_strtol(string, 10, &mob_db->mob->inte); break;
-                case 18: status = string_strtol(string, 10, &mob_db->mob->dex); break;
-                case 19: status = string_strtol(string, 10, &mob_db->mob->luk); break;
-                case 20: status = string_strtol(string, 10, &mob_db->mob->range2); break;
-                case 21: status = string_strtol(string, 10, &mob_db->mob->range3); break;
-                case 22: status = string_strtol(string, 10, &mob_db->mob->scale); break;
-                case 23: status = string_strtol(string, 10, &mob_db->mob->race); break;
-                case 24: status = string_strtol(string, 10, &mob_db->mob->element); break;
-                case 25: status = string_strtol(string, 16, &mob_db->mob->mode); break;
-                case 26: status = string_strtol(string, 10, &mob_db->mob->speed); break;
-                case 27: status = string_strtol(string, 10, &mob_db->mob->adelay); break;
-                case 28: status = string_strtol(string, 10, &mob_db->mob->amotion); break;
-                case 29: status = string_strtol(string, 10, &mob_db->mob->dmotion); break;
-                case 30: status = string_strtol(string, 10, &mob_db->mob->mexp); break;
-                case 31: status = string_strtol(string, 10, &mob_db->mob->mvp_drop_id[0]); break;
-                case 32: status = string_strtol(string, 10, &mob_db->mob->mvp_drop_chance[0]); break;
-                case 33: status = string_strtol(string, 10, &mob_db->mob->mvp_drop_id[1]); break;
-                case 34: status = string_strtol(string, 10, &mob_db->mob->mvp_drop_chance[1]); break;
-                case 35: status = string_strtol(string, 10, &mob_db->mob->mvp_drop_id[2]); break;
-                case 36: status = string_strtol(string, 10, &mob_db->mob->mvp_drop_chance[2]); break;
-                case 37: status = string_strtol(string, 10, &mob_db->mob->drop_id[0]); break;
-                case 38: status = string_strtol(string, 10, &mob_db->mob->drop_chance[0]); break;
-                case 39: status = string_strtol(string, 10, &mob_db->mob->drop_id[1]); break;
-                case 40: status = string_strtol(string, 10, &mob_db->mob->drop_chance[1]); break;
-                case 41: status = string_strtol(string, 10, &mob_db->mob->drop_id[2]); break;
-                case 42: status = string_strtol(string, 10, &mob_db->mob->drop_chance[2]); break;
-                case 43: status = string_strtol(string, 10, &mob_db->mob->drop_id[3]); break;
-                case 44: status = string_strtol(string, 10, &mob_db->mob->drop_chance[3]); break;
-                case 45: status = string_strtol(string, 10, &mob_db->mob->drop_id[4]); break;
-                case 46: status = string_strtol(string, 10, &mob_db->mob->drop_chance[4]); break;
-                case 47: status = string_strtol(string, 10, &mob_db->mob->drop_id[5]); break;
-                case 48: status = string_strtol(string, 10, &mob_db->mob->drop_chance[5]); break;
-                case 49: status = string_strtol(string, 10, &mob_db->mob->drop_id[6]); break;
-                case 50: status = string_strtol(string, 10, &mob_db->mob->drop_chance[6]); break;
-                case 51: status = string_strtol(string, 10, &mob_db->mob->drop_id[7]); break;
-                case 52: status = string_strtol(string, 10, &mob_db->mob->drop_chance[7]); break;
-                case 53: status = string_strtol(string, 10, &mob_db->mob->drop_id[8]); break;
-                case 54: status = string_strtol(string, 10, &mob_db->mob->drop_chance[8]); break;
-                case 55: status = string_strtol(string, 10, &mob_db->mob->drop_card_id); break;
-                case 56: status = string_strtol(string, 10, &mob_db->mob->drop_card_chance); break;
+                case 4: status = string_strtol(string, &mob_db->mob->level); break;
+                case 5: status = string_strtol(string, &mob_db->mob->hp); break;
+                case 6: status = string_strtol(string, &mob_db->mob->sp); break;
+                case 7: status = string_strtol(string, &mob_db->mob->exp); break;
+                case 8: status = string_strtol(string, &mob_db->mob->jexp); break;
+                case 9: status = string_strtol(string, &mob_db->mob->range1); break;
+                case 10: status = string_strtol(string, &mob_db->mob->atk1); break;
+                case 11: status = string_strtol(string, &mob_db->mob->atk2); break;
+                case 12: status = string_strtol(string, &mob_db->mob->def); break;
+                case 13: status = string_strtol(string, &mob_db->mob->mdef); break;
+                case 14: status = string_strtol(string, &mob_db->mob->str); break;
+                case 15: status = string_strtol(string, &mob_db->mob->agi); break;
+                case 16: status = string_strtol(string, &mob_db->mob->vit); break;
+                case 17: status = string_strtol(string, &mob_db->mob->inte); break;
+                case 18: status = string_strtol(string, &mob_db->mob->dex); break;
+                case 19: status = string_strtol(string, &mob_db->mob->luk); break;
+                case 20: status = string_strtol(string, &mob_db->mob->range2); break;
+                case 21: status = string_strtol(string, &mob_db->mob->range3); break;
+                case 22: status = string_strtol(string, &mob_db->mob->scale); break;
+                case 23: status = string_strtol(string, &mob_db->mob->race); break;
+                case 24: status = string_strtol(string, &mob_db->mob->element); break;
+                case 25: status = string_strtol(string, &mob_db->mob->mode); break;
+                case 26: status = string_strtol(string, &mob_db->mob->speed); break;
+                case 27: status = string_strtol(string, &mob_db->mob->adelay); break;
+                case 28: status = string_strtol(string, &mob_db->mob->amotion); break;
+                case 29: status = string_strtol(string, &mob_db->mob->dmotion); break;
+                case 30: status = string_strtol(string, &mob_db->mob->mexp); break;
+                case 31: status = string_strtol(string, &mob_db->mob->mvp_drop_id[0]); break;
+                case 32: status = string_strtol(string, &mob_db->mob->mvp_drop_chance[0]); break;
+                case 33: status = string_strtol(string, &mob_db->mob->mvp_drop_id[1]); break;
+                case 34: status = string_strtol(string, &mob_db->mob->mvp_drop_chance[1]); break;
+                case 35: status = string_strtol(string, &mob_db->mob->mvp_drop_id[2]); break;
+                case 36: status = string_strtol(string, &mob_db->mob->mvp_drop_chance[2]); break;
+                case 37: status = string_strtol(string, &mob_db->mob->drop_id[0]); break;
+                case 38: status = string_strtol(string, &mob_db->mob->drop_chance[0]); break;
+                case 39: status = string_strtol(string, &mob_db->mob->drop_id[1]); break;
+                case 40: status = string_strtol(string, &mob_db->mob->drop_chance[1]); break;
+                case 41: status = string_strtol(string, &mob_db->mob->drop_id[2]); break;
+                case 42: status = string_strtol(string, &mob_db->mob->drop_chance[2]); break;
+                case 43: status = string_strtol(string, &mob_db->mob->drop_id[3]); break;
+                case 44: status = string_strtol(string, &mob_db->mob->drop_chance[3]); break;
+                case 45: status = string_strtol(string, &mob_db->mob->drop_id[4]); break;
+                case 46: status = string_strtol(string, &mob_db->mob->drop_chance[4]); break;
+                case 47: status = string_strtol(string, &mob_db->mob->drop_id[5]); break;
+                case 48: status = string_strtol(string, &mob_db->mob->drop_chance[5]); break;
+                case 49: status = string_strtol(string, &mob_db->mob->drop_id[6]); break;
+                case 50: status = string_strtol(string, &mob_db->mob->drop_chance[6]); break;
+                case 51: status = string_strtol(string, &mob_db->mob->drop_id[7]); break;
+                case 52: status = string_strtol(string, &mob_db->mob->drop_chance[7]); break;
+                case 53: status = string_strtol(string, &mob_db->mob->drop_id[8]); break;
+                case 54: status = string_strtol(string, &mob_db->mob->drop_chance[8]); break;
+                case 55: status = string_strtol(string, &mob_db->mob->drop_card_id); break;
+                case 56: status = string_strtol(string, &mob_db->mob->drop_card_chance); break;
                 default: status = panic("invalid column"); break;
             }
             mob_db->index++;
@@ -616,7 +616,7 @@ int mob_race_db_parse(enum parser_event event, int mark, struct string * string,
                 if(!id) {
                     status = panic("failed to string strbuf object");
                 } else {
-                    if(string_strtol_split(id, 10, ',', &mob_race_db->store, &mob_race_db->mob_race->id)) {
+                    if(string_strtol_split(id, ',', &mob_race_db->store, &mob_race_db->mob_race->id)) {
                         status = panic("failed to strtol split string object");
                     } else if(map_insert(&mob_race_db->map_race, mob_race_db->mob_race->race->string, mob_race_db->mob_race)) {
                         status = panic("failed to insert map object");
@@ -692,32 +692,32 @@ int mercenary_db_parse(enum parser_event event, int mark, struct string * string
             break;
         case 2:
             switch(mercenary_db->index) {
-                case 0: status = string_strtol(string, 10, &mercenary_db->mercenary->id); break;
+                case 0: status = string_strtol(string, &mercenary_db->mercenary->id); break;
                 case 1: status = string_store(string, &mercenary_db->store, &mercenary_db->mercenary->sprite); break;
                 case 2: status = string_store(string, &mercenary_db->store, &mercenary_db->mercenary->name); break;
-                case 3: status = string_strtol(string, 10, &mercenary_db->mercenary->level); break;
-                case 4: status = string_strtol(string, 10, &mercenary_db->mercenary->hp); break;
-                case 5: status = string_strtol(string, 10, &mercenary_db->mercenary->sp); break;
-                case 6: status = string_strtol(string, 10, &mercenary_db->mercenary->range1); break;
-                case 7: status = string_strtol(string, 10, &mercenary_db->mercenary->atk1); break;
-                case 8: status = string_strtol(string, 10, &mercenary_db->mercenary->atk2); break;
-                case 9: status = string_strtol(string, 10, &mercenary_db->mercenary->def); break;
-                case 10: status = string_strtol(string, 10, &mercenary_db->mercenary->mdef); break;
-                case 11: status = string_strtol(string, 10, &mercenary_db->mercenary->str); break;
-                case 12: status = string_strtol(string, 10, &mercenary_db->mercenary->agi); break;
-                case 13: status = string_strtol(string, 10, &mercenary_db->mercenary->vit); break;
-                case 14: status = string_strtol(string, 10, &mercenary_db->mercenary->ini); break;
-                case 15: status = string_strtol(string, 10, &mercenary_db->mercenary->dex); break;
-                case 16: status = string_strtol(string, 10, &mercenary_db->mercenary->luk); break;
-                case 17: status = string_strtol(string, 10, &mercenary_db->mercenary->range2); break;
-                case 18: status = string_strtol(string, 10, &mercenary_db->mercenary->range3); break;
-                case 19: status = string_strtol(string, 10, &mercenary_db->mercenary->scale); break;
-                case 20: status = string_strtol(string, 10, &mercenary_db->mercenary->race); break;
-                case 21: status = string_strtol(string, 10, &mercenary_db->mercenary->element); break;
-                case 22: status = string_strtol(string, 10, &mercenary_db->mercenary->speed); break;
-                case 23: status = string_strtol(string, 10, &mercenary_db->mercenary->adelay); break;
-                case 24: status = string_strtol(string, 10, &mercenary_db->mercenary->amotion); break;
-                case 25: status = string_strtol(string, 10, &mercenary_db->mercenary->dmotion); break;
+                case 3: status = string_strtol(string, &mercenary_db->mercenary->level); break;
+                case 4: status = string_strtol(string, &mercenary_db->mercenary->hp); break;
+                case 5: status = string_strtol(string, &mercenary_db->mercenary->sp); break;
+                case 6: status = string_strtol(string, &mercenary_db->mercenary->range1); break;
+                case 7: status = string_strtol(string, &mercenary_db->mercenary->atk1); break;
+                case 8: status = string_strtol(string, &mercenary_db->mercenary->atk2); break;
+                case 9: status = string_strtol(string, &mercenary_db->mercenary->def); break;
+                case 10: status = string_strtol(string, &mercenary_db->mercenary->mdef); break;
+                case 11: status = string_strtol(string, &mercenary_db->mercenary->str); break;
+                case 12: status = string_strtol(string, &mercenary_db->mercenary->agi); break;
+                case 13: status = string_strtol(string, &mercenary_db->mercenary->vit); break;
+                case 14: status = string_strtol(string, &mercenary_db->mercenary->ini); break;
+                case 15: status = string_strtol(string, &mercenary_db->mercenary->dex); break;
+                case 16: status = string_strtol(string, &mercenary_db->mercenary->luk); break;
+                case 17: status = string_strtol(string, &mercenary_db->mercenary->range2); break;
+                case 18: status = string_strtol(string, &mercenary_db->mercenary->range3); break;
+                case 19: status = string_strtol(string, &mercenary_db->mercenary->scale); break;
+                case 20: status = string_strtol(string, &mercenary_db->mercenary->race); break;
+                case 21: status = string_strtol(string, &mercenary_db->mercenary->element); break;
+                case 22: status = string_strtol(string, &mercenary_db->mercenary->speed); break;
+                case 23: status = string_strtol(string, &mercenary_db->mercenary->adelay); break;
+                case 24: status = string_strtol(string, &mercenary_db->mercenary->amotion); break;
+                case 25: status = string_strtol(string, &mercenary_db->mercenary->dmotion); break;
                 default: status = panic("invalid column"); break;
             }
             mercenary_db->index++;
@@ -787,7 +787,7 @@ int produce_db_parse(enum parser_event event, int mark, struct string * string, 
                 if(!material) {
                     status = panic("failed to string strbuf object");
                 } else {
-                    if(string_strtol_split(material, 10, ',', &produce_db->store, &produce_db->produce->material)) {
+                    if(string_strtol_split(material, ',', &produce_db->store, &produce_db->produce->material)) {
                         status = panic("failed to strtol split string object");
                     } else if(map_insert(&produce_db->map_id, &produce_db->produce->id, produce_db->produce)) {
                         status = panic("failed to insert map object");
@@ -798,11 +798,11 @@ int produce_db_parse(enum parser_event event, int mark, struct string * string, 
             break;
         case 2:
             switch(produce_db->index) {
-                case 0: status = string_strtol(string, 10, &produce_db->produce->id); break;
-                case 1: status = string_strtol(string, 10, &produce_db->produce->item_id); break;
-                case 2: status = string_strtol(string, 10, &produce_db->produce->item_lv); break;
-                case 3: status = string_strtol(string, 10, &produce_db->produce->skill_id); break;
-                case 4: status = string_strtol(string, 10, &produce_db->produce->skill_lv); break;
+                case 0: status = string_strtol(string, &produce_db->produce->id); break;
+                case 1: status = string_strtol(string, &produce_db->produce->item_id); break;
+                case 2: status = string_strtol(string, &produce_db->produce->item_lv); break;
+                case 3: status = string_strtol(string, &produce_db->produce->skill_id); break;
+                case 4: status = string_strtol(string, &produce_db->produce->skill_lv); break;
                 default: status = strbuf_strcpy(&produce_db->strbuf, string->string, string->length) || strbuf_putc(&produce_db->strbuf, ','); break;
             }
             produce_db->index++;
@@ -889,14 +889,14 @@ int constant_db_parse(enum parser_event event, int mark, struct string * string,
             }
             break;
         case 3: status = string_store(string, &constant_db->store, &constant_db->constant->macro); break;
-        case 4: status = string_strtol(string, 10, &constant_db->constant->value); break;
+        case 4: status = string_strtol(string, &constant_db->constant->value); break;
         case 5: status = string_store(string, &constant_db->store, &constant_db->constant->label); break;
         case 6:
             if(event == end) {
                 range = strbuf_string(&constant_db->strbuf);
                 if(!range) {
                     status = panic("failed to string strbuf object");
-                } else if(string_strtol_split(range, 10, ',', &constant_db->store, &constant_db->constant->range)) {
+                } else if(string_strtol_split(range, ',', &constant_db->store, &constant_db->constant->range)) {
                     status = panic("failed to strtol split string object");
                 }
                 strbuf_clear(&constant_db->strbuf);
@@ -1023,7 +1023,7 @@ int data_group_parse(enum parser_event event, int mark, struct string * string, 
             }
             break;
         case 6: status = string_store(string, &data_group->store, &data_group->data->string); break;
-        case 7: status = string_strtoul(string, strncmp("0x", string->string, 2) ? 10 : 16, &data_group->data->number); break;
+        case 7: status = string_strtoul(string, &data_group->data->number); break;
     }
 
     return status;
@@ -1125,7 +1125,7 @@ int prototype_group_parse(enum parser_event event, int mark, struct string * str
             }
             break;
         case 9: status = string_store(string, &prototype_group->store, &prototype_group->argument->type); break;
-        case 10: status = string_strtol(string, 10, &prototype_group->argument->index); break;
+        case 10: status = string_strtol(string, &prototype_group->argument->index); break;
     }
 
     return status;

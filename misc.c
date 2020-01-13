@@ -26,47 +26,47 @@ int string_store(struct string * string, struct store * store, struct string ** 
     return status;
 }
 
-int string_strtol(struct string * string, int base, long * result) {
+int string_strtol(struct string * string, long * result) {
     int status = 0;
 
-    long number;
-    char * last;
+    long value;
+    char * end;
 
     if(!string->length) {
         *result = 0;
     } else {
-        number = strtol(string->string, &last, base);
-        if(string->string + string->length != last) {
-            status = panic("invalid '%s' in '%s'", last, string->string);
+        value = strtol(string->string, &end, 0);
+        if(string->string + string->length != end) {
+            status = panic("invalid '%s' in '%s'", end, string->string);
         } else {
-            *result = number;
+            *result = value;
         }
     }
 
     return status;
 }
 
-int string_strtoul(struct string * string, int base, unsigned long * result) {
+int string_strtoul(struct string * string, unsigned long * result) {
     int status = 0;
 
-    unsigned long number;
-    char * last;
+    unsigned long value;
+    char * end;
 
     if(!string->length) {
         *result = 0;
     } else {
-        number = strtoul(string->string, &last, base);
-        if(string->string + string->length != last) {
-            status = panic("invalid '%s' in '%s'", last, string->string);
+        value = strtoul(string->string, &end, 0);
+        if(string->string + string->length != end) {
+            status = panic("invalid '%s' in '%s'", end, string->string);
         } else {
-            *result = number;
+            *result = value;
         }
     }
 
     return status;
 }
 
-int string_strtol_split(struct string * string, int base, char split, struct store * store, struct long_array ** result) {
+int string_strtol_split(struct string * string, char split, struct store * store, struct long_array ** result) {
     int status = 0;
     struct long_array * array;
 
@@ -95,7 +95,7 @@ int string_strtol_split(struct string * string, int base, char split, struct sto
             ptr = string->string;
             count = 0;
             while(ptr && count < array->count) {
-                array->array[count++] = strtol(ptr, &end, base);
+                array->array[count++] = strtol(ptr, &end, 0);
                 ptr = *end == split ? end + 1 : NULL;
                 if(!ptr && *end)
                     status = panic("invalid string '%s' in '%s'", end, string->string);
@@ -112,7 +112,7 @@ int string_strtol_split(struct string * string, int base, char split, struct sto
     return status;
 }
 
-int string_strtol_splitv(struct string * string, int base, int split, ...) {
+int string_strtol_splitv(struct string * string, int split, ...) {
     int status = 0;
     va_list args;
     long * value;
@@ -123,7 +123,7 @@ int string_strtol_splitv(struct string * string, int base, int split, ...) {
     value = va_arg(args, long *);
     ptr = string->string;
     while(value && ptr) {
-        *value = strtol(ptr, &end, base);
+        *value = strtol(ptr, &end, 0);
         ptr = *end == split ? end + 1 : NULL;
         if(!ptr && *end) {
             status = panic("invalid string '%s' in '%s'", end, string->string);

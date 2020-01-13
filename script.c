@@ -165,7 +165,7 @@ int script_node_integer(struct script * script, char * buffer, size_t length, in
     node = script_node_create(script, integer);
     if(!node) {
         status = panic("failed to object store object");
-    } else if(string_strtol(&string, base, &node->integer)) {
+    } else if(string_strtol(&string, &node->integer)) {
         status = panic("failed to strtol string object");
     } else {
         *result = node;
