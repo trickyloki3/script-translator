@@ -520,7 +520,7 @@ int mob_db_parse(enum parser_event event, int mark, struct string * string, void
                 case 27: status = string_strtol(string, 10, &mob_db->mob->adelay); break;
                 case 28: status = string_strtol(string, 10, &mob_db->mob->amotion); break;
                 case 29: status = string_strtol(string, 10, &mob_db->mob->dmotion); break;
-                case 30: status = string_strtod(string, &mob_db->mob->mexp); break;
+                case 30: status = string_strtol(string, 10, &mob_db->mob->mexp); break;
                 case 31: status = string_strtol(string, 10, &mob_db->mob->mvp_drop_id[0]); break;
                 case 32: status = string_strtol(string, 10, &mob_db->mob->mvp_drop_chance[0]); break;
                 case 33: status = string_strtol(string, 10, &mob_db->mob->mvp_drop_id[1]); break;

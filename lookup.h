@@ -167,7 +167,7 @@ struct mob {
     long adelay;
     long amotion;
     long dmotion;
-    double mexp;
+    long mexp;
     long mvp_drop_id[3];
     long mvp_drop_chance[3];
     long drop_id[9];

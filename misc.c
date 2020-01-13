@@ -26,26 +26,6 @@ int string_store(struct string * string, struct store * store, struct string ** 
     return status;
 }
 
-int string_strtod(struct string * string, double * result) {
-    int status = 0;
-
-    long number;
-    char * last;
-
-    if(!string->length) {
-        *result = 0;
-    } else {
-        number = strtod(string->string, &last);
-        if(string->string + string->length != last) {
-            status = panic("invalid '%s' in '%s'", last, string->string);
-        } else {
-            *result = number;
-        }
-    }
-
-    return status;
-}
-
 int string_strtol(struct string * string, int base, long * result) {
     int status = 0;
 
