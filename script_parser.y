@@ -59,7 +59,7 @@ script :  statement_block {
               if(script_node_block(script, &$$)) {
                   YYABORT;
               } else {
-                  script_node_push($$, $1, NULL);
+                  $$->node = $1;
                   script->state->root = $$;
               }
           }
@@ -67,7 +67,7 @@ script :  statement_block {
               if(script_node_block(script, &$$)) {
                   YYABORT;
               } else {
-                  script_node_push($$, $3, NULL);
+                  $$->node = $3;
                   $1->next = $$;
               }
           }
