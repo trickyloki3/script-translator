@@ -56,32 +56,25 @@ void yyerror(SCRIPTLTYPE *, struct script *, char const *);
 %%
 
 script :  statement_block {
-              struct script_node * node;
-
-              node = script_node_create(script, block, 0);
-              if(!node) {
+              if(script_node_block(script, &$$)) {
                   YYABORT;
               } else {
-                  script_node_push(node, $1, NULL);
-                  $$ = script->state->root = node;
+                  script_node_push($$, $1, NULL);
+                  script->state->root = $$;
               }
           }
        |  script comma statement_block {
-              struct script_node * node;
-
-              node = script_node_create(script, block, 0);
-              if(!node) {
+              if(script_node_block(script, &$$)) {
                   YYABORT;
               } else {
-                  script_node_push(node, $3, NULL);
-                  $$ = $1->next = node;
+                  script_node_push($$, $3, NULL);
+                  $1->next = $$;
               }
           }
 
 statement_block : statement
                 | curly_open curly_close {
-                      $$ = script_node_create(script, null, 0);
-                      if(!$$)
+                      if(script_node_token(script, 0, &$$))
                           YYABORT;
                   }
                 | curly_open statement_list curly_close {
@@ -95,8 +88,7 @@ statement_list :  statement
                   }
 
 statement : semicolon {
-                $$ = script_node_create(script, null, 0);
-                if(!$$)
+                if(script_node_token(script, 0, &$$))
                     YYABORT;
             }
           | if_statement
@@ -126,8 +118,7 @@ expression :  expression increment_prefix %prec increment_postfix {
                   $$ = $2;
               }
            |  round_open round_close {
-                  $$ = script_node_create(script, null, 0);
-                  if(!$$)
+                  if(script_node_token(script, 0, &$$))
                       YYABORT;
               }
            |  round_open expression round_close {

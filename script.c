@@ -148,6 +148,20 @@ struct script_node * script_node_create(struct script * script, enum script_type
     return node;
 }
 
+int script_node_block(struct script * script, struct script_node ** result) {
+    int status = 0;
+    struct script_node * node;
+
+    node = script_node_create(script, block, 0);
+    if(!node) {
+        status = panic("failed to create script node object");
+    } else {
+        *result = node;
+    }
+
+    return status;
+}
+
 int script_node_token(struct script * script, int value, struct script_node ** result) {
     int status = 0;
     struct script_node * node;

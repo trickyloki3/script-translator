@@ -4,7 +4,6 @@
 #include "lookup.h"
 
 enum script_type {
-    null,
     block,
     token,
     integer,
@@ -42,6 +41,7 @@ void script_destroy(struct script *);
 int script_translate(struct script *, struct string *);
 
 struct script_node * script_node_create(struct script *, enum script_type, int);
+int script_node_block(struct script *, struct script_node **);
 int script_node_token(struct script *, int, struct script_node **);
 int script_node_integer(struct script *, struct string *, struct script_node **);
 int script_node_identifier(struct script *, struct string *, struct script_node **);
