@@ -227,7 +227,7 @@ block_comment       \x2F\x2A
 }
 
 {string} {
-    struct string string = { yyleng - 1, yytext + 1};
+    struct string string = { yyleng - 2, yytext + 1};
     return script_node_identifier(yyextra, &string, yylval) ? -1 : script_identifier;
 }
 

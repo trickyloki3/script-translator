@@ -33,8 +33,8 @@
 %right assign plus_assign minus_assign
 %left comma
 %precedence for if else
-%token curly_open curly_close semicolon
 %precedence integer identifier
+%token curly_open curly_close semicolon
 %start script
 
 %code requires {
