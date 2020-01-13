@@ -42,13 +42,35 @@ void yyerror(YAMLLTYPE *, struct yaml *, char const *);
 
 %%
 
-yaml : l_bare_document { if(yaml_document(yaml)) YYABORT; }
-     | l_empty_r l_bare_document { if(yaml_document(yaml)) YYABORT; }
+yaml :  l_bare_document {
+            if(yaml_document(yaml))
+                YYABORT;
+        }
+     |  l_empty_r l_bare_document {
+            if(yaml_document(yaml))
+                YYABORT;
+        }
 
-l_bare_document : s_l_block_node { $1->scope = 0; if(yaml_block(yaml, $1)) YYABORT; }
-                | s_indent s_l_block_node { $2->scope = $1->scope; if(yaml_block(yaml, $2)) YYABORT; }
-                | l_bare_document s_l_block_node { $2->scope = 0; if(yaml_block(yaml, $2)) YYABORT; }
-                | l_bare_document s_indent s_l_block_node { $3->scope = $2->scope; if(yaml_block(yaml, $3)) YYABORT; }
+l_bare_document : s_l_block_node {
+                      $1->scope = 0;
+                      if(yaml_block(yaml, $1))
+                          YYABORT;
+                  }
+                | s_indent s_l_block_node {
+                      $2->scope = $1->scope;
+                      if(yaml_block(yaml, $2))
+                          YYABORT;
+                  }
+                | l_bare_document s_l_block_node {
+                      $2->scope = 0;
+                      if(yaml_block(yaml, $2))
+                          YYABORT;
+                  }
+                | l_bare_document s_indent s_l_block_node {
+                      $3->scope = $2->scope;
+                      if(yaml_block(yaml, $3))
+                          YYABORT;
+                  }
 
 s_l_block_node : ns_plain
                | l_block_scalar
@@ -59,31 +81,42 @@ ns_plain : ns_plain_one_line s_l_comments
 
 l_block_scalar : { if(yaml_stack(yaml, yaml_c_literal)) YYABORT; else $$ = yaml->stack; } c_literal s_l_comments
                | { if(yaml_stack(yaml, yaml_c_folded)) YYABORT; else $$ = yaml->stack; } c_folded s_l_comments
-               | nb_char s_l_comments { $1->child = $2; $$ = $1; }
+               |  nb_char s_l_comments {
+                      $1->child = $2;
+                      $$ = $1;
+                  }
 
-l_block_sequence : { if(yaml_stack(yaml, yaml_c_sequence_entry)) YYABORT; else $$ = yaml->stack; } c_sequence_entry s_separate s_l_block_node {
-    $1->value = $4->value;
-    $$ = $2;
-}
+l_block_sequence :  { if(yaml_stack(yaml, yaml_c_sequence_entry)) YYABORT; else $$ = yaml->stack; } c_sequence_entry s_separate s_l_block_node {
+                        $1->value = $4->value;
+                        $$ = $2;
+                    }
 
 l_block_mapping : ns_plain_one_line { if(yaml_stack(yaml, yaml_c_mapping_value)) YYABORT; else $$ = yaml->stack; } c_mapping_value s_separate s_l_block_node {
-    if($4->type != yaml_s_indent && ($5->type == yaml_c_sequence_entry || $5->type == yaml_c_mapping_value)) {
-        YYABORT; /* map does not support compact notation */
-    } else {
-        $2->key = $1->value;
-        $2->value = $5->value;
-        $$ = $3;
-    }
-}
+                      if($4->type != yaml_s_indent && ($5->type == yaml_c_sequence_entry || $5->type == yaml_c_mapping_value)) {
+                          YYABORT; /* map does not support compact notation */
+                      } else {
+                          $2->key = $1->value;
+                          $2->value = $5->value;
+                          $$ = $3;
+                      }
+                  }
 
-s_separate : s_separate_in_line { $$ = $1; }
-           | s_l_comments s_indent { $$ = $2; }
+s_separate :  s_separate_in_line
+           |  s_l_comments s_indent {
+                  $$ = $2;
+              }
 
-s_l_comments : b_break
-             | b_break l_empty_r { $$ = $2; $$->scope++; }
+s_l_comments :  b_break
+             |  b_break l_empty_r {
+                    $$ = $2;
+                    $$->scope++;
+                }
 
 l_empty_r : l_empty
-          | l_empty_r l_empty { $$ = $1; $$->scope++; }
+          | l_empty_r l_empty {
+                $$ = $1;
+                $$->scope++;
+            }
 
 %%
 

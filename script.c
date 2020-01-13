@@ -222,7 +222,7 @@ void script_node_push(struct script_node * root, ...) {
     va_end(args);
 }
 
-struct script_node * script_node_reverse(struct script_node * root) {
+struct script_node * script_node_flip(struct script_node * root) {
     struct script_node * list;
     struct script_node * node;
 

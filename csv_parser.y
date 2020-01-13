@@ -38,21 +38,36 @@ void yyerror(CSVLTYPE *, struct csv *, char const *);
 
 %%
 
-file : record { if(csv_pop(csv)) YYABORT; }
-     | file NEWLINE record { if(csv_pop(csv)) YYABORT; }
-     | COMMENT
-     | file NEWLINE COMMENT
-     | SPACE
-     | file NEWLINE SPACE
+file :  record {
+            if(csv_pop(csv))
+                YYABORT;
+        }
+     |  file NEWLINE record {
+            if(csv_pop(csv))
+                YYABORT;
+        }
+     |  COMMENT
+     |  file NEWLINE COMMENT
+     |  SPACE
+     |  file NEWLINE SPACE
 
 record : field
        | record COMMA field
        | record COMMA field SPACE
        | record COMMA field COMMENT
 
-field : %empty { if(csv->root && csv_push(csv)) YYABORT; }
-      | ESCAPED { if(csv_push(csv)) YYABORT; }
-      | NONESCAPED { if(csv_push(csv)) YYABORT; }
+field : %empty {
+            if(csv->root && csv_push(csv))
+                YYABORT;
+        }
+      | ESCAPED {
+            if(csv_push(csv))
+                YYABORT;
+        }
+      | NONESCAPED {
+            if(csv_push(csv))
+                YYABORT;
+        }
 
 %%
 

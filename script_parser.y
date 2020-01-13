@@ -78,7 +78,7 @@ statement_block : statement
                           YYABORT;
                   }
                 | curly_open statement_list curly_close {
-                      $$ = script_node_reverse($2);
+                      $$ = script_node_flip($2);
                   }
 
 statement_list :  statement
