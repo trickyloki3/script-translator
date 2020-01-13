@@ -221,20 +221,19 @@ block_comment       \x2F\x2A
     return script_semicolon;
 }
 
-{decimal} {
-    return script_node_integer(yyextra, yytext, yyleng, 10, yylval) ? -1 : script_integer;
-}
-
-{hexadecimal} {
-    return script_node_integer(yyextra, yytext, yyleng, 16, yylval) ? -1 : script_integer;
+{decimal}|{hexadecimal} {
+    struct string string = { yyleng, yytext };
+    return script_node_integer(yyextra, &string, yylval) ? -1 : script_integer;
 }
 
 {string} {
-    return script_node_identifier(yyextra, yytext + 1, yyleng - 1, yylval) ? -1 : script_identifier;
+    struct string string = { yyleng - 1, yytext + 1};
+    return script_node_identifier(yyextra, &string, yylval) ? -1 : script_identifier;
 }
 
 {identifier} {
-    return script_node_identifier(yyextra, yytext, yyleng, yylval) ? -1 : script_identifier;
+    struct string string = { yyleng, yytext };
+    return script_node_identifier(yyextra, &string, yylval) ? -1 : script_identifier;
 }
 
 {whitespace} {

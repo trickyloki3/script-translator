@@ -58,7 +58,7 @@ void yyerror(SCRIPTLTYPE *, struct script *, char const *);
 script :  statement_block {
               struct script_node * node;
 
-              node = script_node_create(script, block);
+              node = script_node_create(script, block, 0);
               if(!node) {
                   YYABORT;
               } else {
@@ -69,7 +69,7 @@ script :  statement_block {
        |  script comma statement_block {
               struct script_node * node;
 
-              node = script_node_create(script, block);
+              node = script_node_create(script, block, 0);
               if(!node) {
                   YYABORT;
               } else {
@@ -80,7 +80,7 @@ script :  statement_block {
 
 statement_block : statement
                 | curly_open curly_close {
-                      $$ = script_node_create(script, null);
+                      $$ = script_node_create(script, null, 0);
                       if(!$$)
                           YYABORT;
                   }
@@ -95,7 +95,7 @@ statement_list :  statement
                   }
 
 statement : semicolon {
-                $$ = script_node_create(script, null);
+                $$ = script_node_create(script, null, 0);
                 if(!$$)
                     YYABORT;
             }
@@ -126,7 +126,7 @@ expression :  expression increment_prefix %prec increment_postfix {
                   $$ = $2;
               }
            |  round_open round_close {
-                  $$ = script_node_create(script, null);
+                  $$ = script_node_create(script, null, 0);
                   if(!$$)
                       YYABORT;
               }

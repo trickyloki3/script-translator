@@ -41,10 +41,10 @@ int script_create(struct script *, size_t, struct heap *, struct lookup *);
 void script_destroy(struct script *);
 int script_translate(struct script *, struct string *);
 
-struct script_node * script_node_create(struct script *, enum script_type);
+struct script_node * script_node_create(struct script *, enum script_type, int);
 int script_node_token(struct script *, int, struct script_node **);
-int script_node_integer(struct script *, char *, size_t, int, struct script_node **);
-int script_node_identifier(struct script *, char *, size_t, struct script_node **);
+int script_node_integer(struct script *, struct string *, struct script_node **);
+int script_node_identifier(struct script *, struct string *, struct script_node **);
 void script_node_push(struct script_node *, ...);
 struct script_node * script_node_reverse(struct script_node *);
 
