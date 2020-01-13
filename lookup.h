@@ -73,10 +73,10 @@ struct item {
     long def;
     long range;
     long slots;
-    unsigned long job;
-    unsigned long upper;
+    long job;
+    long upper;
     long gender;
-    unsigned long location;
+    long location;
     long weapon_level;
     long base_level;
     long max_level;
@@ -293,7 +293,7 @@ int constant_group_parse(enum parser_event, int, struct string *, void *);
 
 struct data {
     struct string * string;
-    unsigned long number;
+    long number;
 };
 
 struct data_group {

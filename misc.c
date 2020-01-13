@@ -46,26 +46,6 @@ int string_strtol(struct string * string, long * result) {
     return status;
 }
 
-int string_strtoul(struct string * string, unsigned long * result) {
-    int status = 0;
-
-    unsigned long value;
-    char * end;
-
-    if(!string->length) {
-        *result = 0;
-    } else {
-        value = strtoul(string->string, &end, 0);
-        if(string->string + string->length != end) {
-            status = panic("invalid '%s' in '%s'", end, string->string);
-        } else {
-            *result = value;
-        }
-    }
-
-    return status;
-}
-
 int string_strtol_split(struct string * string, char split, struct store * store, struct long_array ** result) {
     int status = 0;
     struct long_array * array;

@@ -277,10 +277,10 @@ int item_db_parse(enum parser_event event, int mark, struct string * string, voi
                 case 8: status = string_strtol(string, &item_db->item->def); break;
                 case 9: status = string_strtol(string, &item_db->item->range); break;
                 case 10: status = string_strtol(string, &item_db->item->slots); break;
-                case 11: status = string_strtoul(string, &item_db->item->job); break;
-                case 12: status = string_strtoul(string, &item_db->item->upper); break;
+                case 11: status = string_strtol(string, &item_db->item->job); break;
+                case 12: status = string_strtol(string, &item_db->item->upper); break;
                 case 13: status = string_strtol(string, &item_db->item->gender); break;
-                case 14: status = string_strtoul(string, &item_db->item->location); break;
+                case 14: status = string_strtol(string, &item_db->item->location); break;
                 case 15: status = string_strtol(string, &item_db->item->weapon_level); break;
                 case 16: status = string_strtol_splitv(string, ':', &item_db->item->base_level, &item_db->item->max_level, NULL); break;
                 case 17: status = string_strtol(string, &item_db->item->refineable); break;
@@ -1023,7 +1023,7 @@ int data_group_parse(enum parser_event event, int mark, struct string * string, 
             }
             break;
         case 6: status = string_store(string, &data_group->store, &data_group->data->string); break;
-        case 7: status = string_strtoul(string, &data_group->data->number); break;
+        case 7: status = string_strtol(string, &data_group->data->number); break;
     }
 
     return status;
