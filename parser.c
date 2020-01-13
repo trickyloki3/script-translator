@@ -71,7 +71,6 @@ void schema_node_print(struct schema_node * node, int indent, char * key) {
     }
 }
 
-
 int schema_create(struct schema * schema, struct heap * heap) {
     int status = 0;
 
