@@ -93,7 +93,10 @@ statement : semicolon {
             }
           | if_statement
           | for_statement
-          | expression semicolon
+          | identifier expression semicolon {
+                script_node_push($1, $2, NULL);
+                $$ = $1;
+            }
 
 if_statement :  if round_open expression round_close statement_block {
                     script_node_push($1, $5, $3, NULL);
@@ -117,15 +120,19 @@ expression :  expression increment_prefix %prec increment_postfix {
                   script_node_push($2, $1, NULL);
                   $$ = $2;
               }
-           |  round_open round_close {
-                  if(script_node_token(script, 0, &$$))
-                      YYABORT;
+           |  identifier round_open round_close {
+                  $$ = $1;
               }
            |  round_open expression round_close {
                   $$ = $2;
               }
-           |  square_open expression square_close {
-                  $$ = $2;
+           |  identifier round_open expression round_close {
+                  script_node_push($1, $3, NULL);
+                  $$ = $1;
+              }
+           |  identifier square_open expression square_close {
+                  script_node_push($1, $3, NULL);
+                  $$ = $1;
               }
            |  increment_prefix expression {
                   script_node_push($1, $2, NULL);
@@ -249,10 +256,6 @@ expression :  expression increment_prefix %prec increment_postfix {
               }
            |  integer
            |  identifier
-           |  identifier expression {
-                  script_node_push($1, $2, NULL);
-                  $$ = $1;
-              }
 
 %%
 
