@@ -283,7 +283,7 @@ void script_node_print(struct script_node * root) {
                     break;
                 case script_remainder:
                     script_node_print(root->node);
-                    fprintf(stdout, "% ");
+                    fprintf(stdout, "%% ");
                     script_node_print(root->node->next);
                     break;
                 case script_plus:
