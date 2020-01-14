@@ -17,24 +17,24 @@
 %define parse.error verbose
 %define parse.trace true
 
-%left increment_postfix decrement_postfix round_open round_close square_open square_close
-%right increment_prefix decrement_prefix plus_unary minus_unary logic_not bit_not
-%left multiply divide remainder
-%left plus minus
-%left bit_left bit_right
-%left lesser lesser_equal greater greater_equal
-%left logic_equal logic_not_equal
-%left bit_and
-%left bit_xor
-%left bit_or
-%left logic_and
-%left logic_or
-%right question colon
-%right assign plus_assign minus_assign
-%left comma
-%precedence for if else
-%precedence integer identifier
 %token curly_open curly_close semicolon
+%token integer identifier
+%token for if else
+%left comma
+%right assign plus_assign minus_assign
+%right question colon
+%left logic_or
+%left logic_and
+%left bit_or
+%left bit_xor
+%left bit_and
+%left logic_equal logic_not_equal
+%left lesser lesser_equal greater greater_equal
+%left bit_left bit_right
+%left plus minus
+%left multiply divide remainder
+%right increment_prefix decrement_prefix plus_unary minus_unary logic_not bit_not
+%left increment_postfix decrement_postfix round_open round_close square_open square_close
 %start script
 
 %code requires {
