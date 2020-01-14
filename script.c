@@ -294,7 +294,7 @@ void script_node_print(struct script_node * root) {
                     break;
                 case script_minus:
                     script_node_print(root->node);
-                    fprintf(stdout, "+ ");
+                    fprintf(stdout, "- ");
                     if(root->node->next)
                         script_node_print(root->node->next);
                     break;
