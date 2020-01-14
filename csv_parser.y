@@ -17,7 +17,7 @@
 %define parse.error verbose
 %define parse.trace true
 
-%token COMMA NEWLINE SPACE COMMENT ESCAPED NONESCAPED
+%token COMMA NEWLINE STRING
 %start file
 
 %code requires {
@@ -46,25 +46,15 @@ file :  record {
             if(csv_pop(csv))
                 YYABORT;
         }
-     |  COMMENT
-     |  file NEWLINE COMMENT
-     |  SPACE
-     |  file NEWLINE SPACE
 
 record : field
        | record COMMA field
-       | record COMMA field SPACE
-       | record COMMA field COMMENT
 
 field : %empty {
             if(csv->root && csv_push(csv))
                 YYABORT;
         }
-      | ESCAPED {
-            if(csv_push(csv))
-                YYABORT;
-        }
-      | NONESCAPED {
+      | STRING {
             if(csv_push(csv))
                 YYABORT;
         }

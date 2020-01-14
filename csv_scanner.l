@@ -12,12 +12,11 @@
 %option noinput nounput
 
 COMMA       \x2C
-CR          \xD
-LF          \xA
+NEWLINE     \xD|\xA|\xD\xA
 SPACE       [\x9\x20]
 COMMENT     \x2F\x2F
 CURLY       \x7B
-DQUOTE      \x22
+QUOTE       \x22
 TEXTDATA    [\x9\x20-\x21\x23-\x2B\x2D-\x7A\x7C\x7E]
 
 %%
@@ -26,33 +25,33 @@ TEXTDATA    [\x9\x20-\x21\x23-\x2B\x2D-\x7A\x7C\x7E]
     return CSV_COMMA;
 }
 
-{CR}?{LF} {
+{NEWLINE} {
     return CSV_NEWLINE;
 }
 
 {SPACE}* {
-    return CSV_SPACE;
+    /* ignore space */
 }
 
 {SPACE}*{COMMENT}.* {
-    return CSV_COMMENT;
+    /* ignore comment */
 }
 
 {CURLY}.* {
-    return strbuf_strcpy(yyextra, yytext, yyleng) ? -1 : CSV_ESCAPED;
+    return strbuf_strcpy(yyextra, yytext, yyleng) ? -1 : CSV_STRING;
 }
 
-{DQUOTE}({TEXTDATA}|{COMMA})*{DQUOTE} {
-    return strbuf_strcpy(yyextra, yytext, yyleng) ? -1 : CSV_ESCAPED;
+{QUOTE}({TEXTDATA}|{COMMA})*{QUOTE} {
+    return strbuf_strcpy(yyextra, yytext, yyleng) ? -1 : CSV_STRING;
 }
 
-{DQUOTE}({TEXTDATA}|{COMMA})* {
+{QUOTE}({TEXTDATA}|{COMMA})* {
     panic("unmatch double quote (line %d)", yylineno);
     return -1;
 }
 
 {TEXTDATA}* {
-    return strbuf_strcpy(yyextra, yytext, yyleng) ? -1 : CSV_NONESCAPED;
+    return strbuf_strcpy(yyextra, yytext, yyleng) ? -1 : CSV_STRING;
 }
 
 . {
