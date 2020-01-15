@@ -246,11 +246,11 @@ void script_node_print(struct script_node * root) {
                 node = root->node;
                 while(node) {
                     script_node_print(node);
+                    if(node->token)
+                        fprintf(stdout, "\n");
                     node = node->next;
-                    fprintf(stdout, "\n");
                 }
                 root = root->next;
-                fprintf(stdout, "\n");
             }
             break;
         case token:
@@ -398,8 +398,9 @@ void script_node_print(struct script_node * root) {
                     node = root->node;
                     while(node) {
                         script_node_print(node);
+                        if(node->token)
+                            fprintf(stdout, "\n");
                         node = node->next;
-                        fprintf(stdout, "\n");
                     }
                     break;
                 case script_if:
@@ -407,8 +408,9 @@ void script_node_print(struct script_node * root) {
                     node = root->node;
                     while(node) {
                         script_node_print(node);
+                        if(node->token)
+                            fprintf(stdout, "\n");
                         node = node->next;
-                        fprintf(stdout, "\n");
                     }
                     break;
                 case script_else:
@@ -416,8 +418,9 @@ void script_node_print(struct script_node * root) {
                     node = root->node;
                     while(node) {
                         script_node_print(node);
+                        if(node->token)
+                            fprintf(stdout, "\n");
                         node = node->next;
-                        fprintf(stdout, "\n");
                     }
                     break;
             }
