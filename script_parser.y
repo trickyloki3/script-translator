@@ -96,16 +96,22 @@ statement : semicolon {
           | assignment semicolon
 
 if_statement  : if round_open expression round_close statement_block {
-                    script_node_push($1, $5, $3, NULL);
+                    $3->next = $5;
+                    $1->node = $3;
                     $$ = $1;
                 }
               | if round_open expression round_close statement_block else statement_block {
-                    script_node_push($6, $7, $5, $3, NULL);
+                    $5->next = $7;
+                    $3->next = $5;
+                    $6->node = $3;
                     $$ = $6;
                 }
 
 for_statement : for round_open expression semicolon expression semicolon expression round_close statement_block {
-                    script_node_push($1, $9, $7, $5, $3, NULL);
+                    $7->next = $9;
+                    $5->next = $7;
+                    $3->next = $5;
+                    $1->node = $3;
                     $$ = $1;
                 }
 
