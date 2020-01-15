@@ -56,29 +56,31 @@ void yyerror(SCRIPTLTYPE *, struct script *, char const *);
 %%
 
 script  : statement_block {
-              if(script_node_block(script, &$$)) {
-                  YYABORT;
-              } else {
-                  $$->node = $1;
-                  script->state->root = $$;
-              }
+              script->state->root = $1;
+              $$ = $1;
           }
         | script comma statement_block {
-              if(script_node_block(script, &$$)) {
-                  YYABORT;
-              } else {
-                  $$->node = $3;
-                  $1->next = $$;
-              }
+              $1->next = $3;
+              $$ = $3;
           }
 
-statement_block : statement
+statement_block : statement {
+                      if(script_node_block(script, &$$)) {
+                          YYABORT;
+                      } else {
+                          $$->node = $1;
+                      }
+                  }
                 | curly_open curly_close {
                       if(script_node_token(script, 0, &$$))
                           YYABORT;
                   }
                 | curly_open statement_list curly_close {
-                      $$ = script_node_flip($2);
+                      if(script_node_block(script, &$$)) {
+                          YYABORT;
+                      } else {
+                          $$->node = script_node_flip($2);
+                      }
                   }
 
 statement_list  : statement
@@ -96,22 +98,16 @@ statement : semicolon {
           | assignment semicolon
 
 if_statement  : if round_open expression round_close statement_block {
-                    $3->next = $5;
-                    $1->node = $3;
+                    script_node_push($1, $5, $3, NULL);
                     $$ = $1;
                 }
               | if round_open expression round_close statement_block else statement_block {
-                    $5->next = $7;
-                    $3->next = $5;
-                    $6->node = $3;
+                    script_node_push($6, $7, $5, $3, NULL);
                     $$ = $6;
                 }
 
 for_statement : for round_open expression semicolon expression semicolon expression round_close statement_block {
-                    $7->next = $9;
-                    $5->next = $7;
-                    $3->next = $5;
-                    $1->node = $3;
+                    script_node_push($1, $9, $7, $5, $3, NULL);
                     $$ = $1;
                 }
 

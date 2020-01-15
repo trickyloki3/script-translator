@@ -242,15 +242,12 @@ void script_node_print(struct script_node * root) {
 
     switch(root->type) {
         case block:
-            while(root) {
-                node = root->node;
-                while(node) {
-                    script_node_print(node);
-                    if(node->token)
-                        fprintf(stdout, "\n");
-                    node = node->next;
-                }
-                root = root->next;
+            node = root->node;
+            while(node) {
+                script_node_print(node);
+                if(node->token)
+                    fprintf(stdout, "\n");
+                node = node->next;
             }
             break;
         case token:
