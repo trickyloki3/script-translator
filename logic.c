@@ -140,6 +140,17 @@ void logic_clear(struct logic * logic) {
     logic_node_clear(logic, logic->root);
 }
 
+int logic_copy(struct logic * result, struct logic * logic) {
+    int status = 0;
+
+    result->pool = logic->pool;
+    result->root = logic_node_copy(result, logic->root);
+    if(!result->root)
+        status = panic("failed to copy logic node object");
+
+    return status;
+}
+
 int logic_cond(struct logic * logic, struct logic_node * list, enum logic_type type, void * data) {
     int status = 0;
     struct logic_node * iter;
