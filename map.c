@@ -337,6 +337,26 @@ void map_clear(struct map * map) {
     map->iter = NULL;
 }
 
+int map_copy(struct map * result, struct map * map) {
+    int status = 0;
+    struct map_kv kv;
+
+    if(map_create(result, map->compare, map->pool)) {
+        status = panic("failed to create map object");
+    } else {
+        kv = map_start(map);
+        while(kv.key && !status) {
+            if(map_insert(result, kv.key, kv.value))
+                status = panic("failed to insert map object");
+            kv = map_next(map);
+        }
+        if(status)
+            map_destroy(result);
+    }
+
+    return status;
+}
+
 int map_insert(struct map * map, void * key, void * value) {
     int status = 0;
     struct map_node * node;

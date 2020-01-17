@@ -34,6 +34,7 @@ struct map {
 int map_create(struct map *, map_compare_cb, struct pool *);
 void map_destroy(struct map *);
 void map_clear(struct map *);
+int map_copy(struct map *, struct map *);
 int map_insert(struct map *, void *, void *);
 int map_delete(struct map *, void *);
 void * map_search(struct map *, void *);
