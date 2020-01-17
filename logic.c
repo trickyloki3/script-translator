@@ -122,8 +122,11 @@ int logic_create(struct logic * logic, struct pool * pool) {
     } else {
         logic->pool = pool;
         logic->root = logic_node_create(logic, or, NULL);
-        if(!logic->root)
+        if(!logic->root) {
             status = panic("failed to create logic node object");
+        } else if(logic_push(logic, or, NULL)) {
+            status = panic("failed to push logic object");
+        }
     }
 
     return status;
