@@ -7,7 +7,8 @@ enum logic_type {
     cond,
     and,
     or,
-    and_or
+    and_or,
+    not_cond
 };
 
 struct logic_node {

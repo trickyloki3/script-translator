@@ -98,6 +98,8 @@ void logic_node_print(struct logic_node * node, int indent) {
 
     if(node->type == cond) {
         fprintf(stdout, "[cond:%p]\n", node->data);
+    } else if(node->type == not_cond) {
+        fprintf(stdout, "[not_cond:%p]\n", node->data);
     } else {
         if(node->type == and) {
             fprintf(stdout, "[and]\n");
@@ -180,7 +182,7 @@ int logic_and(struct logic * logic, struct logic_node * list, struct logic_node 
     int status = 0;
     struct logic_node * iter;
 
-    if(node->type == cond) {
+    if(node->type == cond || node->type == not_cond) {
         if(logic_cond(logic, list, node->type, node->data))
             status = panic("failed to cond logic object");
     } else if(node->type == and) {
@@ -201,7 +203,7 @@ int logic_or(struct logic * logic, struct logic_node * list, struct logic_node *
     int status = 0;
     struct logic_node * copy;
 
-    if(node->type == cond) {
+    if(node->type == cond || node->type == not_cond) {
         if(logic_cond(logic, list, node->type, node->data))
             status = panic("failed to cond logic object");
     } else if(node->type == and) {
@@ -222,7 +224,7 @@ int logic_push(struct logic * logic, enum logic_type type, void * data) {
     int status = 0;
     struct logic_node * node;
 
-    if(type == cond) {
+    if(type == cond || type == not_cond) {
         node = logic_node_top(logic->root);
         if(!node) {
             status = panic("invalid logic node");
