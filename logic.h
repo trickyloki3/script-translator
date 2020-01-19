@@ -8,6 +8,7 @@ enum logic_type {
     and,
     or,
     and_or,
+    not,
     not_cond
 };
 
