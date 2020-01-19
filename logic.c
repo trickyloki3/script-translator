@@ -138,8 +138,15 @@ void logic_destroy(struct logic * logic) {
     logic_node_destroy(logic, logic->root);
 }
 
-void logic_clear(struct logic * logic) {
+int logic_clear(struct logic * logic) {
+    int status = 0;
+
     logic_node_clear(logic, logic->root);
+
+    if(logic_push(logic, or, NULL))
+        status = panic("failed to push logic object");
+
+    return status;
 }
 
 int logic_copy(struct logic * result, struct logic * logic) {
@@ -227,7 +234,7 @@ int logic_push(struct logic * logic, enum logic_type type, void * data) {
     if(type == cond || type == not_cond) {
         node = logic_node_top(logic->root);
         if(!node) {
-            status = panic("invalid logic node");
+            status = panic("invalid logic node object");
         } else if(logic_cond(logic, node, type, data)){
             status = panic("failed to cond logic object");
         }
