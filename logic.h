@@ -5,11 +5,11 @@
 
 enum logic_type {
     cond,
+    not_cond,
     and,
     or,
-    and_or,
     not,
-    not_cond
+    and_or
 };
 
 struct logic_node {
