@@ -460,6 +460,8 @@ int logic_pop(struct logic * logic) {
     node = logic_pop_node(logic);
     if(!node) {
         status = panic("failed to pop logic node object");
+    } else if(!node->root) {
+        logic_node_destroy(logic, node);
     } else {
         root = logic_pop_node(logic);
         if(!root) {
