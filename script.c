@@ -134,13 +134,12 @@ int script_translate(struct script * script, struct string * string) {
     return status;
 }
 
-struct script_node * script_node_create(struct script * script, enum script_type type, int value) {
+struct script_node * script_node_create(struct script * script, int token) {
     struct script_node * node;
 
     node = store_object(&script->store, sizeof(*node));
     if(node) {
-        node->type = type;
-        node->token = value;
+        node->token = token;
         node->node = NULL;
         node->next = NULL;
     }
@@ -148,295 +147,211 @@ struct script_node * script_node_create(struct script * script, enum script_type
     return node;
 }
 
-int script_node_block(struct script * script, struct script_node ** result) {
-    int status = 0;
-    struct script_node * node;
-
-    node = script_node_create(script, block, 0);
-    if(!node) {
-        status = panic("failed to create script node object");
-    } else {
-        *result = node;
-    }
-
-    return status;
-}
-
-int script_node_token(struct script * script, int value, struct script_node ** result) {
-    int status = 0;
-    struct script_node * node;
-
-    node = script_node_create(script, token, value);
-    if(!node) {
-        status = panic("failed to create script node object");
-    } else {
-        *result = node;
-    }
-
-    return status;
-}
-
-int script_node_integer(struct script * script, struct string * string, struct script_node ** result) {
-    int status = 0;
-    struct script_node * node;
-
-    node = script_node_create(script, integer, 0);
-    if(!node) {
-        status = panic("failed to create script node object");
-    } else if(string_strtol(string, &node->integer)) {
-        status = panic("failed to strtol string object");
-    } else {
-        *result = node;
-    }
-
-    return status;
-}
-
-int script_node_identifier(struct script * script, struct string * string, struct script_node ** result) {
-    int status = 0;
-    struct script_node * node;
-
-    node = script_node_create(script, identifier, 0);
-    if(!node) {
-        status = panic("failed to create script node object");
-    } else if(string_store(string, &script->store, &node->identifier)) {
-        status = panic("failed to store string object");
-    } else {
-        *result = node;
-    }
-
-    return status;
-}
-
-void script_node_push(struct script_node * root, ...) {
-    va_list args;
-    struct script_node * node;
-
-    va_start(args, root);
-    node = va_arg(args, struct script_node *);
-    while(node) {
-        node->next = root->node;
-        root->node = node;
-        node = va_arg(args, struct script_node *);
-    }
-    va_end(args);
-}
-
-struct script_node * script_node_flip(struct script_node * root) {
-    struct script_node * list;
-    struct script_node * node;
-
-    list = NULL;
-    while(root) {
-        node = root;
-        root = root->next;
-        node->next = list;
-        list = node;
-    }
-
-    return list;
-}
-
 void script_node_print(struct script_node * root) {
-    struct script_node * node;
+    struct script_node * iter;
 
-    switch(root->type) {
-        case block:
-            node = root->node;
-            while(node) {
-                script_node_print(node);
-                if(node->token)
-                    fprintf(stdout, "\n");
-                node = node->next;
+    switch(root->token) {
+        case script_curly_open:
+            iter = root->node;
+            while(iter) {
+                script_node_print(iter);
+                fprintf(stdout, "\n");
+                iter = iter->next;
             }
             break;
-        case token:
-            switch(root->token) {
-                case script_increment_prefix:
-                    fprintf(stdout, "++ ");
-                    script_node_print(root->node);
-                    break;
-                case script_decrement_prefix:
-                    fprintf(stdout, "-- ");
-                    script_node_print(root->node);
-                    break;
-                case script_logic_not:
-                    fprintf(stdout, "! ");
-                    script_node_print(root->node);
-                    break;
-                case script_bit_not:
-                    fprintf(stdout, "~ ");
-                    script_node_print(root->node);
-                    break;
-                case script_multiply:
-                    script_node_print(root->node);
-                    fprintf(stdout, "* ");
-                    script_node_print(root->node->next);
-                    break;
-                case script_divide:
-                    script_node_print(root->node);
-                    fprintf(stdout, "/ ");
-                    script_node_print(root->node->next);
-                    break;
-                case script_remainder:
-                    script_node_print(root->node);
-                    fprintf(stdout, "%% ");
-                    script_node_print(root->node->next);
-                    break;
-                case script_plus:
-                    script_node_print(root->node);
-                    fprintf(stdout, "+ ");
-                    if(root->node->next)
-                        script_node_print(root->node->next);
-                    break;
-                case script_minus:
-                    script_node_print(root->node);
-                    fprintf(stdout, "- ");
-                    if(root->node->next)
-                        script_node_print(root->node->next);
-                    break;
-                case script_bit_left:
-                    script_node_print(root->node);
-                    fprintf(stdout, "<< ");
-                    script_node_print(root->node->next);
-                    break;
-                case script_bit_right:
-                    script_node_print(root->node);
-                    fprintf(stdout, ">> ");
-                    script_node_print(root->node->next);
-                    break;
-                case script_lesser:
-                    script_node_print(root->node);
-                    fprintf(stdout, "< ");
-                    script_node_print(root->node->next);
-                    break;
-                case script_lesser_equal:
-                    script_node_print(root->node);
-                    fprintf(stdout, "<= ");
-                    script_node_print(root->node->next);
-                    break;
-                case script_greater:
-                    script_node_print(root->node);
-                    fprintf(stdout, "> ");
-                    script_node_print(root->node->next);
-                    break;
-                case script_greater_equal:
-                    script_node_print(root->node);
-                    fprintf(stdout, ">= ");
-                    script_node_print(root->node->next);
-                    break;
-                case script_logic_equal:
-                    script_node_print(root->node);
-                    fprintf(stdout, "== ");
-                    script_node_print(root->node->next);
-                    break;
-                case script_logic_not_equal:
-                    script_node_print(root->node);
-                    fprintf(stdout, "!= ");
-                    script_node_print(root->node->next);
-                    break;
-                case script_bit_and:
-                    script_node_print(root->node);
-                    fprintf(stdout, "& ");
-                    script_node_print(root->node->next);
-                    break;
-                case script_bit_xor:
-                    script_node_print(root->node);
-                    fprintf(stdout, "^ ");
-                    script_node_print(root->node->next);
-                    break;
-                case script_bit_or:
-                    script_node_print(root->node);
-                    fprintf(stdout, "| ");
-                    script_node_print(root->node->next);
-                    break;
-                case script_logic_and:
-                    script_node_print(root->node);
-                    fprintf(stdout, "&& ");
-                    script_node_print(root->node->next);
-                    break;
-                case script_logic_or:
-                    script_node_print(root->node);
-                    fprintf(stdout, "|| ");
-                    script_node_print(root->node->next);
-                    break;
-                case script_question:
-                    script_node_print(root->node);
-                    fprintf(stdout, "? ");
-                    script_node_print(root->node->next);
-                    break;
-                case script_colon:
-                    script_node_print(root->node);
-                    fprintf(stdout, ": ");
-                    script_node_print(root->node->next);
-                    break;
-                case script_assign:
-                    script_node_print(root->node);
-                    fprintf(stdout, "= ");
-                    script_node_print(root->node->next);
-                    break;
-                case script_plus_assign:
-                    script_node_print(root->node);
-                    fprintf(stdout, "+= ");
-                    script_node_print(root->node->next);
-                    break;
-                case script_minus_assign:
-                    script_node_print(root->node);
-                    fprintf(stdout, "-= ");
-                    script_node_print(root->node->next);
-                    break;
-                case script_comma:
-                    script_node_print(root->node);
-                    fprintf(stdout, ", ");
-                    script_node_print(root->node->next);
-                    break;
-                case script_for:
-                    fprintf(stdout, "for ");
-                    node = root->node;
-                    while(node) {
-                        script_node_print(node);
-                        if(node->token)
-                            fprintf(stdout, "\n");
-                        node = node->next;
-                    }
-                    break;
-                case script_if:
-                    fprintf(stdout, "if ");
-                    node = root->node;
-                    while(node) {
-                        script_node_print(node);
-                        if(node->token)
-                            fprintf(stdout, "\n");
-                        node = node->next;
-                    }
-                    break;
-                case script_else:
-                    fprintf(stdout, "else ");
-                    node = root->node;
-                    while(node) {
-                        script_node_print(node);
-                        if(node->token)
-                            fprintf(stdout, "\n");
-                        node = node->next;
-                    }
-                    break;
-            }
-            break;
-        case integer:
+        case script_integer:
             fprintf(stdout, "%ld ", root->integer);
             break;
-        case identifier:
+        case script_identifier:
             fprintf(stdout, "%s ", root->identifier->string);
             if(root->node) {
                 fprintf(stdout, "( ");
-                node = root->node;
-                while(node) {
-                    script_node_print(node);
-                    node = node->next;
+                iter = root->node;
+                while(iter) {
+                    script_node_print(iter);
+                    iter = iter->next;
                 }
                 fprintf(stdout, ") ");
             }
             break;
+        case script_for:
+            fprintf(stdout, "for ");
+            iter = root->node;
+            while(iter) {
+                script_node_print(iter);
+                fprintf(stdout, "\n");
+                iter = iter->next;
+            }
+            break;
+        case script_if:
+            fprintf(stdout, "if ");
+            iter = root->node;
+            while(iter) {
+                script_node_print(iter);
+                fprintf(stdout, "\n");
+                iter = iter->next;
+            }
+            break;
+        case script_else:
+            fprintf(stdout, "else ");
+            iter = root->node;
+            while(iter) {
+                script_node_print(iter);
+                fprintf(stdout, "\n");
+                iter = iter->next;
+            }
+            break;
+        case script_comma:
+            script_node_print(root->node);
+            fprintf(stdout, ", ");
+            script_node_print(root->node->next);
+            break;
+        case script_assign:
+            script_node_print(root->node);
+            fprintf(stdout, "= ");
+            script_node_print(root->node->next);
+            break;
+        case script_plus_assign:
+            script_node_print(root->node);
+            fprintf(stdout, "+= ");
+            script_node_print(root->node->next);
+            break;
+        case script_minus_assign:
+            script_node_print(root->node);
+            fprintf(stdout, "-= ");
+            script_node_print(root->node->next);
+            break;
+        case script_question:
+            script_node_print(root->node);
+            fprintf(stdout, "? ");
+            script_node_print(root->node->next);
+            break;
+        case script_colon:
+            script_node_print(root->node);
+            fprintf(stdout, ": ");
+            script_node_print(root->node->next);
+            break;
+        case script_logic_or:
+            script_node_print(root->node);
+            fprintf(stdout, "|| ");
+            script_node_print(root->node->next);
+            break;
+        case script_logic_and:
+            script_node_print(root->node);
+            fprintf(stdout, "&& ");
+            script_node_print(root->node->next);
+            break;
+        case script_bit_or:
+            script_node_print(root->node);
+            fprintf(stdout, "| ");
+            script_node_print(root->node->next);
+            break;
+        case script_bit_xor:
+            script_node_print(root->node);
+            fprintf(stdout, "^ ");
+            script_node_print(root->node->next);
+            break;
+        case script_bit_and:
+            script_node_print(root->node);
+            fprintf(stdout, "& ");
+            script_node_print(root->node->next);
+            break;
+        case script_logic_equal:
+            script_node_print(root->node);
+            fprintf(stdout, "== ");
+            script_node_print(root->node->next);
+            break;
+        case script_logic_not_equal:
+            script_node_print(root->node);
+            fprintf(stdout, "!= ");
+            script_node_print(root->node->next);
+            break;
+        case script_lesser:
+            script_node_print(root->node);
+            fprintf(stdout, "< ");
+            script_node_print(root->node->next);
+            break;
+        case script_lesser_equal:
+            script_node_print(root->node);
+            fprintf(stdout, "<= ");
+            script_node_print(root->node->next);
+            break;
+        case script_greater:
+            script_node_print(root->node);
+            fprintf(stdout, "> ");
+            script_node_print(root->node->next);
+            break;
+        case script_greater_equal:
+            script_node_print(root->node);
+            fprintf(stdout, ">= ");
+            script_node_print(root->node->next);
+            break;
+        case script_bit_left:
+            script_node_print(root->node);
+            fprintf(stdout, "<< ");
+            script_node_print(root->node->next);
+            break;
+        case script_bit_right:
+            script_node_print(root->node);
+            fprintf(stdout, ">> ");
+            script_node_print(root->node->next);
+            break;
+        case script_plus:
+            script_node_print(root->node);
+            fprintf(stdout, "+ ");
+            script_node_print(root->node->next);
+            break;
+        case script_minus:
+            script_node_print(root->node);
+            fprintf(stdout, "- ");
+            script_node_print(root->node->next);
+            break;
+        case script_multiply:
+            script_node_print(root->node);
+            fprintf(stdout, "* ");
+            script_node_print(root->node->next);
+            break;
+        case script_divide:
+            script_node_print(root->node);
+            fprintf(stdout, "/ ");
+            script_node_print(root->node->next);
+            break;
+        case script_remainder:
+            script_node_print(root->node);
+            fprintf(stdout, "%% ");
+            script_node_print(root->node->next);
+            break;
+        case script_increment_prefix:
+            fprintf(stdout, "++ ");
+            script_node_print(root->node);
+            break;
+        case script_decrement_prefix:
+            fprintf(stdout, "-- ");
+            script_node_print(root->node);
+            break;
+        case script_plus_unary:
+            fprintf(stdout, "+ ");
+            script_node_print(root->node);
+            break;
+        case script_minus_unary:
+            fprintf(stdout, "- ");
+            script_node_print(root->node);
+            break;
+        case script_logic_not:
+            fprintf(stdout, "! ");
+            script_node_print(root->node);
+            break;
+        case script_bit_not:
+            fprintf(stdout, "~ ");
+            script_node_print(root->node);
+            break;
+        case script_increment_postfix:
+            script_node_print(root->node);
+            fprintf(stdout, "++ ");
+            break;
+        case script_decrement_postfix:
+            script_node_print(root->node);
+            fprintf(stdout, "-- ");
+            break;
     }
-
 }

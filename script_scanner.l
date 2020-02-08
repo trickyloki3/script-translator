@@ -2,6 +2,10 @@
 #include "script.h"
 #include "script_parser.h"
 #define YY_USER_ACTION yylloc->first_line = yylineno;
+
+int script_node_token(struct script *, int, struct script_node **);
+int script_node_integer(struct script *, struct string *, struct script_node **);
+int script_node_identifier(struct script *, struct string *, struct script_node **);
 %}
 
 %option outfile="script_scanner.c" header-file="script_scanner.h"
@@ -257,4 +261,52 @@ block_comment       \x2F\x2A
 . {
     panic("invalid character (line %d)", yylineno);
     return -1;
+}
+
+%%
+
+int script_node_token(struct script * script, int token, struct script_node ** result) {
+    int status = 0;
+    struct script_node * node;
+
+    node = script_node_create(script, token);
+    if(!node) {
+        status = panic("failed to create script node object");
+    } else {
+        *result = node;
+    }
+
+    return status;
+}
+
+int script_node_integer(struct script * script, struct string * string, struct script_node ** result) {
+    int status = 0;
+    struct script_node * node;
+
+    node = script_node_create(script, script_integer);
+    if(!node) {
+        status = panic("failed to create script node object");
+    } else if(string_strtol(string, &node->integer)) {
+        status = panic("failed to strtol string object");
+    } else {
+        *result = node;
+    }
+
+    return status;
+}
+
+int script_node_identifier(struct script * script, struct string * string, struct script_node ** result) {
+    int status = 0;
+    struct script_node * node;
+
+    node = script_node_create(script, script_identifier);
+    if(!node) {
+        status = panic("failed to create script node object");
+    } else if(string_store(string, &script->store, &node->identifier)) {
+        status = panic("failed to store string object");
+    } else {
+        *result = node;
+    }
+
+    return status;
 }

@@ -48,6 +48,8 @@
 
 %code {
 void yyerror(SCRIPTLTYPE *, struct script *, char const *);
+void script_node_push(struct script_node *, ...);
+struct script_node * script_node_flip(struct script_node *);
 }
 
 %define api.value.type {struct script_node *}
@@ -65,18 +67,21 @@ script  : statement_block {
           }
 
 statement_block : statement {
-                      if(script_node_block(script, &$$)) {
+                      $$ = script_node_create(script, script_curly_open);
+                      if(!$$) {
                           YYABORT;
                       } else {
                           $$->node = $1;
                       }
                   }
                 | curly_open curly_close {
-                      if(script_node_token(script, 0, &$$))
+                      $$ = script_node_create(script, script_curly_open);
+                      if(!$$)
                           YYABORT;
                   }
                 | curly_open statement_list curly_close {
-                      if(script_node_block(script, &$$)) {
+                      $$ = script_node_create(script, script_curly_open);
+                      if(!$$) {
                           YYABORT;
                       } else {
                           $$->node = script_node_flip($2);
@@ -85,13 +90,18 @@ statement_block : statement {
 
 statement_list  : statement
                 | statement_list statement {
-                      $2->next = $1;
-                      $$ = $2;
+                      if(!$1) {
+                          $$ = $2;
+                      } else if(!$2) {
+                          $$ = $1;
+                      } else {
+                          $2->next = $1;
+                          $$ = $2;
+                      }
                   }
 
 statement : semicolon {
-                if(script_node_token(script, 0, &$$))
-                    YYABORT;
+                $$ = NULL;
             }
           | if_statement
           | for_statement
@@ -116,10 +126,12 @@ assignment  : identifier
             | identifier increment_prefix {
                   script_node_push($2, $1, NULL);
                   $$ = $2;
+                  $$->token = script_increment_postfix;
               }
             | identifier decrement_prefix {
                   script_node_push($2, $1, NULL);
                   $$ = $2;
+                  $$->token = script_decrement_postfix;
               }
             | identifier assign expression {
                   script_node_push($2, $3, $1, NULL);
@@ -141,10 +153,12 @@ assignment  : identifier
 expression  : expression increment_prefix %prec increment_postfix {
                   script_node_push($2, $1, NULL);
                   $$ = $2;
+                  $$->token = script_increment_postfix;
               }
             | expression decrement_prefix %prec decrement_postfix {
                   script_node_push($2, $1, NULL);
                   $$ = $2;
+                  $$->token = script_decrement_postfix;
               }
             | identifier round_open round_close {
                   $$ = $1;
@@ -171,10 +185,12 @@ expression  : expression increment_prefix %prec increment_postfix {
             | plus expression %prec plus_unary {
                   script_node_push($1, $2, NULL);
                   $$ = $1;
+                  $$->token = script_plus_unary;
               }
             | minus expression %prec minus_unary {
                   script_node_push($1, $2, NULL);
                   $$ = $1;
+                  $$->token = script_minus_unary;
               }
             | logic_not expression {
                   script_node_push($1, $2, NULL);
@@ -287,4 +303,33 @@ expression  : expression increment_prefix %prec increment_postfix {
 
 void yyerror(SCRIPTLTYPE * location, struct script * script, char const * message) {
     panic("%s (line %d)", message, location->first_line);
+}
+
+void script_node_push(struct script_node * root, ...) {
+    va_list args;
+    struct script_node * node;
+
+    va_start(args, root);
+    node = va_arg(args, struct script_node *);
+    while(node) {
+        node->next = root->node;
+        root->node = node;
+        node = va_arg(args, struct script_node *);
+    }
+    va_end(args);
+}
+
+struct script_node * script_node_flip(struct script_node * root) {
+    struct script_node * list;
+    struct script_node * node;
+
+    list = NULL;
+    while(root) {
+        node = root;
+        root = root->next;
+        node->next = list;
+        list = node;
+    }
+
+    return list;
 }

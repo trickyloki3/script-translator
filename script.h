@@ -3,17 +3,9 @@
 
 #include "lookup.h"
 
-enum script_type {
-    block,
-    token,
-    integer,
-    identifier
-};
-
 struct script_node {
-    enum script_type type;
+    int token;
     union {
-        int token;
         long integer;
         struct string * identifier;
     };
@@ -40,13 +32,7 @@ int script_create(struct script *, size_t, struct heap *, struct lookup *);
 void script_destroy(struct script *);
 int script_translate(struct script *, struct string *);
 
-struct script_node * script_node_create(struct script *, enum script_type, int);
-int script_node_block(struct script *, struct script_node **);
-int script_node_token(struct script *, int, struct script_node **);
-int script_node_integer(struct script *, struct string *, struct script_node **);
-int script_node_identifier(struct script *, struct string *, struct script_node **);
-void script_node_push(struct script_node *, ...);
-struct script_node * script_node_flip(struct script_node *);
+struct script_node * script_node_create(struct script *, int);
 void script_node_print(struct script_node *);
 
 #endif
