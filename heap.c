@@ -148,21 +148,26 @@ int heap_create(struct heap * heap, size_t size) {
     if(pool_map_create(&heap->pool_map, size)) {
         status = panic("failed to create pool map object");
     } else {
-        heap->list_pool = heap_pool(heap, sizeof(struct list_node));
-        if(!heap->list_pool) {
+        heap->stack_pool = heap_pool(heap, sizeof(struct stack_node));
+        if(!heap->stack_pool) {
             status = panic("failed to pool heap object");
         } else {
-            heap->map_pool = heap_pool(heap, sizeof(struct map_node));
-            if(!heap->map_pool) {
+            heap->list_pool = heap_pool(heap, sizeof(struct list_node));
+            if(!heap->list_pool) {
                 status = panic("failed to pool heap object");
             } else {
-                heap->range_pool = heap_pool(heap, sizeof(struct range_node));
-                if(!heap->range_pool) {
+                heap->map_pool = heap_pool(heap, sizeof(struct map_node));
+                if(!heap->map_pool) {
                     status = panic("failed to pool heap object");
                 } else {
-                    heap->logic_pool = heap_pool(heap, sizeof(struct logic_node));
-                    if(!heap->logic_pool)
+                    heap->range_pool = heap_pool(heap, sizeof(struct range_node));
+                    if(!heap->range_pool) {
                         status = panic("failed to pool heap object");
+                    } else {
+                        heap->logic_pool = heap_pool(heap, sizeof(struct logic_node));
+                        if(!heap->logic_pool)
+                            status = panic("failed to pool heap object");
+                    }
                 }
             }
         }

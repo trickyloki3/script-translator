@@ -2,6 +2,7 @@ source: |
   utility.h   ; header
   pool.h      ; memory
   array.h     ; memory
+  stack.h     ; container ; singly linked list
   list.h      ; container ; doubly linked list
   map.h       ; container ; red black tree
   range.h     ; container
