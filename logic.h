@@ -26,6 +26,7 @@ struct logic {
 
 int logic_create(struct logic *, struct pool *);
 void logic_destroy(struct logic *);
+int logic_copy(struct logic *, struct logic *);
 int logic_push(struct logic *, enum logic_type, void *);
 int logic_pop(struct logic *);
 void logic_print(struct logic *);
