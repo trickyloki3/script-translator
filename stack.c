@@ -58,10 +58,5 @@ void * stack_pop(struct stack * stack) {
 }
 
 void * stack_top(struct stack * stack) {
-    void * object = NULL;
-
-    if(stack->root)
-        object = stack->root->object;
-
-    return object;
+    return stack->root ? stack->root->object : NULL;
 }
