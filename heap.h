@@ -2,7 +2,6 @@
 #define heap_h
 
 #include "stack.h"
-#include "list.h"
 #include "map.h"
 #include "range.h"
 #include "logic.h"
@@ -23,7 +22,6 @@ struct pool * pool_map_get(struct pool_map *, size_t);
 struct heap {
     struct pool_map pool_map;
     struct pool * stack_pool;
-    struct pool * list_pool;
     struct pool * map_pool;
     struct pool * range_pool;
     struct pool * logic_pool;

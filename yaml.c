@@ -46,7 +46,7 @@ int yaml_create(struct yaml * yaml, size_t size, struct heap * heap) {
             if(strbuf_create(&yaml->scalar, size)) {
                 status = panic("failed to create strbuf object");
             } else {
-                if(list_create(&yaml->list, heap->list_pool)) {
+                if(stack_create(&yaml->list, heap->stack_pool)) {
                     status = panic("failed to create list object");
                 } else {
                     yaml->line = 0;
@@ -67,7 +67,7 @@ int yaml_create(struct yaml * yaml, size_t size, struct heap * heap) {
 }
 
 void yaml_destroy(struct yaml * yaml) {
-    list_destroy(&yaml->list);
+    stack_destroy(&yaml->list);
     strbuf_destroy(&yaml->scalar);
     strbuf_destroy(&yaml->strbuf);
 }
@@ -153,10 +153,10 @@ int yaml_parse_loop(struct yaml * yaml, yyscan_t scanner, yamlpstate * parser) {
     yaml->space = 0;
     yaml->line = 0;
 
-    node = list_pop(&yaml->list);
+    node = stack_pop(&yaml->list);
     while(node) {
         yaml_node_destroy(yaml, node);
-        node = list_pop(&yaml->list);
+        node = stack_pop(&yaml->list);
     }
 
     strbuf_clear(&yaml->scalar);
@@ -173,7 +173,7 @@ int yaml_token(struct yaml * yaml, int type, size_t scope, struct string * strin
     if(!node) {
         status = panic("failed to create yaml node object");
     } else {
-        if(list_push(&yaml->list, node)) {
+        if(stack_push(&yaml->list, node)) {
             status = panic("failed to push list object");
         } else {
             /*
@@ -435,15 +435,15 @@ int yaml_block(struct yaml * yaml, struct yaml_node * block) {
      * bison is a lalr(1) parser
      * save the look-ahead token
      */
-    peek = list_pop(&yaml->list);
+    peek = stack_pop(&yaml->list);
     if(peek) {
-        node = list_pop(&yaml->list);
+        node = stack_pop(&yaml->list);
         while(node) {
             yaml_node_destroy(yaml, node);
-            node = list_pop(&yaml->list);
+            node = stack_pop(&yaml->list);
         }
 
-        if(list_push(&yaml->list, peek)) {
+        if(stack_push(&yaml->list, peek)) {
             status = panic("failed to push list object");
         } else {
             if(peek->value) {
@@ -455,7 +455,7 @@ int yaml_block(struct yaml * yaml, struct yaml_node * block) {
                 strbuf_clear(&yaml->strbuf);
             }
             if(status)
-                list_pop(&yaml->list);
+                stack_pop(&yaml->list);
         }
         if(status)
             yaml_node_destroy(yaml, peek);

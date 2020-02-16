@@ -2,7 +2,6 @@ OBJECT+=utility.o
 OBJECT+=pool.o
 OBJECT+=array.o
 OBJECT+=stack.o
-OBJECT+=list.o
 OBJECT+=map.o
 OBJECT+=range.o
 OBJECT+=logic.o

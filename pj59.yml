@@ -3,7 +3,6 @@ source: |
   pool.h      ; memory
   array.h     ; memory
   stack.h     ; container ; singly linked list
-  list.h      ; container ; doubly linked list
   map.h       ; container ; red black tree
   range.h     ; container
   logic.h     ; container ; disjunctive normal form
@@ -28,7 +27,6 @@ layout: |
         event.h
         heap.h
           stack.h
-          list.h
           map.h
           range.h
           logic.h
