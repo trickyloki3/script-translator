@@ -80,7 +80,7 @@ int pool_map_create(struct pool_map * pool_map, size_t size) {
             if(pool_create(&pool_map->map_pool, sizeof(struct map_node), pool_map->size / sizeof(struct map_node))) {
                 status = panic("failed to create pool object");
             } else {
-                if(pool_create(&pool_map->range_pool, sizeof(struct pool), pool_map->size / sizeof(struct range_node))) {
+                if(pool_create(&pool_map->range_pool, sizeof(struct range_node), pool_map->size / sizeof(struct range_node))) {
                     status = panic("failed to create pool object");
                 } else {
                     if(map_create(&pool_map->map, size_compare, &pool_map->map_pool))
