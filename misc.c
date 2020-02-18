@@ -32,7 +32,7 @@ int string_store(struct string * string, struct store * store, struct string ** 
         status = panic("failed to object store object");
     } else {
         object->length = string->length;
-        object->string = store_object(store, sizeof(string->string) * (string->length + 1));
+        object->string = store_object(store, sizeof(*string->string) * (string->length + 1));
         if(!object->string) {
             status = panic("failed to object store object");
         } else {
