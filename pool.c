@@ -27,6 +27,8 @@ void pool_destroy(struct pool * pool) {
         pool->buffer = pool->buffer->next;
         free(buffer);
     }
+
+    pool->root = NULL;
 }
 
 int pool_alloc(struct pool * pool) {
@@ -38,7 +40,7 @@ int pool_alloc(struct pool * pool) {
     if(!buffer) {
         status = panic("out of memory");
     } else {
-        buffer->buffer = (char *) buffer + sizeof(*buffer);
+        buffer->buffer = (char *) (buffer + 1);
         buffer->next = pool->buffer;
         pool->buffer = buffer;
 
