@@ -4,21 +4,20 @@
 #include "pool.h"
 
 struct store_node {
-    size_t offset;
-    size_t length;
-    char * buffer;
+    char * pos;
+    char * end;
     struct store_node * next;
 };
 
 struct store {
-    struct pool pool;
+    size_t size;
     struct store_node * root;
+    struct store_node * cache;
 };
 
 int store_create(struct store *, size_t);
 void store_destroy(struct store *);
 void store_clear(struct store *);
-size_t store_size(struct store *);
 void * store_object(struct store *, size_t);
 
 #endif

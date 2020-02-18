@@ -1,55 +1,31 @@
 #include "store.h"
 
-static inline struct store_node * store_node_create(struct store *);
-static inline void store_node_destroy(struct store *, struct store_node *);
-static inline void * store_node_alloc(struct store_node *, size_t);
-
-static inline struct store_node * store_node_create(struct store * store) {
-    struct store_node * node;
-
-    node = pool_get(&store->pool);
-    if(node) {
-        node->offset = 0;
-        node->length = store->pool.size - sizeof(struct store_node);
-        node->buffer = (char *) node + sizeof(struct store_node);
-        node->next = NULL;
-    }
-
-    return node;
-}
-
-static inline void store_node_destroy(struct store * store, struct store_node * node) {
-    memset(node->buffer, 0, node->offset);
-    pool_put(&store->pool, node);
-}
-
-static inline void * store_node_alloc(struct store_node * node, size_t length) {
-    void * object = NULL;
-
-    if(node && node->length >= length) {
-        object = node->buffer + node->offset;
-        node->offset += length;
-        node->length -= length;
-    }
-
-    return object;
-}
+int store_alloc(struct store *);
 
 int store_create(struct store * store, size_t size) {
     int status = 0;
 
-    if(pool_create(&store->pool, sizeof(struct store_node) + size, 1)) {
-        status = panic("failed to create pool object");
+    if(!size) {
+        status = panic("invalid size");
     } else {
+        store->size = size;
         store->root = NULL;
+        store->cache = NULL;
     }
 
     return status;
 }
 
 void store_destroy(struct store * store) {
+    struct store_node * node;
+
     store_clear(store);
-    pool_destroy(&store->pool);
+
+    while(store->cache) {
+        node = store->cache;
+        store->cache = store->cache->next;
+        free(node);
+    }
 }
 
 void store_clear(struct store * store) {
@@ -58,40 +34,48 @@ void store_clear(struct store * store) {
     while(store->root) {
         node = store->root;
         store->root = store->root->next;
-        store_node_destroy(store, node);
+        node->next = store->cache;
+        store->cache = node;
     }
 }
 
-size_t store_size(struct store * store) {
-    size_t size = 0;
+int store_alloc(struct store * store) {
+    int status = 0;
     struct store_node * node;
 
-    node = store->root;
-    while(node) {
-        size++;
-        node = node->next;
+    if(store->cache) {
+        node = store->cache;
+        store->cache = store->cache->next;
+    } else {
+        node = malloc(sizeof(*node) + store->size);
     }
 
-    return size *= store->pool.size;
+    if(!node) {
+        status = panic("out of memory");
+    } else {
+        node->pos = (void *) (node + 1);
+        node->end = node->pos + store->size;
+        node->next = store->root;
+        store->root = node;
+    }
+
+    return status;
 }
 
 void * store_object(struct store * store, size_t size) {
-    void * object;
-    struct store_node * node;
+    int status = 0;
+    void * object = NULL;
 
-    object = store_node_alloc(store->root, size);
-    if(!object) {
-        node = store_node_create(store);
-        if(node) {
-            object = store_node_alloc(node, size);
-            if(!object) {
-                store_node_destroy(store, node);
-            } else {
-                node->next = store->root;
-                store->root = node;
-            }
+    if(store->size < size) {
+        status = panic("invalid size");
+    } else {
+        if((!store->root || store->root->end - store->root->pos < size) && store_alloc(store)) {
+            status = panic("out of memory");
+        } else {
+            object = store->root->pos;
+            store->root->pos += size;
         }
     }
 
-    return object;
+    return status ? NULL : object;
 }
