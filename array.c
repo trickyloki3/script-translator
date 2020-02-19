@@ -19,6 +19,7 @@ int strbuf_create(struct strbuf * strbuf, size_t size) {
 }
 
 void strbuf_destroy(struct strbuf * strbuf) {
+    strbuf_clear(strbuf);
     free(strbuf->buf);
 }
 
