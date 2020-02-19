@@ -13,6 +13,7 @@ struct csv {
     struct strbuf strbuf;
     struct pool * pool;
     struct csv_node * root;
+    struct csv_node * last;
     event_cb callback;
     void * context;
 };

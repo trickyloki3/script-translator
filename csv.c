@@ -16,6 +16,7 @@ int csv_create(struct csv * csv, size_t size, struct heap * heap) {
             status = panic("failed to pool heap object");
         } else {
             csv->root = NULL;
+            csv->last = NULL;
         }
         if(status)
             strbuf_destroy(&csv->strbuf);
@@ -114,8 +115,14 @@ int csv_push(struct csv * csv) {
         if(!node->string) {
             status = panic("failed to string strbuf object");
         } else {
-            node->next = csv->root;
-            csv->root = node;
+            node->next = NULL;
+
+            if(csv->last) {
+                csv->last->next = node;
+            } else {
+                csv->root = node;
+            }
+            csv->last = node;
         }
         if(status)
             pool_put(csv->pool, node);
@@ -126,22 +133,12 @@ int csv_push(struct csv * csv) {
 
 int csv_pop(struct csv * csv) {
     int status = 0;
-    struct csv_node * list;
     struct csv_node * node;
 
     if(csv->root) {
         if(csv->callback(list_begin, NULL, csv->context)) {
             status = panic("failed to process list start event");
         } else {
-            list = NULL;
-            while(csv->root) {
-                node = csv->root;
-                csv->root = csv->root->next;
-                node->next = list;
-                list = node;
-            }
-            csv->root = list;
-
             node = csv->root;
             while(node && !status) {
                 if(csv->callback(scalar, node->string, csv->context))
@@ -164,6 +161,8 @@ int csv_pop(struct csv * csv) {
 
 void csv_reset(struct csv * csv) {
     struct csv_node * node;
+
+    csv->last = NULL;
 
     while(csv->root) {
         node = csv->root;
