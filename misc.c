@@ -6,7 +6,7 @@ int long_compare(void * x, void * y) {
     return l < r ? -1 : l > r ? 1 : 0;
 }
 
-struct long_array * long_array_create(struct store * store, size_t count) {
+struct long_array * long_array_store(struct store * store, size_t count) {
     int status = 0;
     struct long_array * array;
 
@@ -79,7 +79,7 @@ int string_strtol_split(struct string * string, char split, struct store * store
             ptr++;
     }
 
-    array = long_array_create(store, count);
+    array = long_array_store(store, count);
     if(!array) {
         status = panic("failed to create long array object");
     } else {

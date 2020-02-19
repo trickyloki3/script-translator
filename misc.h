@@ -9,7 +9,7 @@ struct long_array {
 };
 
 int long_compare(void *, void *);
-struct long_array * long_array_create(struct store *, size_t);
+struct long_array * long_array_store(struct store *, size_t);
 
 int string_store(struct string *, struct store *,  struct string **);
 int string_strtol(struct string *, long *);
