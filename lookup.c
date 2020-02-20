@@ -285,7 +285,7 @@ int item_db_parse(enum parser_event event, int mark, struct string * string, voi
                 case 16: status = string_strtol_splitv(string, ':', &item_db->item->base_level, &item_db->item->max_level, NULL); break;
                 case 17: status = string_strtol(string, &item_db->item->refineable); break;
                 case 18: status = string_strtol(string, &item_db->item->view); break;
-                case 19: status = string_store(string, &item_db->store, &item_db->item->script); break;
+                case 19: status = script_store(string, &item_db->store, &item_db->item->script); break;
                 default: status = panic("invalid column"); break;
             }
             item_db->index++;

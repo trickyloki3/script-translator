@@ -21,7 +21,6 @@ struct script_state {
 struct script {
     struct heap * heap;
     struct lookup * lookup;
-    struct strbuf strbuf;
     void * scanner;
     void * parser;
     struct store store;

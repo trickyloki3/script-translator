@@ -23,6 +23,34 @@ struct long_array * long_array_store(struct store * store, size_t count) {
     return status ? NULL : array;
 }
 
+int script_store(struct string * string, struct store * store, struct string ** result) {
+    int status = 0;
+    struct string * object;
+
+    object = store_object(store, sizeof(*object));
+    if(!object) {
+        status = panic("failed to object store object");
+    } else {
+        /*
+         * the flex scanner requires  the
+         * last two characters to be zero
+         */
+        object->length = string->length + 2;
+        object->string = store_object(store, sizeof(*string->string) * (string->length + 2));
+        if(!object->string) {
+            status = panic("failed to object store object");
+        } else {
+            memcpy(object->string, string->string, string->length);
+            object->string[string->length] = 0;
+            object->string[string->length + 1] = 0;
+
+            *result = object;
+        }
+    }
+
+    return status;
+}
+
 int string_store(struct string * string, struct store * store, struct string ** result) {
     int status = 0;
     struct string * object;
