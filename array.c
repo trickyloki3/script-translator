@@ -74,6 +74,34 @@ int strbuf_strcpy(struct strbuf * strbuf, char * string, size_t length) {
     return status;
 }
 
+int strbuf_printf(struct strbuf * strbuf, char * format, ...) {
+    int status = 0;
+    va_list vararg;
+
+    va_start(vararg, format);
+    if(strbuf_vprintf(strbuf, format, vararg))
+        status = panic("failed to vprintf strbuf object");
+    va_end(vararg);
+
+    return status;
+}
+
+int strbuf_vprintf(struct strbuf * strbuf, char * format, va_list vararg) {
+    int status = 0;
+    int result;
+
+    result = vsnprintf(strbuf->pos, strbuf->end - strbuf->pos, format, vararg);
+    if(0 > result) {
+        status = panic("failed vsnprintf");
+    } else if(strbuf->end - strbuf->pos < result) {
+        status = panic("out of memory");
+    } else {
+        strbuf->pos += result;
+    }
+
+    return status;
+}
+
 struct string * strbuf_string(struct strbuf * strbuf) {
     int status = 0;
     struct string * string = NULL;
