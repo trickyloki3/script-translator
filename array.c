@@ -28,11 +28,21 @@ void strbuf_clear(struct strbuf * strbuf) {
     strbuf->str = strbuf->pos = strbuf->buf;
 }
 
-void strbuf_clear_move(struct strbuf * strbuf, char * string, size_t length) {
-    memmove(strbuf->buf, string, length);
-    memset(strbuf->buf + length, 0, (strbuf->pos - strbuf->buf) - length);
-    strbuf->str = strbuf->buf;
-    strbuf->pos = strbuf->buf + length;
+int strbuf_truncate(struct strbuf * strbuf, char * string, size_t length) {
+    int status = 0;
+
+    if(string < strbuf->buf || string > strbuf->pos) {
+        status = panic("invalid string");
+    } else if(strbuf->pos - string < length) {
+        status = panic("invalid length");
+    } else {
+        memmove(strbuf->buf, string, length);
+        memset(strbuf->buf + length, 0, (strbuf->pos - strbuf->buf) - length);
+        strbuf->str = strbuf->buf;
+        strbuf->pos = strbuf->buf + length;
+    }
+
+    return status;
 }
 
 int strbuf_putc(struct strbuf * strbuf, char c) {
