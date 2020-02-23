@@ -3,10 +3,21 @@
 #include "script_parser.h"
 #include "script_scanner.h"
 
+enum evaluate {
+    normal,
+    logical
+};
+
 int script_state_push(struct script *);
 void script_state_pop(struct script *);
+int script_map_push(struct script *);
+void script_map_pop(struct script *);
+int script_logic_push(struct script *);
+void script_logic_pop(struct script *);
 
 int script_parse(struct script *, struct string *, yyscan_t, scriptpstate *);
+int script_analyze(struct script *, struct script_node *);
+int script_evaluate(struct script *, struct script_node *, enum evaluate);
 int script_compile(struct script *, struct string *);
 
 struct script_node * script_node_create(struct script * script, int token) {
@@ -363,6 +374,78 @@ void script_state_pop(struct script * script) {
     script->state = script->state->next;
 }
 
+int script_map_push(struct script * script) {
+    int status = 0;
+    struct map * map;
+    struct map * top;
+
+    map = store_object(&script->store, sizeof(*map));
+    if(!map) {
+        status = panic("failed to object store object");
+    } else {
+        top = stack_top(&script->map);
+        if(top ? map_copy(map, top) : map_create(map, (map_compare_cb) strcmp, script->heap->map_pool)) {
+            status = panic("failed to create map object");
+        } else {
+            if(stack_push(&script->map, map)) {
+                status = panic("failed to push stack object");
+            } else {
+                script->state->map = map;
+            }
+            if(status)
+                map_destroy(map);
+        }
+    }
+
+    return status;
+}
+
+void script_map_pop(struct script * script) {
+    struct map * map;
+
+    map = stack_pop(&script->map);
+    if(map)
+        map_destroy(map);
+
+    script->state->map = stack_top(&script->map);
+}
+
+int script_logic_push(struct script * script) {
+    int status = 0;
+    struct logic * logic;
+    struct logic * top;
+
+    logic = store_object(&script->store, sizeof(*logic));
+    if(!logic) {
+        status = panic("failed to object store object");
+    } else {
+        top = stack_top(&script->logic);
+        if(top ? logic_copy(logic, top) : logic_create(logic, script->heap->logic_pool)) {
+            status = panic("failed to create logic object");
+        } else {
+            if(stack_push(&script->logic, logic)) {
+                status = panic("failed to push stack object");
+            } else {
+                script->state->logic = logic;
+            }
+            if(status)
+                logic_destroy(logic);
+        }
+    }
+
+    return status;
+}
+
+void script_logic_pop(struct script * script) {
+    struct logic * logic;
+
+    logic = stack_pop(&script->logic);
+    if(logic)
+        logic_destroy(logic);
+
+    script->state->logic = stack_top(&script->logic);
+}
+
 int script_parse(struct script * script, struct string * string, yyscan_t scanner, scriptpstate * parser) {
     int status = 0;
 
@@ -392,14 +475,97 @@ int script_parse(struct script * script, struct string * string, yyscan_t scanne
     return status;
 }
 
+int script_analyze(struct script * script, struct script_node * node) {
+    int status = 0;
+    struct script_node * iter;
+
+    switch(node->token) {
+        case script_curly_open:
+            if(script_map_push(script)) {
+                status = panic("failed to map push script object");
+            } else {
+                iter = node->node;
+                while(iter && !status) {
+                    if(script_analyze(script, iter))
+                        status = panic("failed to analyze script object");
+                    iter = iter->next;
+                }
+                script_map_pop(script);
+            }
+            break;
+        case script_identifier:
+            if(node->node && script_evaluate(script, node->node, normal)) {
+                status = panic("failed to evaluate script object");
+            } else {
+                /* lookup identifier */
+            }
+            break;
+        case script_for:
+            /* unsupported */
+            break;
+        case script_if:
+            if(script_logic_push(script)) {
+                status = panic("failed to logic push script object");
+            } else {
+                if(script_evaluate(script, node->node, logical)) {
+                    status = panic("failed to evaluate script object");
+                } else if(script_analyze(script, node->node->next)) {
+                    status = panic("failed to analyze script object");
+                }
+                script_logic_pop(script);
+            }
+            break;
+        case script_else:
+            if(script_logic_push(script)) {
+                status = panic("failed to logic push script object");
+            } else {
+                if(logic_push(script->state->logic, not, NULL)) {
+                    status = panic("failed to push logic object");
+                } else {
+                    if(script_evaluate(script, node->node, logical)) {
+                        status = panic("failed to evaluate script object");
+                    } else if(script_analyze(script, node->node->next)) {
+                        status = panic("failed to analyze script object");
+                    }
+                    if(logic_pop(script->state->logic)) {
+                        status = panic("failed to pop logic object");
+                    } else if(script_analyze(script, node->node->next->next)) {
+                        status = panic("failed to analyze script object");
+                    }
+                }
+                script_logic_pop(script);
+            }
+            break;
+        default:
+            if(script_evaluate(script, node, normal))
+                status = panic("failed to evaluate script object");
+            break;
+    }
+
+    return status;
+}
+
+int script_evaluate(struct script * script, struct script_node * node, enum evaluate flag) {
+    return 0;
+}
+
 int script_compile(struct script * script, struct string * string) {
     int status = 0;
+    struct script_node * iter;
 
     if(script_state_push(script)) {
         status = panic("failed to state push script object");
     } else {
-        if(script_parse(script, string, script->scanner, script->parser))
+        if(script_parse(script, string, script->scanner, script->parser)) {
             status = panic("failed to parse script object");
+        } else {
+            iter = script->state->root;
+            while(iter && !status) {
+                if(script_analyze(script, iter))
+                    status = panic("failed to analyze script object");
+                iter = iter->next;
+            }
+        }
         script_state_pop(script);
     }
 
