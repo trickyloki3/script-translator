@@ -493,13 +493,6 @@ int script_analyze(struct script * script, struct script_node * node) {
                 script_map_pop(script);
             }
             break;
-        case script_identifier:
-            if(node->node && script_evaluate(script, node->node, normal)) {
-                status = panic("failed to evaluate script object");
-            } else {
-                /* lookup identifier */
-            }
-            break;
         case script_for:
             /* unsupported */
             break;
