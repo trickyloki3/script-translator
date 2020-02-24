@@ -526,8 +526,7 @@ int script_analyze(struct script * script, struct script_node * node) {
                         status = panic("failed to evaluate script object");
                     } else if(script_analyze(script, node->node->next)) {
                         status = panic("failed to analyze script object");
-                    }
-                    if(logic_pop(script->state->logic)) {
+                    } else if(logic_pop(script->state->logic)) {
                         status = panic("failed to pop logic object");
                     } else if(script_analyze(script, node->node->next->next)) {
                         status = panic("failed to analyze script object");
@@ -546,7 +545,80 @@ int script_analyze(struct script * script, struct script_node * node) {
 }
 
 int script_evaluate(struct script * script, struct script_node * node, enum evaluate flag) {
-    return 0;
+    int status = 0;
+
+    switch(node->token) {
+        case script_integer:
+            break;
+        case script_identifier:
+            break;
+        case script_comma:
+            break;
+        case script_assign:
+            break;
+        case script_plus_assign:
+            break;
+        case script_minus_assign:
+            break;
+        case script_question:
+            break;
+        case script_colon:
+            break;
+        case script_logic_or:
+            break;
+        case script_logic_and:
+            break;
+        case script_bit_or:
+            break;
+        case script_bit_xor:
+            break;
+        case script_bit_and:
+            break;
+        case script_logic_equal:
+            break;
+        case script_logic_not_equal:
+            break;
+        case script_lesser:
+            break;
+        case script_lesser_equal:
+            break;
+        case script_greater:
+            break;
+        case script_greater_equal:
+            break;
+        case script_bit_left:
+            break;
+        case script_bit_right:
+            break;
+        case script_plus:
+            break;
+        case script_minus:
+            break;
+        case script_multiply:
+            break;
+        case script_divide:
+            break;
+        case script_remainder:
+            break;
+        case script_increment_prefix:
+            break;
+        case script_decrement_prefix:
+            break;
+        case script_plus_unary:
+            break;
+        case script_minus_unary:
+            break;
+        case script_logic_not:
+            break;
+        case script_bit_not:
+            break;
+        case script_increment_postfix:
+            break;
+        case script_decrement_postfix:
+            break;
+    }
+
+    return status;
 }
 
 int script_compile(struct script * script, struct string * string) {
