@@ -10,7 +10,7 @@ struct script_node {
         struct string * identifier;
     };
     struct range * range;
-    struct string * string;
+    char * string;
     struct script_node * node;
     struct script_node * next;
 };

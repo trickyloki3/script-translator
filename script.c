@@ -15,10 +15,10 @@ void script_map_pop(struct script *);
 int script_logic_push(struct script *);
 void script_logic_pop(struct script *);
 
+int script_compile(struct script *, struct string *);
 int script_parse(struct script *, struct string *, yyscan_t, scriptpstate *);
 int script_analyze(struct script *, struct script_node *);
 int script_evaluate(struct script *, struct script_node *, enum evaluate);
-int script_compile(struct script *, struct string *);
 
 struct script_node * script_node_create(struct script * script, int token) {
     struct script_node * node;
@@ -446,6 +446,29 @@ void script_logic_pop(struct script * script) {
     script->state->logic = stack_top(&script->logic);
 }
 
+int script_compile(struct script * script, struct string * string) {
+    int status = 0;
+    struct script_node * iter;
+
+    if(script_state_push(script)) {
+        status = panic("failed to state push script object");
+    } else {
+        if(script_parse(script, string, script->scanner, script->parser)) {
+            status = panic("failed to parse script object");
+        } else {
+            iter = script->state->root;
+            while(iter && !status) {
+                if(script_analyze(script, iter))
+                    status = panic("failed to analyze script object");
+                iter = iter->next;
+            }
+        }
+        script_state_pop(script);
+    }
+
+    return status;
+}
+
 int script_parse(struct script * script, struct string * string, yyscan_t scanner, scriptpstate * parser) {
     int status = 0;
 
@@ -609,29 +632,6 @@ int script_evaluate(struct script * script, struct script_node * node, enum eval
             break;
         case script_decrement_postfix:
             break;
-    }
-
-    return status;
-}
-
-int script_compile(struct script * script, struct string * string) {
-    int status = 0;
-    struct script_node * iter;
-
-    if(script_state_push(script)) {
-        status = panic("failed to state push script object");
-    } else {
-        if(script_parse(script, string, script->scanner, script->parser)) {
-            status = panic("failed to parse script object");
-        } else {
-            iter = script->state->root;
-            while(iter && !status) {
-                if(script_analyze(script, iter))
-                    status = panic("failed to analyze script object");
-                iter = iter->next;
-            }
-        }
-        script_state_pop(script);
     }
 
     return status;
