@@ -129,3 +129,17 @@ struct string * strbuf_string(struct strbuf * strbuf) {
 
     return status ? NULL : string;
 }
+
+char * strbuf_char(struct strbuf * strbuf) {
+    int status = 0;
+    char * string;
+
+    if(strbuf_putc(strbuf, '\0')) {
+        status = panic("failed to putc strbuf object");
+    } else {
+        string = strbuf->str;
+        strbuf->str = strbuf->pos;
+    }
+
+    return status ? NULL : string;
+}
