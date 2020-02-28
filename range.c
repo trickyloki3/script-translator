@@ -1,7 +1,18 @@
 #include "range.h"
 
+static inline long long_min(long, long);
+static inline long long_max(long, long);
+
 static inline struct range_node * range_node_create(struct range *, long, long);
 static inline void range_node_destroy(struct range *, struct range_node *);
+
+static inline long long_min(long x, long y) {
+    return x < y ? x : y;
+}
+
+static inline long long_max(long x, long y) {
+    return x < y ? y : x;
+}
 
 static inline struct range_node * range_node_create(struct range * range, long min, long max) {
     struct range_node * node;
@@ -72,8 +83,8 @@ int range_add(struct range * range, long min, long max) {
             }
 
             while(iter && iter->min <= node->max + 1) {
-                node->min = node->min < iter->min ? node->min : iter->min;
-                node->max = node->max < iter->max ? iter->max : node->max;
+                node->min = long_min(node->min, iter->min);
+                node->max = long_max(node->max, iter->max);
                 node->next = iter->next;
                 range_node_destroy(range, iter);
                 iter = node->next;
