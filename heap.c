@@ -55,7 +55,7 @@ int pool_map_leak(struct pool_map * pool_map, struct pool * pool) {
 
             if(status) {
                 /* skip on error */
-            } else if(range.root != range.root->next) {
+            } else if(range.root) {
                 status = panic("memory leak detected in pool(%zu,%zu)", pool->size, pool->count);
             }
 
