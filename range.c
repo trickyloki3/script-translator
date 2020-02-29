@@ -58,9 +58,9 @@ void range_destroy(struct range * range) {
 
 int range_add(struct range * range, long min, long max) {
     int status = 0;
-    struct range_node * node;
     struct range_node * prev;
     struct range_node * iter;
+    struct range_node * node;
 
     if(min > max) {
         status = panic("invalid min");
@@ -118,7 +118,7 @@ int range_remove(struct range * range, long min, long max) {
             iter = iter->next;
         }
 
-        while(iter && iter->min <= max) {
+        while(iter && iter->min <= max && !status) {
             if(iter->max > max) {
                 if(iter->min < min) {
                     node = range_node_create(range, max + 1, iter->max);
