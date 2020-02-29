@@ -22,4 +22,11 @@ int range_add(struct range *, long, long);
 int range_remove(struct range *, long, long);
 void range_print(struct range *);
 
+int range_equal(struct range *, struct range *, struct range *);
+int range_not_equal(struct range *, struct range *, struct range *);
+int range_lesser(struct range *, struct range *, struct range *);
+int range_lesser_equal(struct range *, struct range *, struct range *);
+int range_greater(struct range *, struct range *, struct range *);
+int range_greater_equal(struct range *, struct range *, struct range *);
+
 #endif
