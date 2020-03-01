@@ -172,6 +172,20 @@ void range_print(struct range * range) {
     }
 }
 
+int range_assign(struct range * range, struct range * x) {
+    int status = 0;
+    struct range_node * iter;
+
+    iter = x->root;
+    while(iter && !status) {
+        if(range_add(range, iter->min, iter->max))
+            status = panic("failed to add range object");
+        iter = iter->next;
+    }
+
+    return status;
+}
+
 int range_or(struct range * range, struct range * x, struct range * y) {
     int status = 0;
     struct range_node * l;
