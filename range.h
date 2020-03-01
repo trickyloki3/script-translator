@@ -12,6 +12,7 @@ struct range_node {
 struct range {
     struct pool * pool;
     struct range_node * root;
+    struct range_node * last;
     long min;
     long max;
 };

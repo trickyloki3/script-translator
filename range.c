@@ -39,6 +39,7 @@ int range_create(struct range * range, struct pool * pool) {
     } else {
         range->pool = pool;
         range->root = NULL;
+        range->last = NULL;
         range->min = 0;
         range->max = 0;
     }
@@ -65,8 +66,13 @@ int range_add(struct range * range, long min, long max) {
     if(min > max) {
         status = panic("invalid min");
     } else {
-        prev = NULL;
-        iter = range->root;
+        if(range->last && range->last->max + 1 < min) {
+            prev = range->last;
+            iter = prev->next;
+        } else {
+            prev = NULL;
+            iter = range->root;
+        }
         while(iter && iter->max + 1 < min) {
             prev = iter;
             iter = iter->next;
@@ -96,6 +102,8 @@ int range_add(struct range * range, long min, long max) {
                 range->min = node->min;
             if(!iter)
                 range->max = node->max;
+
+            range->last = prev;
         }
     }
 
@@ -111,8 +119,13 @@ int range_remove(struct range * range, long min, long max) {
     if(min > max) {
         status = panic("invalid min");
     } else {
-        prev = NULL;
-        iter = range->root;
+        if(range->last && range->last->max < min) {
+            prev = range->last;
+            iter = prev->next;
+        } else {
+            prev = NULL;
+            iter = range->root;
+        }
         while(iter && iter->max < min) {
             prev = iter;
             iter = iter->next;
@@ -157,6 +170,8 @@ int range_remove(struct range * range, long min, long max) {
             range->min = iter ? iter->min : 0;
         if(!iter)
             range->max = prev ? prev->max : 0;
+
+        range->last = prev;
     }
 
     return status;
