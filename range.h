@@ -21,7 +21,8 @@ void range_destroy(struct range *);
 int range_add(struct range *, long, long);
 int range_remove(struct range *, long, long);
 void range_print(struct range *);
-
+int range_or(struct range *, struct range *, struct range *);
+int range_and(struct range *, struct range *, struct range *);
 int range_equal(struct range *, struct range *, struct range *);
 int range_not_equal(struct range *, struct range *, struct range *);
 int range_lesser(struct range *, struct range *, struct range *);

@@ -172,6 +172,66 @@ void range_print(struct range * range) {
     }
 }
 
+int range_or(struct range * range, struct range * x, struct range * y) {
+    int status = 0;
+    struct range_node * l;
+    struct range_node * r;
+
+    l = x->root;
+    r = y->root;
+    while(l && r && !status) {
+        if(l->min > r->max) {
+            if(range_add(range, r->min, r->max)) {
+                status = panic("failed to add range object");
+            } else {
+                r = r->next;
+            }
+        } else if(l->max < r->min) {
+            if(range_add(range, l->min, l->max)) {
+                status = panic("failed to add range object");
+            } else {
+                l = l->next;
+            }
+        } else {
+            if(l->max < r->max) {
+                if(range_add(range, l->min, l->max)) {
+                    status = panic("failed to add range object");
+                } else {
+                    l = l->next;
+                }
+            } else {
+                if(range_add(range, r->min, r->max)) {
+                    status = panic("failed to add range object");
+                } else {
+                    r = r->next;
+                }
+            }
+        }
+    }
+
+    while(l && !status) {
+        if(range_add(range, l->min, l->max)) {
+            status = panic("failed to add range object");
+        } else {
+            l = l->next;
+        }
+    }
+
+    while(r && !status) {
+        if(range_add(range, r->min, r->max)) {
+            status = panic("failed to add range object");
+        } else {
+            r = r->next;
+        }
+    }
+
+    return status;
+}
+
+int range_and(struct range * range, struct range * x, struct range * y) {
+    return range_equal(range, x, y);
+}
+
 int range_equal(struct range * range, struct range * x, struct range * y) {
     int status = 0;
     struct range_node * l;
