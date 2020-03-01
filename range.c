@@ -180,14 +180,20 @@ int range_equal(struct range * range, struct range * x, struct range * y) {
     l = x->root;
     r = y->root;
     while(l && r && !status) {
-        if(l->min <= r->max && l->max >= r->min)
-            if(range_add(range, long_max(l->min, r->min), long_min(l->max, r->max)))
-                status = panic("failed to add range object");
-
-        if(l->max < r->max) {
+        if(l->min > r->max) {
+            r = r->next;
+        } else if(l->max < r->min) {
             l = l->next;
         } else {
-            r = r->next;
+            if(range_add(range, long_max(l->min, r->min), long_min(l->max, r->max))) {
+                status = panic("failed to add range object");
+            } else {
+                if(l->max < r->max) {
+                    l = l->next;
+                } else {
+                    r = r->next;
+                }
+            }
         }
     }
 
@@ -224,7 +230,7 @@ int range_not_equal(struct range * range, struct range * x, struct range * y) {
                     }
                 }
 
-                if(l->max > r->max) {
+                if(l->max > r->max && !status) {
                     if(range_add(range, r->max + 1, l->max)) {
                         status = panic("failed to add range object");
                     } else {
@@ -257,9 +263,11 @@ int range_lesser(struct range * range, struct range * x, struct range * y) {
 
     iter = x->root;
     while(iter && iter->min < y->max && !status) {
-        if(range_add(range, iter->min, long_min(iter->max, y->max - 1)))
+        if(range_add(range, iter->min, long_min(iter->max, y->max - 1))) {
             status = panic("failed to add range object");
-        iter = iter->next;
+        } else {
+            iter = iter->next;
+        }
     }
 
     return status;
@@ -271,9 +279,11 @@ int range_lesser_equal(struct range * range, struct range * x, struct range * y)
 
     iter = x->root;
     while(iter && iter->min <= y->max && !status) {
-        if(range_add(range, iter->min, long_min(iter->max, y->max)))
+        if(range_add(range, iter->min, long_min(iter->max, y->max))) {
             status = panic("failed to add range object");
-        iter = iter->next;
+        } else {
+            iter = iter->next;
+        }
     }
 
     return status;
@@ -288,9 +298,11 @@ int range_greater(struct range * range, struct range * x, struct range * y) {
         iter = iter->next;
 
     while(iter && !status) {
-        if(range_add(range, long_max(iter->min, y->min + 1), iter->max))
+        if(range_add(range, long_max(iter->min, y->min + 1), iter->max)) {
             status = panic("failed to add range object");
-        iter = iter->next;
+        } else {
+            iter = iter->next;
+        }
     }
 
     return status;
@@ -305,9 +317,11 @@ int range_greater_equal(struct range * range, struct range * x, struct range * y
         iter = iter->next;
 
     while(iter && !status) {
-        if(range_add(range, long_max(iter->min, y->min), iter->max))
+        if(range_add(range, long_max(iter->min, y->min), iter->max)) {
             status = panic("failed to add range object");
-        iter = iter->next;
+        } else {
+            iter = iter->next;
+        }
     }
 
     return status;
