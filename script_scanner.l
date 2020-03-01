@@ -30,7 +30,7 @@ increment_prefix    \x2B\x2B
 decrement_prefix    \x2D\x2D
 /*plus_unary*/
 /*minus_unary*/
-logic_not           \x21
+not                 \x21
 bit_not             \x7E
 multiply            \x2A
 divide              \x2F
@@ -43,13 +43,13 @@ lesser              \x3C
 lesser_equal        \x3C\x3D
 greater             \x3E
 greater_equal       \x3E\x3D
-logic_equal         \x3D\x3D
-logic_not_equal     \x21\x3D
+equal               \x3D\x3D
+not_equal           \x21\x3D
 bit_and             \x26
 bit_xor             \x5E
 bit_or              \x7C
-logic_and           \x26\x26
-logic_or            \x7C\x7C
+and                 \x26\x26
+or                  \x7C\x7C
 question            \x3F
 colon               \x3A
 assign              \x3D
@@ -97,8 +97,8 @@ block_comment       \x2F\x2A
     return script_node_token(yyextra, script_decrement_prefix, yylval) ? -1 : script_decrement_prefix;
 }
 
-{logic_not} {
-    return script_node_token(yyextra, script_logic_not, yylval) ? -1 : script_logic_not;
+{not} {
+    return script_node_token(yyextra, script_not, yylval) ? -1 : script_not;
 }
 
 {bit_not} {
@@ -149,12 +149,12 @@ block_comment       \x2F\x2A
     return script_node_token(yyextra, script_greater_equal, yylval) ? -1 : script_greater_equal;
 }
 
-{logic_equal} {
-    return script_node_token(yyextra, script_logic_equal, yylval) ? -1 : script_logic_equal;
+{equal} {
+    return script_node_token(yyextra, script_equal, yylval) ? -1 : script_equal;
 }
 
-{logic_not_equal} {
-    return script_node_token(yyextra, script_logic_not_equal, yylval) ? -1 : script_logic_not_equal;
+{not_equal} {
+    return script_node_token(yyextra, script_not_equal, yylval) ? -1 : script_not_equal;
 }
 
 {bit_and} {
@@ -169,12 +169,12 @@ block_comment       \x2F\x2A
     return script_node_token(yyextra, script_bit_or, yylval) ? -1 : script_bit_or;
 }
 
-{logic_and} {
-    return script_node_token(yyextra, script_logic_and, yylval) ? -1 : script_logic_and;
+{and} {
+    return script_node_token(yyextra, script_and, yylval) ? -1 : script_and;
 }
 
-{logic_or} {
-    return script_node_token(yyextra, script_logic_or, yylval) ? -1 : script_logic_or;
+{or} {
+    return script_node_token(yyextra, script_or, yylval) ? -1 : script_or;
 }
 
 {question} {

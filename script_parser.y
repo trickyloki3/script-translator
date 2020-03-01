@@ -23,17 +23,17 @@
 %left comma
 %right assign plus_assign minus_assign
 %right question colon
-%left logic_or
-%left logic_and
+%left or
+%left and
 %left bit_or
 %left bit_xor
 %left bit_and
-%left logic_equal logic_not_equal
+%left equal not_equal
 %left lesser lesser_equal greater greater_equal
 %left bit_left bit_right
 %left plus minus
 %left multiply divide remainder
-%right increment_prefix decrement_prefix plus_unary minus_unary logic_not bit_not
+%right increment_prefix decrement_prefix plus_unary minus_unary not bit_not
 %left increment_postfix decrement_postfix round_open round_close square_open square_close
 %start script
 
@@ -192,7 +192,7 @@ expression  : expression increment_prefix %prec increment_postfix {
                   $$ = $1;
                   $$->token = script_minus_unary;
               }
-            | logic_not expression {
+            | not expression {
                   script_node_push($1, $2, NULL);
                   $$ = $1;
               }
@@ -244,11 +244,11 @@ expression  : expression increment_prefix %prec increment_postfix {
                   script_node_push($2, $3, $1, NULL);
                   $$ = $2;
               }
-            | expression logic_equal expression {
+            | expression equal expression {
                   script_node_push($2, $3, $1, NULL);
                   $$ = $2;
               }
-            | expression logic_not_equal expression {
+            | expression not_equal expression {
                   script_node_push($2, $3, $1, NULL);
                   $$ = $2;
               }
@@ -264,11 +264,11 @@ expression  : expression increment_prefix %prec increment_postfix {
                   script_node_push($2, $3, $1, NULL);
                   $$ = $2;
               }
-            | expression logic_and expression {
+            | expression and expression {
                   script_node_push($2, $3, $1, NULL);
                   $$ = $2;
               }
-            | expression logic_or expression {
+            | expression or expression {
                   script_node_push($2, $3, $1, NULL);
                   $$ = $2;
               }

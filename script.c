@@ -117,12 +117,12 @@ void script_node_print(struct script_node * root) {
             fprintf(stdout, ": ");
             script_node_print(root->node->next);
             break;
-        case script_logic_or:
+        case script_or:
             script_node_print(root->node);
             fprintf(stdout, "|| ");
             script_node_print(root->node->next);
             break;
-        case script_logic_and:
+        case script_and:
             script_node_print(root->node);
             fprintf(stdout, "&& ");
             script_node_print(root->node->next);
@@ -142,12 +142,12 @@ void script_node_print(struct script_node * root) {
             fprintf(stdout, "& ");
             script_node_print(root->node->next);
             break;
-        case script_logic_equal:
+        case script_equal:
             script_node_print(root->node);
             fprintf(stdout, "== ");
             script_node_print(root->node->next);
             break;
-        case script_logic_not_equal:
+        case script_not_equal:
             script_node_print(root->node);
             fprintf(stdout, "!= ");
             script_node_print(root->node->next);
@@ -223,7 +223,7 @@ void script_node_print(struct script_node * root) {
             fprintf(stdout, "- ");
             script_node_print(root->node);
             break;
-        case script_logic_not:
+        case script_not:
             fprintf(stdout, "! ");
             script_node_print(root->node);
             break;
@@ -580,9 +580,9 @@ int script_evaluate(struct script * script, struct script_node * node, enum eval
             break;
         case script_colon:
             break;
-        case script_logic_or:
+        case script_or:
             break;
-        case script_logic_and:
+        case script_and:
             break;
         case script_bit_or:
             break;
@@ -590,9 +590,9 @@ int script_evaluate(struct script * script, struct script_node * node, enum eval
             break;
         case script_bit_and:
             break;
-        case script_logic_equal:
+        case script_equal:
             break;
-        case script_logic_not_equal:
+        case script_not_equal:
             break;
         case script_lesser:
             break;
@@ -624,7 +624,7 @@ int script_evaluate(struct script * script, struct script_node * node, enum eval
             break;
         case script_minus_unary:
             break;
-        case script_logic_not:
+        case script_not:
             break;
         case script_bit_not:
             break;
