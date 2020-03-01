@@ -477,3 +477,35 @@ range_binary(minus, -);
 range_binary(multiply, *);
 range_binary(divide, /);
 range_binary(remainder, %);
+
+int range_increment(struct range * range, struct range * x) {
+    int status = 0;
+    struct range_node * iter;
+
+    iter = x->root;
+    while(iter && !status) {
+        if(range_add(range, iter->min, iter->max + 1)) {
+            status = panic("failed to add range object");
+        } else {
+            iter = iter->next;
+        }
+    }
+
+    return status;
+}
+
+int range_decrement(struct range * range, struct range * x) {
+    int status = 0;
+    struct range_node * iter;
+
+    iter = x->root;
+    while(iter && !status) {
+        if(range_add(range, iter->min - 1, iter->max)) {
+            status = panic("failed to add range object");
+        } else {
+            iter = iter->next;
+        }
+    }
+
+    return status;
+}

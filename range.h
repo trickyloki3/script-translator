@@ -44,4 +44,6 @@ int range_minus(struct range *, struct range *, struct range *);
 int range_multiply(struct range *, struct range *, struct range *);
 int range_divide(struct range *, struct range *, struct range *);
 int range_remainder(struct range *, struct range *, struct range *);
+int range_increment(struct range *, struct range *);
+int range_decrement(struct range *, struct range *);
 #endif
