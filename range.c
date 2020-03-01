@@ -416,3 +416,64 @@ int range_greater_equal(struct range * range, struct range * x, struct range * y
 
     return status;
 }
+
+#define range_unary(name, unary)                                        \
+                                                                        \
+int range_##name(struct range * range, struct range * x) {              \
+    int status = 0;                                                     \
+    long l;                                                             \
+    long r;                                                             \
+    struct range_node * iter;                                           \
+                                                                        \
+    iter = x->root;                                                     \
+    while(iter && !status) {                                            \
+        l = unary iter->min;                                            \
+        r = unary iter->max;                                            \
+                                                                        \
+        if( l < r ? range_add(range, l, r) : range_add(range, r, l)) {  \
+            status = panic("failed to add range object");               \
+        } else {                                                        \
+            iter = iter->next;                                          \
+        }                                                               \
+    }                                                                   \
+                                                                        \
+    return status;                                                      \
+}
+
+range_unary(plus_unary, +)
+range_unary(minus_unary, -)
+range_unary(bit_not, ~)
+
+#define range_binary(name, binary)                                              \
+                                                                                \
+int range_##name(struct range * range, struct range * x, struct range * y) {    \
+    int status = 0;                                                             \
+    long l;                                                                     \
+    long r;                                                                     \
+    struct range_node * iter;                                                   \
+                                                                                \
+    iter = x->root;                                                             \
+    while(iter && !status) {                                                    \
+        l = iter->min binary y->min;                                            \
+        r = iter->max binary y->max;                                            \
+                                                                                \
+        if( l < r ? range_add(range, l, r) : range_add(range, r, l)) {          \
+            status = panic("failed to add range object");                       \
+        } else {                                                                \
+            iter = iter->next;                                                  \
+        }                                                                       \
+    }                                                                           \
+                                                                                \
+    return status;                                                              \
+}
+
+range_binary(bit_or, |);
+range_binary(bit_xor, ^);
+range_binary(bit_and, &);
+range_binary(bit_left, <<);
+range_binary(bit_right, >>);
+range_binary(plus, +);
+range_binary(minus, -);
+range_binary(multiply, *);
+range_binary(divide, /);
+range_binary(remainder, %);
