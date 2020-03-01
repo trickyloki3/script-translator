@@ -185,8 +185,11 @@ int yaml_token(struct yaml * yaml, int type, size_t scope, struct string * strin
             } else if(node->type == yaml_b_break) {
                 yaml->indent = NULL;
             } else if(node->type == yaml_s_separate_in_line) {
-                if(yaml->indent)
+                if(yaml->indent) {
                     node->scope += yaml->indent->scope + 1;
+                } else {
+                    node->scope += 1;
+                }
                 yaml->indent = node;
             }
         }
