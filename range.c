@@ -232,6 +232,22 @@ int range_and(struct range * range, struct range * x, struct range * y) {
     return range_equal(range, x, y);
 }
 
+int range_not(struct range * range, struct range * x) {
+    int status = 0;
+    struct range_node * iter;
+
+    iter = x->root;
+    while(iter && !status) {
+        if(iter->next && range_add(range, iter->max + 1, iter->next->min - 1)) {
+            status = panic("failed to add range object");
+        } else {
+            iter = iter->next;
+        }
+    }
+
+    return status;
+}
+
 int range_equal(struct range * range, struct range * x, struct range * y) {
     int status = 0;
     struct range_node * l;
