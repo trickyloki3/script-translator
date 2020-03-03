@@ -12,14 +12,12 @@ source: |
   json.h      ; parser
   yaml.h      ; parser
   parser.h    ; parser, schema
-  misc.h
-  lookup.h    ; database
+  table.h     ; database
   script.h    ; translater
 
 layout: |
   script.h
-  lookup.h
-  misc.h
+  table.h
     parser.h
       csv.h
       json.h
