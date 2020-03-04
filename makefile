@@ -18,6 +18,9 @@ OBJECT+=yaml_scanner.o
 OBJECT+=yaml.o
 OBJECT+=parser.o
 OBJECT+=table.o
+OBJECT+=script_parser.o
+OBJECT+=script_scanner.o
+OBJECT+=script.o
 
 all: clean pj59
 

@@ -3,9 +3,9 @@
 #include "script_parser.h"
 #define YY_USER_ACTION yylloc->first_line = yylineno;
 
-int script_node_token(struct script *, int, struct script_node **);
-int script_node_integer(struct script *, struct string *, struct script_node **);
-int script_node_identifier(struct script *, struct string *, struct script_node **);
+int script_node_token(struct store *, int, struct script_node **);
+int script_node_integer(struct store *, char *, int, struct script_node **);
+int script_node_identifier(struct store *, char *, size_t, struct script_node **);
 %}
 
 %option outfile="script_scanner.c" header-file="script_scanner.h"
@@ -90,131 +90,131 @@ block_comment       \x2F\x2A
 }
 
 {increment_prefix} {
-    return script_node_token(yyextra, script_increment_prefix, yylval) ? -1 : script_increment_prefix;
+    return script_node_token(yyextra, script_increment_prefix, yylval);
 }
 
 {decrement_prefix} {
-    return script_node_token(yyextra, script_decrement_prefix, yylval) ? -1 : script_decrement_prefix;
+    return script_node_token(yyextra, script_decrement_prefix, yylval);
 }
 
 {not} {
-    return script_node_token(yyextra, script_not, yylval) ? -1 : script_not;
+    return script_node_token(yyextra, script_not, yylval);
 }
 
 {bit_not} {
-    return script_node_token(yyextra, script_bit_not, yylval) ? -1 : script_bit_not;
+    return script_node_token(yyextra, script_bit_not, yylval);
 }
 
 {multiply} {
-    return script_node_token(yyextra, script_multiply, yylval) ? -1 : script_multiply;
+    return script_node_token(yyextra, script_multiply, yylval);
 }
 
 {divide} {
-    return script_node_token(yyextra, script_divide, yylval) ? -1 : script_divide;
+    return script_node_token(yyextra, script_divide, yylval);
 }
 
 {remainder} {
-    return script_node_token(yyextra, script_remainder, yylval) ? -1 : script_remainder;
+    return script_node_token(yyextra, script_remainder, yylval);
 }
 
 {plus} {
-    return script_node_token(yyextra, script_plus, yylval) ? -1 : script_plus;
+    return script_node_token(yyextra, script_plus, yylval);
 }
 
 {minus} {
-    return script_node_token(yyextra, script_minus, yylval) ? -1 : script_minus;
+    return script_node_token(yyextra, script_minus, yylval);
 }
 
 {bit_left} {
-    return script_node_token(yyextra, script_bit_left, yylval) ? -1 : script_bit_left;
+    return script_node_token(yyextra, script_bit_left, yylval);
 }
 
 {bit_right} {
-    return script_node_token(yyextra, script_bit_right, yylval) ? -1 : script_bit_right;
+    return script_node_token(yyextra, script_bit_right, yylval);
 }
 
 {lesser} {
-    return script_node_token(yyextra, script_lesser, yylval) ? -1 : script_lesser;
+    return script_node_token(yyextra, script_lesser, yylval);
 }
 
 {lesser_equal} {
-    return script_node_token(yyextra, script_lesser_equal, yylval) ? -1 : script_lesser_equal;
+    return script_node_token(yyextra, script_lesser_equal, yylval);
 }
 
 {greater} {
-    return script_node_token(yyextra, script_greater, yylval) ? -1 : script_greater;
+    return script_node_token(yyextra, script_greater, yylval);
 }
 
 {greater_equal} {
-    return script_node_token(yyextra, script_greater_equal, yylval) ? -1 : script_greater_equal;
+    return script_node_token(yyextra, script_greater_equal, yylval);
 }
 
 {equal} {
-    return script_node_token(yyextra, script_equal, yylval) ? -1 : script_equal;
+    return script_node_token(yyextra, script_equal, yylval);
 }
 
 {not_equal} {
-    return script_node_token(yyextra, script_not_equal, yylval) ? -1 : script_not_equal;
+    return script_node_token(yyextra, script_not_equal, yylval);
 }
 
 {bit_and} {
-    return script_node_token(yyextra, script_bit_and, yylval) ? -1 : script_bit_and;
+    return script_node_token(yyextra, script_bit_and, yylval);
 }
 
 {bit_xor} {
-    return script_node_token(yyextra, script_bit_xor, yylval) ? -1 : script_bit_xor;
+    return script_node_token(yyextra, script_bit_xor, yylval);
 }
 
 {bit_or} {
-    return script_node_token(yyextra, script_bit_or, yylval) ? -1 : script_bit_or;
+    return script_node_token(yyextra, script_bit_or, yylval);
 }
 
 {and} {
-    return script_node_token(yyextra, script_and, yylval) ? -1 : script_and;
+    return script_node_token(yyextra, script_and, yylval);
 }
 
 {or} {
-    return script_node_token(yyextra, script_or, yylval) ? -1 : script_or;
+    return script_node_token(yyextra, script_or, yylval);
 }
 
 {question} {
-    return script_node_token(yyextra, script_question, yylval) ? -1 : script_question;
+    return script_node_token(yyextra, script_question, yylval);
 }
 
 {colon} {
-    return script_node_token(yyextra, script_colon, yylval) ? -1 : script_colon;
+    return script_node_token(yyextra, script_colon, yylval);
 }
 
 {assign} {
-    return script_node_token(yyextra, script_assign, yylval) ? -1 : script_assign;
+    return script_node_token(yyextra, script_assign, yylval);
 }
 
 {plus_assign} {
-    return script_node_token(yyextra, script_plus_assign, yylval) ? -1 : script_plus_assign;
+    return script_node_token(yyextra, script_plus_assign, yylval);
 }
 
 {minus_assign} {
-    return script_node_token(yyextra, script_minus_assign, yylval) ? -1 : script_minus_assign;
+    return script_node_token(yyextra, script_minus_assign, yylval);
 }
 
 {comma} {
-    return script_node_token(yyextra, script_comma, yylval) ? -1 : script_comma;
+    return script_node_token(yyextra, script_comma, yylval);
 }
 
 {for} {
-    return script_node_token(yyextra, script_for, yylval) ? -1 : script_for;
+    return script_node_token(yyextra, script_for, yylval);
 }
 
 {if} {
-    return script_node_token(yyextra, script_if, yylval) ? -1 : script_if;
+    return script_node_token(yyextra, script_if, yylval);
 }
 
 {else} {
-    return script_node_token(yyextra, script_else, yylval) ? -1 : script_else;
+    return script_node_token(yyextra, script_else, yylval);
 }
 
 {curly_open} {
-    return script_curly_open;
+    return script_node_token(yyextra, script_curly_open, yylval);
 }
 
 {curly_close} {
@@ -222,25 +222,26 @@ block_comment       \x2F\x2A
 }
 
 {semicolon} {
-    return script_semicolon;
+    return script_node_token(yyextra, script_semicolon, yylval);
 }
 
-{decimal}|{hexadecimal} {
-    struct string string = { yyleng, yytext };
-    return script_node_integer(yyextra, &string, yylval) ? -1 : script_integer;
+{decimal} {
+    return script_node_integer(yyextra, yytext, 10, yylval);
+}
+
+{hexadecimal} {
+    return script_node_integer(yyextra, yytext, 16, yylval);
 }
 
 {string} {
-    struct string string = { yyleng - 2, yytext + 1};
-    return script_node_identifier(yyextra, &string, yylval) ? -1 : script_identifier;
+    return script_node_identifier(yyextra, yytext + 1, yyleng - 2, yylval);
 }
 
 {identifier} {
-    struct string string = { yyleng, yytext };
-    return script_node_identifier(yyextra, &string, yylval) ? -1 : script_identifier;
+    return script_node_identifier(yyextra, yytext, yyleng, yylval);
 }
 
-{whitespace} {
+{whitespace}+ {
     /* ignore whitespace */
 }
 
@@ -265,48 +266,55 @@ block_comment       \x2F\x2A
 
 %%
 
-int script_node_token(struct script * script, int token, struct script_node ** result) {
+int script_node_token(struct store * store, int token, struct script_node ** result) {
     int status = 0;
     struct script_node * node;
 
-    node = script_node_create(script, token);
+    node = script_node_create(store, token);
     if(!node) {
         status = panic("failed to create script node object");
     } else {
         *result = node;
     }
 
-    return status;
+    return status ? -1 : node->token;
 }
 
-int script_node_integer(struct script * script, struct string * string, struct script_node ** result) {
+int script_node_integer(struct store * store, char * string, int base, struct script_node ** result) {
     int status = 0;
+    char * last = NULL;
     struct script_node * node;
 
-    node = script_node_create(script, script_integer);
+    node = script_node_create(store, script_integer);
     if(!node) {
         status = panic("failed to create script node object");
-    } else if(string_strtol(string, &node->integer)) {
-        status = panic("failed to strtol string object");
     } else {
-        *result = node;
+        node->integer = strtol(string, &last, base);
+        if(*last) {
+            status = panic("failed to strtol string object");
+        } else {
+            *result = node;
+        }
     }
 
-    return status;
+    return status ? -1 : node->token;
 }
 
-int script_node_identifier(struct script * script, struct string * string, struct script_node ** result) {
+int script_node_identifier(struct store * store, char * string, size_t length, struct script_node ** result) {
     int status = 0;
     struct script_node * node;
 
-    node = script_node_create(script, script_identifier);
+    node = script_node_create(store, script_identifier);
     if(!node) {
         status = panic("failed to create script node object");
-    } else if(string_store(string, &script->store, &node->identifier)) {
-        status = panic("failed to store string object");
     } else {
-        *result = node;
+        node->identifier = store_char(store, string, length);
+        if(!node->identifier) {
+            status = panic("failed to char store object");
+        } else {
+            *result = node;
+        }
     }
 
-    return status;
+    return status ? -1 : node->token;
 }
