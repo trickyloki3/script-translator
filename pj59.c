@@ -26,7 +26,7 @@ int main(int argc, char ** argv) {
                     if(argc < 3) {
                         item = item_start(&table);
                         while(item && !status) {
-                            if(script_translate(&script, item->bonus)) {
+                            if(script_compile(&script, item->bonus)) {
                                 status = panic("failed to translate script object");
                             } else {
                                 item = item_next(&table);
@@ -36,7 +36,7 @@ int main(int argc, char ** argv) {
                         item = item_id(&table, strtol(argv[2], NULL, 0));
                         if(!item) {
                             status = panic("invalid item id - %s", argv[2]);
-                        } else if(script_translate(&script, item->bonus)) {
+                        } else if(script_compile(&script, item->bonus)) {
                             status = panic("failed to translate script object");
                         }
                     }

@@ -24,6 +24,6 @@ struct script {
 
 int script_create(struct script *, size_t, struct heap *, struct table *);
 void script_destroy(struct script *);
-int script_translate(struct script *, char *);
+int script_compile(struct script *, char *);
 
 #endif

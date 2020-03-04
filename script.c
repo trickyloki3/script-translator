@@ -50,7 +50,7 @@ void script_destroy(struct script * script) {
     scriptlex_destroy(script->scanner);
 }
 
-int script_translate(struct script * script, char * string) {
+int script_compile(struct script * script, char * string) {
     int status = 0;
 
     if(script_parse(script, string))
