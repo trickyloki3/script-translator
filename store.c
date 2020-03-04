@@ -79,3 +79,15 @@ void * store_object(struct store * store, size_t size) {
 
     return status ? NULL : object;
 }
+
+char * store_char(struct store * store, char * string, size_t length) {
+    char * buffer;
+
+    buffer = store_object(store, length + 1);
+    if(buffer) {
+        memcpy(buffer, string, length);
+        buffer[length] = 0;
+    }
+
+    return buffer;
+}

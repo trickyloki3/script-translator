@@ -3,8 +3,6 @@
 int long_compare(void *, void *);
 int char_compare(void *, void *);
 
-char * store_char(struct store *, char *, size_t);
-
 struct schema_markup csv_markup[] = {
     {1, list, 0, NULL},
     {2, list, 1, NULL},
@@ -20,18 +18,6 @@ int long_compare(void * x, void * y) {
 
 int char_compare(void * x, void * y) {
     return strcmp(x, y);
-}
-
-char * store_char(struct store * store, char * string, size_t length) {
-    char * buffer;
-
-    buffer = store_object(store, length + 1);
-    if(buffer) {
-        memcpy(buffer, string, length);
-        buffer[length] = 0;
-    }
-
-    return buffer;
 }
 
 int item_create(struct item * item, size_t size, struct heap * heap) {

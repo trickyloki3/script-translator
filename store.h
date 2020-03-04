@@ -19,5 +19,6 @@ int store_create(struct store *, size_t);
 void store_destroy(struct store *);
 void store_clear(struct store *);
 void * store_object(struct store *, size_t);
+char * store_char(struct store *, char *, size_t);
 
 #endif
