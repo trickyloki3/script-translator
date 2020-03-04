@@ -14,6 +14,10 @@ int stack_create(struct stack * stack, struct pool * pool) {
 }
 
 void stack_destroy(struct stack * stack) {
+    stack_clear(stack);
+}
+
+void stack_clear(struct stack * stack) {
     struct stack_node * node;
 
     while(stack->root) {
