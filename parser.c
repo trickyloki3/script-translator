@@ -286,7 +286,7 @@ int parser_event(enum event_type event, struct string * string, void * context) 
     return status;
 }
 
-int parser_parse(struct parser * parser, const char * path, struct schema * schema, parser_cb callback, void * context) {
+int parser_parse(struct parser * parser, struct schema * schema, parser_cb callback, void * context, const char * path) {
     int status = 0;
     char * ext;
 

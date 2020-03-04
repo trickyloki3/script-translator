@@ -176,7 +176,7 @@ int table_item_parse(struct table * table, char * path) {
 
     if(schema_load(&table->schema, csv_markup)) {
         status = panic("failed to load schema object");
-    } else if(parser_parse(&table->parser, path, &table->schema, item_parse, &table->item)) {
+    } else if(parser_parse(&table->parser, &table->schema, item_parse, &table->item, path)) {
         status = panic("failed to parse parser object");
     }
 
