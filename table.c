@@ -101,13 +101,58 @@ int item_parse(enum parser_event event, int mark, struct string * string, void *
                         status = panic("failed to char store object");
                     break;
                 case 19:
-                    item->item->script = store_char(&item->store, string->string, string->length);
-                    if(!item->item->script)
-                        status = panic("failed to char store object");
+                    if(item_script_parse(item, string->string))
+                        status = panic("failed to script parse item object");
                     break;
             }
             item->index++;
             break;
+    }
+
+    return status;
+}
+
+int item_script_parse(struct item * item, char * string) {
+    int status = 0;
+
+    int curly = 0;
+    size_t index = 0;
+    char * anchor = NULL;
+
+    while(*string) {
+        if(*string == '{') {
+            if(!curly)
+                anchor = string;
+            curly++;
+        } else if(*string == '}') {
+            curly--;
+            if(!curly) {
+                switch(index) {
+                    case 0:
+                        item->item->bonus = store_char(&item->store, anchor, string - anchor + 1);
+                        if(!item->item->bonus)
+                            status = panic("failed to char store object");
+                        break;
+                    case 1:
+                        item->item->equip = store_char(&item->store, anchor, string - anchor + 1);
+                        if(!item->item->equip)
+                            status = panic("failed to char store object");
+                        break;
+                    case 2:
+                        item->item->unequip = store_char(&item->store, anchor, string - anchor + 1);
+                        if(!item->item->unequip)
+                            status = panic("failed to char store object");
+                        break;
+                }
+                index++;
+
+                if(status)
+                    break;
+
+                anchor = NULL;
+            }
+        }
+        string++;
     }
 
     return status;

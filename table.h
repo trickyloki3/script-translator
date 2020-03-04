@@ -6,7 +6,9 @@
 struct item_node {
     long id;
     char * name;
-    char * script;
+    char * bonus;
+    char * equip;
+    char * unequip;
 };
 
 struct item {
@@ -20,6 +22,7 @@ struct item {
 int item_create(struct item *, size_t, struct heap *);
 void item_destroy(struct item *);
 int item_parse(enum parser_event, int, struct string *, void *);
+int item_script_parse(struct item *, char *);
 
 struct table {
     struct schema schema;
