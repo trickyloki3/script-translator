@@ -87,7 +87,6 @@ int script_parse_loop(struct script * script, struct string * string) {
 
     YY_BUFFER_STATE buffer;
     SCRIPTSTYPE value;
-    SCRIPTLTYPE location;
     int token;
     int state = YYPUSH_MORE;
 
@@ -96,11 +95,11 @@ int script_parse_loop(struct script * script, struct string * string) {
         status = panic("failed to scan buffer scanner object");
     } else {
         while(state == YYPUSH_MORE && !status) {
-            token = scriptlex(&value, &location, script->scanner);
+            token = scriptlex(&value, script->scanner);
             if(token < 0) {
                 status = panic("failed to get the next token");
             } else {
-                state = scriptpush_parse(script->parser, token, &value, &location, script);
+                state = scriptpush_parse(script->parser, token, &value, script);
                 if(state && state != YYPUSH_MORE)
                     status = panic("failed to parse the current token");
             }

@@ -1,7 +1,6 @@
 %{
 #include "script.h"
 #include "script_parser.h"
-#define YY_USER_ACTION yylloc->first_line = yylineno;
 
 int script_node_token(struct store *, int, struct script_node **);
 int script_node_integer(struct store *, char *, int, struct script_node **);
@@ -10,7 +9,7 @@ int script_node_identifier(struct store *, char *, size_t, struct script_node **
 
 %option outfile="script_scanner.c" header-file="script_scanner.h"
 %option batch 8bit nodefault never-interactive yylineno noyywrap
-%option bison-bridge bison-locations reentrant pointer prefix="script"
+%option bison-bridge reentrant pointer prefix="script"
 %option align read full
 %option backup warn
 %option nounput

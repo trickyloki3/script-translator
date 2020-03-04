@@ -2,7 +2,6 @@
 %output "script_parser.c"
 %defines "script_parser.h"
 %verbose
-%locations
 
 %define api.prefix {script}
 %define api.token.prefix {script_}
@@ -52,7 +51,7 @@ void script_node_print(struct script_node *);
 }
 
 %code {
-void yyerror(SCRIPTLTYPE *, struct script *, char const *);
+void yyerror(struct script *, char const *);
 }
 
 %define api.value.type {struct script_node *}
@@ -283,8 +282,8 @@ expression  : expression increment_prefix %prec increment_postfix {
 
 %%
 
-void yyerror(SCRIPTLTYPE * location, struct script * script, char const * message) {
-    panic("%s (line %d)", message, location->first_line);
+void yyerror(struct script * script, char const * message) {
+    panic("%s", message);
 }
 
 struct script_node * script_node_create(struct store * store, int token) {
