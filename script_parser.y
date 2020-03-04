@@ -9,12 +9,12 @@
 %define api.push-pull push
 
 %define lr.type lalr
-%define lr.default-reduction accepting
+%define lr.default-reduction most
 %define lr.keep-unreachable-state false
 
-%define parse.lac full
-%define parse.error verbose
-%define parse.trace true
+%define parse.lac none
+%define parse.error simple
+%define parse.trace false
 
 %token curly_open curly_close semicolon
 %token integer identifier
@@ -42,7 +42,6 @@
 
 %code provides {
 #define YYSTYPE SCRIPTSTYPE
-#define YYLTYPE SCRIPTLTYPE
 
 struct script_node * script_node_create(struct store *, int);
 void script_node_push(struct script_node *, ...);

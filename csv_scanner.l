@@ -1,12 +1,11 @@
 %{
 #include "csv.h"
 #include "csv_parser.h"
-#define YY_USER_ACTION yylloc->first_line = yylineno;
 %}
 
 %option outfile="csv_scanner.c" header-file="csv_scanner.h"
 %option batch 8bit nodefault never-interactive yylineno noyywrap
-%option bison-bridge bison-locations reentrant pointer prefix="csv"
+%option bison-bridge reentrant pointer prefix="csv"
 %option align read full
 %option backup warn
 %option noinput nounput

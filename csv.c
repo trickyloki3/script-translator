@@ -73,7 +73,6 @@ int csv_parse_loop(struct csv * csv, yyscan_t scanner, csvpstate * parser) {
     int status = 0;
 
     CSVSTYPE value;
-    CSVLTYPE location;
     int token;
     int state = YYPUSH_MORE;
 
@@ -81,11 +80,11 @@ int csv_parse_loop(struct csv * csv, yyscan_t scanner, csvpstate * parser) {
         status = panic("failed to process list start event");
     } else {
         while(state == YYPUSH_MORE && !status) {
-            token = csvlex(&value, &location, scanner);
+            token = csvlex(&value, scanner);
             if(token < 0) {
                 status = panic("failed to get the next token");
             } else {
-                state = csvpush_parse(parser, token, &value, &location, csv);
+                state = csvpush_parse(parser, token, &value, csv);
                 if(state && state != YYPUSH_MORE)
                     status = panic("failed to parse the current token");
             }

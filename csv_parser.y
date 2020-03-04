@@ -2,7 +2,6 @@
 %output "csv_parser.c"
 %defines "csv_parser.h"
 %verbose
-%locations
 
 %define api.prefix {csv}
 %define api.token.prefix {CSV_}
@@ -10,12 +9,12 @@
 %define api.push-pull push
 
 %define lr.type lalr
-%define lr.default-reduction accepting
+%define lr.default-reduction most
 %define lr.keep-unreachable-state false
 
-%define parse.lac full
-%define parse.error verbose
-%define parse.trace true
+%define parse.lac none
+%define parse.error simple
+%define parse.trace false
 
 %token COMMA NEWLINE STRING
 %start file
@@ -26,11 +25,10 @@
 
 %code provides {
 #define YYSTYPE CSVSTYPE
-#define YYLTYPE CSVLTYPE
 }
 
 %code {
-void yyerror(CSVLTYPE *, struct csv *, char const *);
+void yyerror(struct csv *, char const *);
 }
 
 %define api.value.type {struct string *}
@@ -61,6 +59,6 @@ field : %empty {
 
 %%
 
-void yyerror(CSVLTYPE * location, struct csv * csv, char const * message) {
-    panic("%s (line %d)", message, location->first_line);
+void yyerror(struct csv * csv, char const * message) {
+    panic("%s", message);
 }
