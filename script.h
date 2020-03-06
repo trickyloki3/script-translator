@@ -14,7 +14,7 @@ struct script_node {
 };
 
 struct script_range {
-    struct range range;
+    struct range * range;
     char * string;
 };
 

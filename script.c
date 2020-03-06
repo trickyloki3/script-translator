@@ -187,7 +187,10 @@ struct script_range * script_range_push(struct script * script) {
     if(!range) {
         status = panic("failed to object store object");
     } else {
-        if(range_create(&range->range, script->heap->range_pool)) {
+        range->range = store_object(&script->store, sizeof(*range->range));
+        if(!range->range) {
+            status = panic("failed to object store object");
+        }  else if(range_create(range->range, script->heap->range_pool)) {
             status = panic("failed to create range object");
         } else {
             if(stack_push(&script->range, range)) {
@@ -196,7 +199,7 @@ struct script_range * script_range_push(struct script * script) {
                 range->string = NULL;
             }
             if(status)
-                range_destroy(&range->range);
+                range_destroy(range->range);
         }
     }
 
@@ -208,7 +211,7 @@ void script_range_clear(struct script * script) {
 
     range = stack_pop(&script->range);
     while(range) {
-        range_destroy(&range->range);
+        range_destroy(range->range);
         range = stack_pop(&script->range);
     }
 }
