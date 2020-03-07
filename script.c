@@ -11,8 +11,10 @@ int script_logic_push(struct script *);
 void script_logic_pop(struct script *);
 void script_logic_clear(struct script *);
 
-struct script_range * script_range_push(struct script *);
+struct script_range * script_range(struct script *);
 void script_range_clear(struct script *);
+
+char * script_string(struct script *, char *, ...);
 
 int script_parse(struct script *, char *);
 int script_parse_loop(struct script *, struct string *);
@@ -179,7 +181,7 @@ void script_logic_clear(struct script * script) {
     }
 }
 
-struct script_range * script_range_push(struct script * script) {
+struct script_range * script_range(struct script * script) {
     int status = 0;
     struct script_range * range;
 
@@ -214,6 +216,24 @@ void script_range_clear(struct script * script) {
         range_destroy(range->range);
         range = stack_pop(&script->range);
     }
+}
+
+char * script_string(struct script * script, char * format, ...) {
+    int status = 0;
+    va_list vararg;
+    char * string;
+
+    va_start(vararg, format);
+    if(strbuf_printf(&script->strbuf, format, vararg)) {
+        status = panic("failed to printf strbuf object");
+    } else {
+        string = strbuf_char(&script->strbuf);
+        if(!string)
+            status = panic("failed to char strbuf object");
+    }
+    va_end(vararg);
+
+    return status ? NULL : string;
 }
 
 int script_parse(struct script * script, char * string) {
@@ -298,7 +318,7 @@ int script_statement(struct script * script, struct script_node * root) {
             if(script_logic_push(script)) {
                 status = panic("failed to logic push script object");
             } else {
-                if(!script_expression(script, root->root, 1)) {
+                if(!script_expression(script, root->root, is_logic)) {
                     status = panic("failed to expression script object");
                 } else if(script_statement(script, root->root->next)) {
                     status = panic("failed to statement script object");
@@ -315,7 +335,7 @@ int script_statement(struct script * script, struct script_node * root) {
                 if(logic_push(logic, not, NULL)) {
                     status = panic("failed to push logic object");
                 } else {
-                    if(!script_expression(script, root->root, 1)) {
+                    if(!script_expression(script, root->root, is_logic)) {
                         status = panic("failed to expression script object");
                     } else if(script_statement(script, root->root->next)) {
                         status = panic("failed to statement script object");
@@ -337,11 +357,11 @@ int script_statement(struct script * script, struct script_node * root) {
     return status;
 }
 
-struct script_range * script_expression(struct script * script, struct script_node * root, int logical) {
+struct script_range * script_expression(struct script * script, struct script_node * root, int flag) {
     int status = 0;
     struct script_range * range;
 
-    range = script_range_push(script);
+    range = script_range(script);
     if(!range)
         status = panic("failed to range push script object");
 

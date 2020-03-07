@@ -18,6 +18,10 @@ struct script_range {
     char * string;
 };
 
+enum script_flag {
+    is_logic = 0x1
+};
+
 struct script {
     struct heap * heap;
     struct table * table;
