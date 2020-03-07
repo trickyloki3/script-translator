@@ -10,12 +10,12 @@
 %define api.push-pull push
 
 %define lr.type lalr
-%define lr.default-reduction accepting
+%define lr.default-reduction most
 %define lr.keep-unreachable-state false
 
-%define parse.lac full
-%define parse.error verbose
-%define parse.trace true
+%define parse.lac none
+%define parse.error simple
+%define parse.trace false
 
 %token c_sequence_entry c_mapping_key c_mapping_value
 %token c_literal c_folded
