@@ -508,6 +508,228 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                 }
             }
             break;
+        case script_bit_or:
+            if( script_evaluate(script, root->root, flag, &x) ||
+                script_evaluate(script, root->root->next, flag, &y) ) {
+                status = panic("failed to evaluate script object");
+            } else {
+                range = script_range(script, "%s | %s", x->string, y->string);
+                if(!range) {
+                    status = panic("failed to range script object");
+                } else if(range_bit_or(range->range, x->range, y->range)) {
+                    status = panic("failed to bit or range object");
+                } else {
+                    *result = range;
+                }
+            }
+            break;
+        case script_bit_xor:
+            if( script_evaluate(script, root->root, flag, &x) ||
+                script_evaluate(script, root->root->next, flag, &y) ) {
+                status = panic("failed to evaluate script object");
+            } else {
+                range = script_range(script, "%s ^ %s", x->string, y->string);
+                if(!range) {
+                    status = panic("failed to range script object");
+                } else if(range_bit_xor(range->range, x->range, y->range)) {
+                    status = panic("failed to bit xor range object");
+                } else {
+                    *result = range;
+                }
+            }
+            break;
+        case script_bit_and:
+            if( script_evaluate(script, root->root, flag, &x) ||
+                script_evaluate(script, root->root->next, flag, &y) ) {
+                status = panic("failed to evaluate script object");
+            } else {
+                range = script_range(script, "%s & %s", x->string, y->string);
+                if(!range) {
+                    status = panic("failed to range script object");
+                } else if(range_bit_and(range->range, x->range, y->range)) {
+                    status = panic("failed to bit and range object");
+                } else {
+                    *result = range;
+                }
+            }
+            break;
+        case script_bit_left:
+            if( script_evaluate(script, root->root, flag, &x) ||
+                script_evaluate(script, root->root->next, flag, &y) ) {
+                status = panic("failed to evaluate script object");
+            } else {
+                range = script_range(script, "%s << %s", x->string, y->string);
+                if(!range) {
+                    status = panic("failed to range script object");
+                } else if(range_bit_left(range->range, x->range, y->range)) {
+                    status = panic("failed to bit left range object");
+                } else {
+                    *result = range;
+                }
+            }
+            break;
+        case script_bit_right:
+            if( script_evaluate(script, root->root, flag, &x) ||
+                script_evaluate(script, root->root->next, flag, &y) ) {
+                status = panic("failed to evaluate script object");
+            } else {
+                range = script_range(script, "%s >> %s", x->string, y->string);
+                if(!range) {
+                    status = panic("failed to range script object");
+                } else if(range_bit_right(range->range, x->range, y->range)) {
+                    status = panic("failed to bit right range object");
+                } else {
+                    *result = range;
+                }
+            }
+            break;
+        case script_plus:
+            if( script_evaluate(script, root->root, flag, &x) ||
+                script_evaluate(script, root->root->next, flag, &y) ) {
+                status = panic("failed to evaluate script object");
+            } else {
+                range = script_range(script, "%s + %s", x->string, y->string);
+                if(!range) {
+                    status = panic("failed to range script object");
+                } else if(range_plus(range->range, x->range, y->range)) {
+                    status = panic("failed to plus range object");
+                } else {
+                    *result = range;
+                }
+            }
+            break;
+        case script_minus:
+            if( script_evaluate(script, root->root, flag, &x) ||
+                script_evaluate(script, root->root->next, flag, &y) ) {
+                status = panic("failed to evaluate script object");
+            } else {
+                range = script_range(script, "%s - %s", x->string, y->string);
+                if(!range) {
+                    status = panic("failed to range script object");
+                } else if(range_minus(range->range, x->range, y->range)) {
+                    status = panic("failed to minus range object");
+                } else {
+                    *result = range;
+                }
+            }
+            break;
+        case script_multiply:
+            if( script_evaluate(script, root->root, flag, &x) ||
+                script_evaluate(script, root->root->next, flag, &y) ) {
+                status = panic("failed to evaluate script object");
+            } else {
+                range = script_range(script, "%s * %s", x->string, y->string);
+                if(!range) {
+                    status = panic("failed to range script object");
+                } else if(range_multiply(range->range, x->range, y->range)) {
+                    status = panic("failed to multiply range object");
+                } else {
+                    *result = range;
+                }
+            }
+            break;
+        case script_divide:
+            if( script_evaluate(script, root->root, flag, &x) ||
+                script_evaluate(script, root->root->next, flag, &y) ) {
+                status = panic("failed to evaluate script object");
+            } else {
+                range = script_range(script, "%s / %s", x->string, y->string);
+                if(!range) {
+                    status = panic("failed to range script object");
+                } else if(range_divide(range->range, x->range, y->range)) {
+                    status = panic("failed to divide range object");
+                } else {
+                    *result = range;
+                }
+            }
+            break;
+        case script_remainder:
+            if( script_evaluate(script, root->root, flag, &x) ||
+                script_evaluate(script, root->root->next, flag, &y) ) {
+                status = panic("failed to evaluate script object");
+            } else {
+                range = script_range(script, "%s %% %s", x->string, y->string);
+                if(!range) {
+                    status = panic("failed to range script object");
+                } else if(range_remainder(range->range, x->range, y->range)) {
+                    status = panic("failed to remainder range object");
+                } else {
+                    *result = range;
+                }
+            }
+            break;
+        case script_plus_unary:
+            if(script_evaluate(script, root->root, flag, &x)) {
+                status = panic("failed to evaluate script object");
+            } else {
+                range = script_range(script, "+ %s", x->string);
+                if(!range) {
+                    status = panic("failed to range script object");
+                } else if(range_plus_unary(range->range, x->range)) {
+                    status = panic("failed to plus unary range object");
+                } else {
+                    *result = range;
+                }
+            }
+            break;
+        case script_minus_unary:
+            if(script_evaluate(script, root->root, flag, &x)) {
+                status = panic("failed to evaluate script object");
+            } else {
+                range = script_range(script, "- %s", x->string);
+                if(!range) {
+                    status = panic("failed to range script object");
+                } else if(range_minus_unary(range->range, x->range)) {
+                    status = panic("failed to minus unary range object");
+                } else {
+                    *result = range;
+                }
+            }
+            break;
+        case script_bit_not:
+            if(script_evaluate(script, root->root, flag, &x)) {
+                status = panic("failed to evaluate script object");
+            } else {
+                range = script_range(script, "~ %s", x->string);
+                if(!range) {
+                    status = panic("failed to range script object");
+                } else if(range_bit_not(range->range, x->range)) {
+                    status = panic("failed to bit not range object");
+                } else {
+                    *result = range;
+                }
+            }
+            break;
+        case script_increment_prefix:
+        case script_increment_postfix:
+            if(script_evaluate(script, root->root, flag, &x)) {
+                status = panic("failed to evaluate script object");
+            } else {
+                range = script_range(script, "%s ++", x->string);
+                if(!range) {
+                    status = panic("failed to range script object");
+                } else if(range_increment(range->range, x->range)) {
+                    status = panic("failed to increment range object");
+                } else {
+                    *result = range;
+                }
+            }
+            break;
+        case script_decrement_prefix:
+        case script_decrement_postfix:
+            if(script_evaluate(script, root->root, flag, &x)) {
+                status = panic("failed to evaluate script object");
+            } else {
+                range = script_range(script, "%s --", x->string);
+                if(!range) {
+                    status = panic("failed to range script object");
+                } else if(range_decrement(range->range, x->range)) {
+                    status = panic("failed to decrement range object");
+                } else {
+                    *result = range;
+                }
+            }
+            break;
         default:
             status = panic("invalid token - %d", root->token);
             break;
