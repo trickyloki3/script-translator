@@ -729,10 +729,27 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
             }
             break;
         case script_or:
-            if( script_evaluate(script, root->root, flag, &x) ||
-                script_evaluate(script, root->root->next, flag, &y) ) {
-                status = panic("failed to evaluate script object");
+            if(flag & is_logic) {
+                logic = stack_top(&script->logic);
+                if(!logic) {
+                    status = panic("invalid logic");
+                } else if(logic_push(logic, or, NULL)) {
+                    status = panic("failed to push logic object");
+                } else {
+                    if( script_evaluate(script, root->root, flag, &x) ||
+                        script_evaluate(script, root->root->next, flag, &y) ) {
+                        status = panic("failed to evaluate script object");
+                    } else if(logic_pop(logic)) {
+                        status = panic("failed to pop logic object");
+                    }
+                }
             } else {
+                if( script_evaluate(script, root->root, flag, &x) ||
+                    script_evaluate(script, root->root->next, flag, &y) )
+                    status = panic("failed to evaluate script object");
+            }
+
+            if(!status) {
                 range = script_range(script, "%s || %s", x->string, y->string);
                 if(!range) {
                     status = panic("failed to range script object");
@@ -744,10 +761,27 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
             }
             break;
         case script_and:
-            if( script_evaluate(script, root->root, flag, &x) ||
-                script_evaluate(script, root->root->next, flag, &y) ) {
-                status = panic("failed to evaluate script object");
+            if(flag & is_logic) {
+                logic = stack_top(&script->logic);
+                if(!logic) {
+                    status = panic("invalid logic");
+                } else if(logic_push(logic, and, NULL)) {
+                    status = panic("failed to push logic object");
+                } else {
+                    if( script_evaluate(script, root->root, flag, &x) ||
+                        script_evaluate(script, root->root->next, flag, &y) ) {
+                        status = panic("failed to evaluate script object");
+                    } else if(logic_pop(logic)) {
+                        status = panic("failed to pop logic object");
+                    }
+                }
             } else {
+                if( script_evaluate(script, root->root, flag, &x) ||
+                    script_evaluate(script, root->root->next, flag, &y) )
+                    status = panic("failed to evaluate script object");
+            }
+
+            if(!status) {
                 range = script_range(script, "%s && %s", x->string, y->string);
                 if(!range) {
                     status = panic("failed to range script object");
@@ -759,9 +793,25 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
             }
             break;
         case script_not:
-            if(script_evaluate(script, root->root, flag, &x)) {
-                status = panic("failed to evaluate script object");
+            if(flag & is_logic) {
+                logic = stack_top(&script->logic);
+                if(!logic) {
+                    status = panic("invalid logic");
+                } else if(logic_push(logic, not, NULL)) {
+                    status = panic("failed to push logic object");
+                } else {
+                    if(script_evaluate(script, root->root, flag, &x)) {
+                        status = panic("failed to evaluate script object");
+                    } else if(logic_pop(logic)) {
+                        status = panic("failed to pop logic object");
+                    }
+                }
             } else {
+                if(script_evaluate(script, root->root, flag, &x))
+                    status = panic("failed to evaluate script object");
+            }
+
+            if(!status) {
                 range = script_range(script, "! %s", x->string);
                 if(!range) {
                     status = panic("failed to range script object");
