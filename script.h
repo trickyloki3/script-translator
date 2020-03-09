@@ -22,6 +22,16 @@ enum script_flag {
     is_logic = 0x1
 };
 
+struct script_undef {
+    struct strbuf strbuf;
+    struct map map;
+};
+
+int script_undef_create(struct script_undef *, size_t, struct heap *);
+void script_undef_destroy(struct script_undef *);
+int script_undef_add(struct script_undef *, char *);
+void script_undef_print(struct script_undef *);
+
 struct script {
     struct heap * heap;
     struct table * table;
@@ -32,6 +42,7 @@ struct script {
     struct stack map;
     struct stack logic;
     struct stack range;
+    struct script_undef undef;
 };
 
 int script_create(struct script *, size_t, struct heap *, struct table *);

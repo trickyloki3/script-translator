@@ -19,6 +19,56 @@ int script_parse_loop(struct script *, struct string *);
 
 int script_evaluate(struct script *, struct script_node *, int, struct script_range **);
 
+int script_undef_create(struct script_undef * undef, size_t size, struct heap * heap) {
+    int status = 0;
+
+    if(strbuf_create(&undef->strbuf, size)) {
+        status = panic("failed to create strbuf object");
+    } else {
+        if(map_create(&undef->map, (map_compare_cb) strcmp, heap->map_pool))
+            status = panic("failed to create map object");
+        if(status)
+            strbuf_destroy(&undef->strbuf);
+    }
+
+    return status;
+}
+
+void script_undef_destroy(struct script_undef * undef) {
+    map_destroy(&undef->map);
+    strbuf_destroy(&undef->strbuf);
+}
+
+int script_undef_add(struct script_undef * undef, char * identifier) {
+    int status = 0;
+    char * string;
+
+    if(!map_search(&undef->map, identifier)) {
+        if(strbuf_printf(&undef->strbuf, "%s", identifier)) {
+            status = panic("failed to printf strbuf object");
+        } else {
+            string = strbuf_char(&undef->strbuf);
+            if(!string) {
+                status = panic("failed to char strbuf object");
+            } else if(map_insert(&undef->map, string, string)) {
+                status = panic("failed to insert map object");
+            }
+        }
+    }
+
+    return status;
+}
+
+void script_undef_print(struct script_undef * undef) {
+    struct map_kv kv;
+
+    kv = map_start(&undef->map);
+    while(kv.key) {
+        fprintf(stdout, "%s ", kv.key);
+        kv = map_next(&undef->map);
+    }
+}
+
 int script_create(struct script * script, size_t size, struct heap * heap, struct table * table) {
     int status = 0;
 
@@ -52,6 +102,9 @@ int script_create(struct script * script, size_t size, struct heap * heap, struc
                 } else if(stack_create(&script->range, heap->stack_pool)) {
                     status = panic("failed to create stack object");
                     goto range_fail;
+                } else if(script_undef_create(&script->undef, size, heap)) {
+                    status = panic("failed to create script undef object");
+                    goto undef_fail;
                 }
             }
         }
@@ -59,6 +112,8 @@ int script_create(struct script * script, size_t size, struct heap * heap, struc
 
     return status;
 
+undef_fail:
+    stack_destroy(&script->range);
 range_fail:
     stack_destroy(&script->logic);
 logic_fail:
@@ -75,6 +130,7 @@ parser_fail:
     return status;
 }
 void script_destroy(struct script * script) {
+    script_undef_destroy(&script->undef);
     stack_destroy(&script->range);
     stack_destroy(&script->logic);
     stack_destroy(&script->map);
@@ -370,11 +426,24 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
             }
             break;
         case script_identifier:
-            range = script_range(script, "%s", root->identifier);
-            if(!range) {
-                status = panic("failed to range script object");
+            if(root->root) {
+                if(script_undef_add(&script->undef, root->identifier)) {
+                    status = panic("failed to add script undef object");
+                } else {
+                    range = script_range(script, "%s", root->identifier);
+                    if(!range) {
+                        status = panic("failed to range script object");
+                    } else {
+                        *result = range;
+                    }
+                }
             } else {
-                *result = range;
+                range = script_range(script, "%s", root->identifier);
+                if(!range) {
+                    status = panic("failed to range script object");
+                } else {
+                    *result = range;
+                }
             }
             break;
         case script_comma:
