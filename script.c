@@ -5,7 +5,7 @@
 
 int script_map_push(struct script *);
 void script_map_pop(struct script *);
-int script_map_clear(struct script *);
+void script_map_clear(struct script *);
 
 int script_logic_push(struct script *);
 void script_logic_pop(struct script *);
@@ -36,41 +36,41 @@ int script_create(struct script * script, size_t size, struct heap * heap, struc
                 script->parser = scriptpstate_new();
                 if(!script->parser) {
                     status = panic("failed to create parser object");
-                } else {
-                    if(store_create(&script->store, size)) {
-                        status = panic("failed to create store object");
-                    } else {
-                        if(strbuf_create(&script->strbuf, size)) {
-                            status = panic("failed to create strbuf object");
-                        } else {
-                            if(stack_create(&script->map, heap->stack_pool)) {
-                                status = panic("failed to create stack object");
-                            } else {
-                                if(stack_create(&script->logic, heap->stack_pool)) {
-                                    status = panic("failed to create stack object");
-                                } else {
-                                    if(stack_create(&script->range, heap->stack_pool))
-                                        status = panic("failed to create stack object");
-                                    if(status)
-                                        stack_destroy(&script->logic);
-                                }
-                                if(status)
-                                    stack_destroy(&script->map);
-                            }
-                            if(status)
-                                strbuf_destroy(&script->strbuf);
-                        }
-                        if(status)
-                            store_destroy(&script->store);
-                    }
-                    if(status)
-                        scriptpstate_delete(script->parser);
+                    goto parser_fail;
+                } else if(store_create(&script->store, size)) {
+                    status = panic("failed to create store object");
+                    goto store_fail;
+                } else if(strbuf_create(&script->strbuf, size)) {
+                    status = panic("failed to create strbuf object");
+                    goto strbuf_fail;
+                } else if(stack_create(&script->map, heap->stack_pool)) {
+                    status = panic("failed to create stack object");
+                    goto map_fail;
+                } else if(stack_create(&script->logic, heap->stack_pool)) {
+                    status = panic("failed to create stack object");
+                    goto logic_fail;
+                } else if(stack_create(&script->range, heap->stack_pool)) {
+                    status = panic("failed to create stack object");
+                    goto range_fail;
                 }
-                if(status)
-                    scriptlex_destroy(script->scanner);
             }
         }
     }
+
+    return status;
+
+range_fail:
+    stack_destroy(&script->logic);
+logic_fail:
+    stack_destroy(&script->map);
+map_fail:
+    strbuf_destroy(&script->strbuf);
+strbuf_fail:
+    store_destroy(&script->store);
+store_fail:
+    scriptpstate_delete(script->parser);
+parser_fail:
+    scriptlex_destroy(script->scanner);
 
     return status;
 }
@@ -130,7 +130,7 @@ void script_map_pop(struct script * script) {
         map_destroy(map);
 }
 
-int script_map_clear(struct script * script) {
+void script_map_clear(struct script * script) {
     struct map * map;
 
     map = stack_pop(&script->map);
