@@ -827,13 +827,44 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                 script_evaluate(script, root->root->next, flag, &y) ) {
                 status = panic("failed to evaluate script object");
             } else {
-                range = script_range(script, "%s == %s", x->string, y->string);
-                if(!range) {
-                    status = panic("failed to range script object");
-                } else if(range_add(range->range, 0, 1)) {
-                    status = panic("failed to add range object");
-                } else {
-                    *result = range;
+                if(flag & is_logic) {
+                    logic = stack_top(&script->logic);
+                    if(!logic) {
+                        status = panic("invalid logic");
+                    } else {
+                        if(root->root->token == script_identifier) {
+                            range = script_range(script, "%s", x->string);
+                            if(!range) {
+                                status = panic("failed to range script object");
+                            } else if(range_equal(range->range, x->range, y->range)) {
+                                status = panic("failed to equal range object");
+                            } else if(logic_push(logic, cond, range)) {
+                                status = panic("failed to push logic object");
+                            }
+                        }
+
+                        if(root->root->next->token == script_identifier && !status) {
+                            range = script_range(script, "%s", y->string);
+                            if(!range) {
+                                status = panic("failed to range script object");
+                            } else if(range_equal(range->range, y->range, x->range)) {
+                                status = panic("failed to equal range object");
+                            } else if(logic_push(logic, cond, range)) {
+                                status = panic("failed to push logic object");
+                            }
+                        }
+                    }
+                }
+
+                if(!status) {
+                    range = script_range(script, "%s == %s", x->string, y->string);
+                    if(!range) {
+                        status = panic("failed to range script object");
+                    } else if(range_add(range->range, 0, 1)) {
+                        status = panic("failed to add range object");
+                    } else {
+                        *result = range;
+                    }
                 }
             }
             break;
@@ -842,13 +873,44 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                 script_evaluate(script, root->root->next, flag, &y) ) {
                 status = panic("failed to evaluate script object");
             } else {
-                range = script_range(script, "%s != %s", x->string, y->string);
-                if(!range) {
-                    status = panic("failed to range script object");
-                } else if(range_add(range->range, 0, 1)) {
-                    status = panic("failed to add range object");
-                } else {
-                    *result = range;
+                if(flag & is_logic) {
+                    logic = stack_top(&script->logic);
+                    if(!logic) {
+                        status = panic("invalid logic");
+                    } else {
+                        if(root->root->token == script_identifier) {
+                            range = script_range(script, "%s", x->string);
+                            if(!range) {
+                                status = panic("failed to range script object");
+                            } else if(range_not_equal(range->range, x->range, y->range)) {
+                                status = panic("failed to not equal range object");
+                            } else if(logic_push(logic, cond, range)) {
+                                status = panic("failed to push logic object");
+                            }
+                        }
+
+                        if(root->root->next->token == script_identifier && !status) {
+                            range = script_range(script, "%s", y->string);
+                            if(!range) {
+                                status = panic("failed to range script object");
+                            } else if(range_not_equal(range->range, y->range, x->range)) {
+                                status = panic("failed to not equal range object");
+                            } else if(logic_push(logic, cond, range)) {
+                                status = panic("failed to push logic object");
+                            }
+                        }
+                    }
+                }
+
+                if(!status) {
+                    range = script_range(script, "%s != %s", x->string, y->string);
+                    if(!range) {
+                        status = panic("failed to range script object");
+                    } else if(range_add(range->range, 0, 1)) {
+                        status = panic("failed to add range object");
+                    } else {
+                        *result = range;
+                    }
                 }
             }
             break;
@@ -857,13 +919,44 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                 script_evaluate(script, root->root->next, flag, &y) ) {
                 status = panic("failed to evaluate script object");
             } else {
-                range = script_range(script, "%s < %s", x->string, y->string);
-                if(!range) {
-                    status = panic("failed to range script object");
-                } else if(range_add(range->range, 0, 1)) {
-                    status = panic("failed to add range object");
-                } else {
-                    *result = range;
+                if(flag & is_logic) {
+                    logic = stack_top(&script->logic);
+                    if(!logic) {
+                        status = panic("invalid logic");
+                    } else {
+                        if(root->root->token == script_identifier) {
+                            range = script_range(script, "%s", x->string);
+                            if(!range) {
+                                status = panic("failed to range script object");
+                            } else if(range_lesser(range->range, x->range, y->range)) {
+                                status = panic("failed to lesser range object");
+                            } else if(logic_push(logic, cond, range)) {
+                                status = panic("failed to push logic object");
+                            }
+                        }
+
+                        if(root->root->next->token == script_identifier && !status) {
+                            range = script_range(script, "%s", y->string);
+                            if(!range) {
+                                status = panic("failed to range script object");
+                            } else if(range_greater(range->range, y->range, x->range)) {
+                                status = panic("failed to greater range object");
+                            } else if(logic_push(logic, cond, range)) {
+                                status = panic("failed to push logic object");
+                            }
+                        }
+                    }
+                }
+
+                if(!status) {
+                    range = script_range(script, "%s < %s", x->string, y->string);
+                    if(!range) {
+                        status = panic("failed to range script object");
+                    } else if(range_add(range->range, 0, 1)) {
+                        status = panic("failed to add range object");
+                    } else {
+                        *result = range;
+                    }
                 }
             }
             break;
@@ -872,13 +965,44 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                 script_evaluate(script, root->root->next, flag, &y) ) {
                 status = panic("failed to evaluate script object");
             } else {
-                range = script_range(script, "%s <= %s", x->string, y->string);
-                if(!range) {
-                    status = panic("failed to range script object");
-                } else if(range_add(range->range, 0, 1)) {
-                    status = panic("failed to add range object");
-                } else {
-                    *result = range;
+                if(flag & is_logic) {
+                    logic = stack_top(&script->logic);
+                    if(!logic) {
+                        status = panic("invalid logic");
+                    } else {
+                        if(root->root->token == script_identifier) {
+                            range = script_range(script, "%s", x->string);
+                            if(!range) {
+                                status = panic("failed to range script object");
+                            } else if(range_lesser_equal(range->range, x->range, y->range)) {
+                                status = panic("failed to lesser equal range object");
+                            } else if(logic_push(logic, cond, range)) {
+                                status = panic("failed to push logic object");
+                            }
+                        }
+
+                        if(root->root->next->token == script_identifier && !status) {
+                            range = script_range(script, "%s", y->string);
+                            if(!range) {
+                                status = panic("failed to range script object");
+                            } else if(range_greater_equal(range->range, y->range, x->range)) {
+                                status = panic("failed to greater equal range object");
+                            } else if(logic_push(logic, cond, range)) {
+                                status = panic("failed to push logic object");
+                            }
+                        }
+                    }
+                }
+
+                if(!status) {
+                    range = script_range(script, "%s <= %s", x->string, y->string);
+                    if(!range) {
+                        status = panic("failed to range script object");
+                    } else if(range_add(range->range, 0, 1)) {
+                        status = panic("failed to add range object");
+                    } else {
+                        *result = range;
+                    }
                 }
             }
             break;
@@ -887,13 +1011,44 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                 script_evaluate(script, root->root->next, flag, &y) ) {
                 status = panic("failed to evaluate script object");
             } else {
-                range = script_range(script, "%s > %s", x->string, y->string);
-                if(!range) {
-                    status = panic("failed to range script object");
-                } else if(range_add(range->range, 0, 1)) {
-                    status = panic("failed to add range object");
-                } else {
-                    *result = range;
+                if(flag & is_logic) {
+                    logic = stack_top(&script->logic);
+                    if(!logic) {
+                        status = panic("invalid logic");
+                    } else {
+                        if(root->root->token == script_identifier) {
+                            range = script_range(script, "%s", x->string);
+                            if(!range) {
+                                status = panic("failed to range script object");
+                            } else if(range_greater(range->range, x->range, y->range)) {
+                                status = panic("failed to greater range object");
+                            } else if(logic_push(logic, cond, range)) {
+                                status = panic("failed to push logic object");
+                            }
+                        }
+
+                        if(root->root->next->token == script_identifier && !status) {
+                            range = script_range(script, "%s", y->string);
+                            if(!range) {
+                                status = panic("failed to range script object");
+                            } else if(range_lesser(range->range, y->range, x->range)) {
+                                status = panic("failed to lesser range object");
+                            } else if(logic_push(logic, cond, range)) {
+                                status = panic("failed to push logic object");
+                            }
+                        }
+                    }
+                }
+
+                if(!status) {
+                    range = script_range(script, "%s > %s", x->string, y->string);
+                    if(!range) {
+                        status = panic("failed to range script object");
+                    } else if(range_add(range->range, 0, 1)) {
+                        status = panic("failed to add range object");
+                    } else {
+                        *result = range;
+                    }
                 }
             }
             break;
@@ -902,13 +1057,44 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                 script_evaluate(script, root->root->next, flag, &y) ) {
                 status = panic("failed to evaluate script object");
             } else {
-                range = script_range(script, "%s >= %s", x->string, y->string);
-                if(!range) {
-                    status = panic("failed to range script object");
-                } else if(range_add(range->range, 0, 1)) {
-                    status = panic("failed to add range object");
-                } else {
-                    *result = range;
+                if(flag & is_logic) {
+                    logic = stack_top(&script->logic);
+                    if(!logic) {
+                        status = panic("invalid logic");
+                    } else {
+                        if(root->root->token == script_identifier) {
+                            range = script_range(script, "%s", x->string);
+                            if(!range) {
+                                status = panic("failed to range script object");
+                            } else if(range_greater_equal(range->range, x->range, y->range)) {
+                                status = panic("failed to greater equal range object");
+                            } else if(logic_push(logic, cond, range)) {
+                                status = panic("failed to push logic object");
+                            }
+                        }
+
+                        if(root->root->next->token == script_identifier && !status) {
+                            range = script_range(script, "%s", y->string);
+                            if(!range) {
+                                status = panic("failed to range script object");
+                            } else if(range_lesser_equal(range->range, y->range, x->range)) {
+                                status = panic("failed to lesser equal range object");
+                            } else if(logic_push(logic, cond, range)) {
+                                status = panic("failed to push logic object");
+                            }
+                        }
+                    }
+                }
+
+                if(!status) {
+                    range = script_range(script, "%s >= %s", x->string, y->string);
+                    if(!range) {
+                        status = panic("failed to range script object");
+                    } else if(range_add(range->range, 0, 1)) {
+                        status = panic("failed to add range object");
+                    } else {
+                        *result = range;
+                    }
                 }
             }
             break;
