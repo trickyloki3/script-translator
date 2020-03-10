@@ -18,6 +18,7 @@ int script_parse(struct script *, char *);
 int script_parse_loop(struct script *, struct string *);
 
 int script_evaluate(struct script *, struct script_node *, int, struct script_range **);
+int script_variable(struct script *, char *, struct script_range **);
 
 int script_undef_create(struct script_undef * undef, size_t size, struct heap * heap) {
     int status = 0;
@@ -438,11 +439,13 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                     }
                 }
             } else {
-                range = script_range(script, "%s", root->identifier);
-                if(!range) {
-                    status = panic("failed to range script object");
-                } else {
-                    *result = range;
+                if(script_variable(script, root->identifier, result)) {
+                    range = script_range(script, "%s", root->identifier);
+                    if(!range) {
+                        status = panic("failed to range script object");
+                    } else {
+                        *result = range;
+                    }
                 }
             }
             break;
@@ -1173,4 +1176,17 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
     }
 
     return status;
+}
+
+int script_variable(struct script * script, char * identifier, struct script_range ** result) {
+    struct map * map;
+
+    map = stack_top(&script->map);
+    if(map) {
+        *result = map_search(map, identifier);
+        if(*result)
+            return 0;
+    }
+
+    return 1;
 }
