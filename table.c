@@ -10,6 +10,19 @@ struct schema_markup csv_markup[] = {
     {0, 0, 0},
 };
 
+struct schema_markup constant_markup[] = {
+    {1, list, 0, NULL},
+    {2, map, 1, NULL},
+    {3, string, 2, "identifier"},
+    {3, string, 3, "value"},
+    {3, string, 4, "tag"},
+    {3, list, 5, "range"},
+    {4, map, 6, NULL},
+    {5, string, 7, "min"},
+    {5, string, 8, "max"},
+    {0, 0, 0},
+};
+
 int long_compare(void * x, void * y) {
     long l = *((long *) x);
     long r = *((long *) y);
@@ -60,6 +73,7 @@ int item_parse(enum parser_event event, int mark, struct string * string, void *
                 if(!item->item) {
                     status = panic("failed to object store object");
                 } else {
+                    memset(item->item, 0, sizeof(*item->item));
                     item->index = 0;
                 }
             } else if(event == end) {
@@ -144,6 +158,92 @@ int item_script_parse(struct item * item, char * string) {
     return status;
 }
 
+int constant_create(struct constant * constant, size_t size, struct heap * heap) {
+    int status = 0;
+
+    if(store_create(&constant->store, size)) {
+        status = panic("failed to create store object");
+    } else {
+        if(map_create(&constant->identifier, char_compare, heap->map_pool))
+            status = panic("failed to create map object");
+        if(status)
+            store_destroy(&constant->store);
+    }
+
+    return status;
+}
+
+void constant_destroy(struct constant * constant) {
+    map_destroy(&constant->identifier);
+    store_destroy(&constant->store);
+}
+
+int constant_parse(enum parser_event event, int mark, struct string * string, void * context) {
+    int status = 0;
+
+    char * last;
+    struct constant * constant = context;
+
+    switch(mark) {
+        case 1:
+            if(event == start) {
+                constant->constant = store_object(&constant->store, sizeof(*constant->constant));
+                if(!constant->constant) {
+                    status = panic("failed to object store object");
+                } else {
+                    memset(constant->constant, 0, sizeof(*constant->constant));
+                }
+            } else if(event == end) {
+                if(!constant->constant->identifier) {
+                    status = panic("invalid string object");
+                } else if(map_insert(&constant->identifier, constant->constant->identifier, constant->constant)) {
+                    status = panic("failed to insert map object");
+                }
+            }
+            break;
+        case 2:
+            constant->constant->identifier = store_char(&constant->store, string->string, string->length);
+            if(!constant->constant->identifier)
+                status = panic("failed to char store object");
+            break;
+        case 3:
+            constant->constant->value = strtol(string->string, &last, 10);
+            if(*last)
+                status = panic("failed to strtol string object");
+            break;
+        case 4:
+            constant->constant->tag = store_char(&constant->store, string->string, string->length);
+            if(!constant->constant->tag)
+                status = panic("failed to char store object");
+            break;
+        case 6:
+            if(event == start) {
+                constant->range = store_object(&constant->store, sizeof(*constant->range));
+                if(!constant->range) {
+                    status = panic("failed to object store object");
+                } else {
+                    memset(constant->range, 0, sizeof(*constant->range));
+                }
+            } else if(event == end) {
+                constant->range->next = constant->constant->range;
+                constant->constant->range = constant->range;
+            }
+            break;
+        case 7:
+            constant->range->min = strtol(string->string, &last, 10);
+            if(*last)
+                status = panic("failed to strtol string object");
+            break;
+        case 8:
+            constant->range->max = strtol(string->string, &last, 10);
+            if(*last)
+                status = panic("failed to strtol string object");
+            break;
+    }
+
+    return status;
+}
+
 int table_create(struct table * table, size_t size, struct heap * heap) {
     int status = 0;
 
@@ -153,8 +253,14 @@ int table_create(struct table * table, size_t size, struct heap * heap) {
         if(parser_create(&table->parser, size, heap)) {
             status = panic("failed to create parser object");
         } else {
-            if(item_create(&table->item, size, heap))
+            if(item_create(&table->item, size, heap)) {
                 status = panic("failed to create item object");
+            } else {
+                if(constant_create(&table->constant, size, heap))
+                    status = panic("failed to create constant object");
+                if(status)
+                    item_destroy(&table->item);
+            }
             if(status)
                 parser_destroy(&table->parser);
         }
@@ -166,6 +272,7 @@ int table_create(struct table * table, size_t size, struct heap * heap) {
 }
 
 void table_destroy(struct table * table) {
+    constant_destroy(&table->constant);
     item_destroy(&table->item);
     parser_destroy(&table->parser);
     schema_destroy(&table->schema);
@@ -183,6 +290,18 @@ int table_item_parse(struct table * table, char * path) {
     return status;
 }
 
+int table_constant_parse(struct table * table, char * path) {
+    int status = 0;
+
+    if(schema_load(&table->schema, constant_markup)) {
+        status = panic("failed to load schema object");
+    } else if(parser_parse(&table->parser, &table->schema, constant_parse, &table->constant, path)) {
+        status = panic("failed to parse parser object");
+    }
+
+    return status;
+}
+
 struct item_node * item_start(struct table * table) {
     return map_start(&table->item.id).value;
 }
@@ -193,4 +312,8 @@ struct item_node * item_next(struct table * table) {
 
 struct item_node * item_id(struct table * table, long id) {
     return map_search(&table->item.id, &id);
+}
+
+struct constant_node * constant_identifier(struct table * table, char * identifier) {
+    return map_search(&table->constant.identifier, identifier);
 }
