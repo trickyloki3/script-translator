@@ -18,7 +18,8 @@ int script_parse(struct script *, char *);
 int script_parse_loop(struct script *, struct string *);
 
 int script_evaluate(struct script *, struct script_node *, int, struct script_range **);
-int script_variable(struct script *, char *, struct script_range **);
+struct script_range * script_variable(struct script *, char *);
+int script_constant(struct script *, struct script_range *);
 
 int script_undef_create(struct script_undef * undef, size_t size, struct heap * heap) {
     int status = 0;
@@ -439,10 +440,15 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                     }
                 }
             } else {
-                if(script_variable(script, root->identifier, result)) {
+                range = script_variable(script, root->identifier);
+                if(range) {
+                    *result = range;
+                } else {
                     range = script_range(script, "%s", root->identifier);
                     if(!range) {
                         status = panic("failed to range script object");
+                    } else if(script_constant(script, range)) {
+                        status = panic("failed to constant script object");
                     } else {
                         *result = range;
                     }
@@ -1178,15 +1184,34 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
     return status;
 }
 
-int script_variable(struct script * script, char * identifier, struct script_range ** result) {
+struct script_range * script_variable(struct script * script, char * identifier) {
     struct map * map;
 
     map = stack_top(&script->map);
-    if(map) {
-        *result = map_search(map, identifier);
-        if(*result)
-            return 0;
+
+    return map ? map_search(map, identifier) : NULL;
+}
+
+int script_constant(struct script * script, struct script_range * constant) {
+    int status = 0;
+    struct constant_node * node;
+    struct constant_range * range;
+
+    node = constant_identifier(script->table, constant->string);
+    if(node) {
+        if(node->range) {
+            range = node->range;
+            while(range && !status) {
+                if(range_add(constant->range, range->min, range->max)) {
+                    status = panic("failed to add range object");
+                } else {
+                    range = range->next;
+                }
+            }
+        } else if(range_add(constant->range, node->value, node->value)) {
+            status = panic("failed to add range object");
+        }
     }
 
-    return 1;
+    return status;
 }
