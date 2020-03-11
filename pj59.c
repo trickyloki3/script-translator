@@ -42,6 +42,11 @@ int main(int argc, char ** argv) {
                             status = panic("failed to translate script object");
                         }
                     }
+
+                    fprintf(stdout, "undefined: ");
+                    script_undef_print(&script.undef);
+                    fprintf(stdout, "\n");
+
                     script_destroy(&script);
                 }
             }
