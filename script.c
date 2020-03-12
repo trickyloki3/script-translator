@@ -27,6 +27,7 @@ int script_constant(struct script *, struct script_range *);
 
 int script_min(struct script *, struct stack *, struct script_range **);
 int script_max(struct script *, struct stack *, struct script_range **);
+int script_zero(struct script *, struct stack *, struct script_range **);
 
 int script_undef_create(struct script_undef * undef, size_t size, struct heap * heap) {
     int status = 0;
@@ -123,6 +124,16 @@ int script_create(struct script * script, size_t size, struct heap * heap, struc
                 } else {
                     map_insert(&script->function, "min", script_min);
                     map_insert(&script->function, "max", script_max);
+                    map_insert(&script->function, "announce", script_zero);
+                    map_insert(&script->function, "callfunc", script_zero);
+                    map_insert(&script->function, "hateffect", script_zero);
+                    map_insert(&script->function, "input", script_zero);
+                    map_insert(&script->function, "playbgm", script_zero);
+                    map_insert(&script->function, "setarray", script_zero);
+                    map_insert(&script->function, "setfont", script_zero);
+                    map_insert(&script->function, "skilleffect", script_zero);
+                    map_insert(&script->function, "specialeffect", script_zero);
+                    map_insert(&script->function, "specialeffect2", script_zero);
                 }
             }
         }
@@ -1365,6 +1376,20 @@ int script_max(struct script * script, struct stack * stack, struct script_range
                 *result = range;
             }
         }
+    }
+
+    return status;
+}
+
+int script_zero(struct script * script, struct stack * stack, struct script_range ** result) {
+    int status = 0;
+    struct script_range * range;
+
+    range = script_range(script, "0");
+    if(!range) {
+        status = panic("failed to range script object");
+    } else {
+        *result = range;
     }
 
     return status;
