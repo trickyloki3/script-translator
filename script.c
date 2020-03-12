@@ -25,6 +25,7 @@ int script_evaluate(struct script *, struct script_node *, int, struct script_ra
 struct script_range * script_variable(struct script *, char *);
 int script_constant(struct script *, struct script_range *);
 
+int script_set(struct script *, struct stack *, struct script_range **);
 int script_min(struct script *, struct stack *, struct script_range **);
 int script_max(struct script *, struct stack *, struct script_range **);
 int script_zero(struct script *, struct stack *, struct script_range **);
@@ -122,6 +123,7 @@ int script_create(struct script * script, size_t size, struct heap * heap, struc
                     status = panic("failed to create script undef object");
                     goto undef_fail;
                 } else {
+                    map_insert(&script->function, "set", script_set);
                     map_insert(&script->function, "min", script_min);
                     map_insert(&script->function, "max", script_max);
                     map_insert(&script->function, "announce", script_zero);
@@ -1319,6 +1321,43 @@ int script_constant(struct script * script, struct script_range * constant) {
             }
         } else if(range_add(constant->range, node->value, node->value)) {
             status = panic("failed to add range object");
+        }
+    }
+
+    return status;
+}
+
+int script_set(struct script * script, struct stack * stack, struct script_range ** result) {
+    int status = 0;
+    struct script_range * x;
+    struct script_range * y;
+
+    struct map * map;
+    struct script_range * range;
+
+    x = stack_pop(stack);
+    if(!x) {
+        status = panic("invalid indentifier");
+    } else {
+        y = stack_pop(stack);
+        if(!y) {
+            status = panic("invalid expression");
+        } else {
+            range = script_range(script, "%s", x->string);
+            if(!range) {
+                status = panic("failed to range script object");
+            } else if(range_assign(range->range, y->range)) {
+                status = panic("failed to assign range object");
+            } else {
+                map = stack_top(&script->map);
+                if(!map) {
+                    status = panic("invalid map");
+                } else if(map_insert(map, range->string, range)) {
+                    status = panic("failed to insert map object");
+                } else {
+                    *result = range;
+                }
+            }
         }
     }
 
