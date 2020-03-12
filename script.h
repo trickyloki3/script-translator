@@ -48,7 +48,7 @@ struct script {
     struct script_undef undef;
 };
 
-typedef int (*script_function) (struct script *, struct script_range **);
+typedef int (*script_function) (struct script *, struct stack *, struct script_range **);
 
 int script_create(struct script *, size_t, struct heap *, struct table *);
 void script_destroy(struct script *);

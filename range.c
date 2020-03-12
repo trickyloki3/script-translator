@@ -524,3 +524,21 @@ int range_decrement(struct range * range, struct range * x) {
 
     return status;
 }
+
+int range_min(struct range * range, struct range * x, struct range * y) {
+    int status = 0;
+
+    if(range_add(range, long_min(x->min, y->min), long_min(x->max, y->max)))
+        status = panic("failed to add range object");
+
+    return status;
+}
+
+int range_max(struct range * range, struct range * x, struct range * y) {
+    int status = 0;
+
+    if(range_add(range, long_max(x->min, y->min), long_max(x->max, y->max)))
+        status = panic("failed to add range object");
+
+    return status;
+}

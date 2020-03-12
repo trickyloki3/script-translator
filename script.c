@@ -25,6 +25,9 @@ int script_evaluate(struct script *, struct script_node *, int, struct script_ra
 struct script_range * script_variable(struct script *, char *);
 int script_constant(struct script *, struct script_range *);
 
+int script_min(struct script *, struct stack *, struct script_range **);
+int script_max(struct script *, struct stack *, struct script_range **);
+
 int script_undef_create(struct script_undef * undef, size_t size, struct heap * heap) {
     int status = 0;
 
@@ -117,6 +120,9 @@ int script_create(struct script * script, size_t size, struct heap * heap, struc
                 } else if(script_undef_create(&script->undef, size, heap)) {
                     status = panic("failed to create script undef object");
                     goto undef_fail;
+                } else {
+                    map_insert(&script->function, "min", script_min);
+                    map_insert(&script->function, "max", script_max);
                 }
             }
         }
@@ -507,7 +513,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                                     *result = range;
                                 }
                             }
-                        } else if(function(script, result)) {
+                        } else if(function(script, stack, result)) {
                             status = panic("failed to function script object");
                         }
                     }
@@ -1302,6 +1308,62 @@ int script_constant(struct script * script, struct script_range * constant) {
             }
         } else if(range_add(constant->range, node->value, node->value)) {
             status = panic("failed to add range object");
+        }
+    }
+
+    return status;
+}
+
+int script_min(struct script * script, struct stack * stack, struct script_range ** result) {
+    int status = 0;
+    struct script_range * x;
+    struct script_range * y;
+    struct script_range * range;
+
+    x = stack_pop(stack);
+    if(!x) {
+        status = panic("invalid min");
+    } else {
+        y = stack_pop(stack);
+        if(!y) {
+            status = panic("invalid max");
+        } else {
+            range = script_range(script, "min(%s,%s)", x->string, y->string);
+            if(!range) {
+                status = panic("failed to range script object");
+            } else if(range_min(range->range, x->range, y->range)) {
+                status = panic("failed to add range object");
+            } else {
+                *result = range;
+            }
+        }
+    }
+
+    return status;
+}
+
+int script_max(struct script * script, struct stack * stack, struct script_range ** result) {
+    int status = 0;
+    struct script_range * x;
+    struct script_range * y;
+    struct script_range * range;
+
+    x = stack_pop(stack);
+    if(!x) {
+        status = panic("invalid min");
+    } else {
+        y = stack_pop(stack);
+        if(!y) {
+            status = panic("invalid max");
+        } else {
+            range = script_range(script, "max(%s,%s)", x->string, y->string);
+            if(!range) {
+                status = panic("failed to range script object");
+            } else if(range_max(range->range, x->range, y->range)) {
+                status = panic("failed to add range object");
+            } else {
+                *result = range;
+            }
         }
     }
 
