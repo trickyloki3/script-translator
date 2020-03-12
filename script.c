@@ -11,6 +11,10 @@ int script_logic_push(struct script *);
 void script_logic_pop(struct script *);
 void script_logic_clear(struct script *);
 
+int script_stack_push(struct script *);
+void script_stack_pop(struct script *);
+void script_stack_clear(struct script *);
+
 struct script_range * script_range(struct script *, char *, ...);
 void script_range_clear(struct script *);
 
@@ -101,6 +105,9 @@ int script_create(struct script * script, size_t size, struct heap * heap, struc
                 } else if(stack_create(&script->logic, heap->stack_pool)) {
                     status = panic("failed to create stack object");
                     goto logic_fail;
+                } else if(stack_create(&script->stack, heap->stack_pool)) {
+                    status = panic("failed to create stack object");
+                    goto stack_fail;
                 } else if(stack_create(&script->range, heap->stack_pool)) {
                     status = panic("failed to create stack object");
                     goto range_fail;
@@ -117,6 +124,8 @@ int script_create(struct script * script, size_t size, struct heap * heap, struc
 undef_fail:
     stack_destroy(&script->range);
 range_fail:
+    stack_destroy(&script->stack);
+stack_fail:
     stack_destroy(&script->logic);
 logic_fail:
     stack_destroy(&script->map);
@@ -134,6 +143,7 @@ parser_fail:
 void script_destroy(struct script * script) {
     script_undef_destroy(&script->undef);
     stack_destroy(&script->range);
+    stack_destroy(&script->stack);
     stack_destroy(&script->logic);
     stack_destroy(&script->map);
     strbuf_destroy(&script->strbuf);
@@ -149,6 +159,7 @@ int script_compile(struct script * script, char * string) {
         status = panic("failed to parse script object");
 
     script_range_clear(script);
+    script_stack_clear(script);
     script_logic_clear(script);
     script_map_clear(script);
     strbuf_clear(&script->strbuf);
@@ -236,6 +247,42 @@ void script_logic_clear(struct script * script) {
     while(logic) {
         logic_destroy(logic);
         logic = stack_pop(&script->logic);
+    }
+}
+
+int script_stack_push(struct script * script) {
+    int status = 0;
+    struct stack * stack;
+
+    stack = store_object(&script->store, sizeof(*stack));
+    if(!stack) {
+        status = panic("failed to object store object");
+    } else if(stack_create(stack, script->heap->stack_pool)) {
+        status = panic("failed to create stack object");
+    } else {
+        if(stack_push(&script->stack, stack))
+            status = panic("failed to push stack object");
+        if(status)
+            stack_destroy(stack);
+    }
+    return status;
+}
+
+void script_stack_pop(struct script * script) {
+    struct stack * stack;
+
+    stack = stack_pop(&script->stack);
+    if(stack)
+        stack_destroy(stack);
+}
+
+void script_stack_clear(struct script * script) {
+    struct stack * stack;
+
+    stack = stack_pop(&script->stack);
+    while(stack) {
+        stack_destroy(stack);
+        stack = stack_pop(&script->stack);
     }
 }
 

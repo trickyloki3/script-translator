@@ -41,6 +41,7 @@ struct script {
     struct strbuf strbuf;
     struct stack map;
     struct stack logic;
+    struct stack stack;
     struct stack range;
     struct script_undef undef;
 };
