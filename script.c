@@ -461,6 +461,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
 
     struct map * map;
     struct logic * logic;
+    struct stack * stack;
     struct script_range * range;
 
     switch(root->token) {
@@ -476,15 +477,29 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
             break;
         case script_identifier:
             if(root->root) {
-                if(script_undef_add(&script->undef, root->identifier)) {
-                    status = panic("failed to add script undef object");
+                if(script_stack_push(script)) {
+                    status = panic("failed to stack push script object");
                 } else {
-                    range = script_range(script, "%s", root->identifier);
-                    if(!range) {
-                        status = panic("failed to range script object");
+                    stack = stack_top(&script->stack);
+                    if(!stack) {
+                        status = panic("invalid stack");
+                    } else if(script_evaluate(script, root->root, flag | is_stack, &x)) {
+                        status = panic("failed to evaluate script object");
+                    } else if(!stack_top(stack) && stack_push(stack, x)) {
+                        status = panic("failed to push stack object");
                     } else {
-                        *result = range;
+                        if(script_undef_add(&script->undef, root->identifier)) {
+                            status = panic("failed to add script undef object");
+                        } else {
+                            range = script_range(script, "%s", root->identifier);
+                            if(!range) {
+                                status = panic("failed to range script object");
+                            } else {
+                                *result = range;
+                            }
+                        }
                     }
+                    script_stack_pop(script);
                 }
             } else {
                 range = script_variable(script, root->identifier);
@@ -507,13 +522,31 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                 script_evaluate(script, root->root->next, flag, &y) ) {
                 status = panic("failed to evaluate script object");
             } else {
-                range = script_range(script, "%s", y->string);
-                if(!range) {
-                    status = panic("failed to range script object");
-                } else if(range_assign(range->range, y->range)) {
-                    status = panic("failed to assign range object");
-                } else {
-                    *result = range;
+                if(flag & is_stack) {
+                    stack = stack_top(&script->stack);
+                    if(!stack) {
+                        status = panic("invalid stack");
+                    } else if(root->root->token == script_comma) {
+                        if(stack_push(stack, y))
+                            status = panic("failed to push stack object");
+                    } else if(root->root->next->token == script_comma) {
+                        if(stack_push(stack, x))
+                            status = panic("failed to push stack object");
+                    } else {
+                        if(stack_push(stack, y) || stack_push(stack, x))
+                            status = panic("failed to push stack object");
+                    }
+                }
+
+                if(!status) {
+                    range = script_range(script, "%s", y->string);
+                    if(!range) {
+                        status = panic("failed to range script object");
+                    } else if(range_assign(range->range, y->range)) {
+                        status = panic("failed to assign range object");
+                    } else {
+                        *result = range;
+                    }
                 }
             }
             break;

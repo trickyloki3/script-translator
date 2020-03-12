@@ -19,7 +19,8 @@ struct script_range {
 };
 
 enum script_flag {
-    is_logic = 0x1
+    is_logic = 0x1,
+    is_stack = 0x2
 };
 
 struct script_undef {

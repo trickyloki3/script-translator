@@ -19,7 +19,7 @@
 %token curly_open curly_close semicolon
 %token integer identifier
 %token for if else
-%left comma
+%right comma
 %right assign plus_assign minus_assign
 %right question colon
 %left or
