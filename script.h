@@ -44,8 +44,11 @@ struct script {
     struct stack logic;
     struct stack stack;
     struct stack range;
+    struct map function;
     struct script_undef undef;
 };
+
+typedef int (*script_function) (struct script *, struct script_range **);
 
 int script_create(struct script *, size_t, struct heap *, struct table *);
 void script_destroy(struct script *);

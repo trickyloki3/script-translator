@@ -111,6 +111,9 @@ int script_create(struct script * script, size_t size, struct heap * heap, struc
                 } else if(stack_create(&script->range, heap->stack_pool)) {
                     status = panic("failed to create stack object");
                     goto range_fail;
+                } else if(map_create(&script->function, (map_compare_cb) strcmp, heap->map_pool)) {
+                    status = panic("failed to create map object");
+                    goto function_fail;
                 } else if(script_undef_create(&script->undef, size, heap)) {
                     status = panic("failed to create script undef object");
                     goto undef_fail;
@@ -122,6 +125,8 @@ int script_create(struct script * script, size_t size, struct heap * heap, struc
     return status;
 
 undef_fail:
+    map_destroy(&script->function);
+function_fail:
     stack_destroy(&script->range);
 range_fail:
     stack_destroy(&script->stack);
@@ -142,6 +147,7 @@ parser_fail:
 }
 void script_destroy(struct script * script) {
     script_undef_destroy(&script->undef);
+    map_destroy(&script->function);
     stack_destroy(&script->range);
     stack_destroy(&script->stack);
     stack_destroy(&script->logic);
@@ -463,6 +469,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
     struct logic * logic;
     struct stack * stack;
     struct script_range * range;
+    script_function function;
 
     switch(root->token) {
         case script_integer:
@@ -488,15 +495,20 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                     } else if(!stack_top(stack) && stack_push(stack, x)) {
                         status = panic("failed to push stack object");
                     } else {
-                        if(script_undef_add(&script->undef, root->identifier)) {
-                            status = panic("failed to add script undef object");
-                        } else {
-                            range = script_range(script, "%s", root->identifier);
-                            if(!range) {
-                                status = panic("failed to range script object");
+                        function = map_search(&script->function, root->identifier);
+                        if(!function) {
+                            if(script_undef_add(&script->undef, root->identifier)) {
+                                status = panic("failed to add script undef object");
                             } else {
-                                *result = range;
+                                range = script_range(script, "%s", root->identifier);
+                                if(!range) {
+                                    status = panic("failed to range script object");
+                                } else {
+                                    *result = range;
+                                }
                             }
+                        } else if(function(script, result)) {
+                            status = panic("failed to function script object");
                         }
                     }
                     script_stack_pop(script);
