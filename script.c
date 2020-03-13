@@ -29,6 +29,7 @@ int script_set(struct script *, struct stack *, struct script_range **);
 int script_min(struct script *, struct stack *, struct script_range **);
 int script_max(struct script *, struct stack *, struct script_range **);
 int script_zero(struct script *, struct stack *, struct script_range **);
+int script_rand(struct script *, struct stack *, struct script_range **);
 
 int script_undef_create(struct script_undef * undef, size_t size, struct heap * heap) {
     int status = 0;
@@ -136,6 +137,7 @@ int script_create(struct script * script, size_t size, struct heap * heap, struc
                     map_insert(&script->function, "skilleffect", script_zero);
                     map_insert(&script->function, "specialeffect", script_zero);
                     map_insert(&script->function, "specialeffect2", script_zero);
+                    map_insert(&script->function, "rand", script_rand);
                 }
             }
         }
@@ -1429,6 +1431,41 @@ int script_zero(struct script * script, struct stack * stack, struct script_rang
         status = panic("failed to range script object");
     } else {
         *result = range;
+    }
+
+    return status;
+}
+
+int script_rand(struct script * script, struct stack * stack, struct script_range ** result) {
+    int status = 0;
+    struct script_range * x;
+    struct script_range * y;
+    struct script_range * range;
+
+    x = stack_pop(stack);
+    if(!x) {
+        status = panic("invalid min");
+    } else {
+        y = stack_pop(stack);
+        if(!y) {
+            range = script_range(script, "rand(%s)", x->string);
+            if(!range) {
+                status = panic("failed to range script object");
+            } else if(range_add(range->range, 0, x->range->max - 1)) {
+                status = panic("failed to add range object");
+            } else {
+                *result = range;
+            }
+        } else {
+            range = script_range(script, "rand(%s,%s)", x->string, y->string);
+            if(!range) {
+                status = panic("failed to range script object");
+            } else if(range_add(range->range, x->range->min, y->range->max)) {
+                status = panic("failed to add range object");
+            } else {
+                *result = range;
+            }
+        }
     }
 
     return status;
