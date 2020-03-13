@@ -28,6 +28,7 @@ int script_constant(struct script *, struct script_range *);
 int script_set(struct script *, struct stack *, struct script_range **);
 int script_min(struct script *, struct stack *, struct script_range **);
 int script_max(struct script *, struct stack *, struct script_range **);
+int script_pow(struct script *, struct stack *, struct script_range **);
 int script_zero(struct script *, struct stack *, struct script_range **);
 int script_rand(struct script *, struct stack *, struct script_range **);
 
@@ -127,6 +128,7 @@ int script_create(struct script * script, size_t size, struct heap * heap, struc
                     map_insert(&script->function, "set", script_set);
                     map_insert(&script->function, "min", script_min);
                     map_insert(&script->function, "max", script_max);
+                    map_insert(&script->function, "pow", script_pow);
                     map_insert(&script->function, "announce", script_zero);
                     map_insert(&script->function, "callfunc", script_zero);
                     map_insert(&script->function, "hateffect", script_zero);
@@ -1414,6 +1416,37 @@ int script_max(struct script * script, struct stack * stack, struct script_range
             } else if(range_max(range->range, x->range, y->range)) {
                 status = panic("failed to add range object");
             } else {
+                *result = range;
+            }
+        }
+    }
+
+    return status;
+}
+
+int script_pow(struct script * script, struct stack * stack, struct script_range ** result) {
+    int status = 0;
+    struct script_range * x;
+    struct script_range * y;
+    struct script_range * range;
+
+    x = stack_pop(stack);
+    if(!x) {
+        status = panic("invalid base");
+    } else {
+        y = stack_pop(stack);
+        if(!y) {
+            status = panic("invalid power");
+        } else {
+            range = script_range(script, "pow(%s,%s)", x->string, y->string);
+            if(!range) {
+                status = panic("failed to range script object");
+            } else if(range_pow(range->range, x->range, y->range)) {
+                status = panic("failed to pow range object");
+            } else {
+                fprintf(stdout, "%s:", range->string);
+                range_print(range->range);
+                fprintf(stdout, "\n");
                 *result = range;
             }
         }

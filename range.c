@@ -542,3 +542,19 @@ int range_max(struct range * range, struct range * x, struct range * y) {
 
     return status;
 }
+
+int range_pow(struct range * range, struct range * x, struct range * y) {
+    int status = 0;
+    struct range_node * iter;
+
+    iter = x->root;
+    while(iter && !status) {
+        if(range_add(range, pow(x->min, y->min), pow(x->max, y->max))) {
+            status = panic("failed to add range object");
+        } else {
+            iter = iter->next;
+        }
+    }
+
+    return status;
+}

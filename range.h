@@ -49,4 +49,5 @@ int range_increment(struct range *, struct range *);
 int range_decrement(struct range *, struct range *);
 int range_min(struct range *, struct range *, struct range *);
 int range_max(struct range *, struct range *, struct range *);
+int range_pow(struct range *, struct range *, struct range *);
 #endif

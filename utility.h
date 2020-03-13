@@ -1,6 +1,7 @@
 #ifndef utility_h
 #define utility_h
 
+#include "math.h"
 #include "stdio.h"
 #include "stdarg.h"
 #include "stdlib.h"
