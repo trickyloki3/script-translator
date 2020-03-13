@@ -21,7 +21,7 @@ OBJECT+=table.o
 OBJECT+=script_parser.o
 OBJECT+=script_scanner.o
 OBJECT+=script.o
-
+LDLIBS+=-lm
 all: clean pj59
 
 pj59: $(OBJECT)

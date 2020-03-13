@@ -3,6 +3,8 @@
 #include "script_parser.h"
 #include "script_scanner.h"
 
+int script_initialize(struct script *);
+
 int script_map_push(struct script *);
 void script_map_pop(struct script *);
 void script_map_clear(struct script *);
@@ -31,6 +33,19 @@ int script_max(struct script *, struct stack *, struct script_range **);
 int script_pow(struct script *, struct stack *, struct script_range **);
 int script_zero(struct script *, struct stack *, struct script_range **);
 int script_rand(struct script *, struct stack *, struct script_range **);
+
+struct script_cb_node {
+    char * identifier;
+    script_function function;
+} script_cb_root[] = {
+    { "set", script_set },
+    { "min", script_min },
+    { "max", script_max },
+    { "pow", script_pow },
+    { "zero", script_zero},
+    { "rand", script_rand},
+    { NULL, NULL}
+};
 
 int script_undef_create(struct script_undef * undef, size_t size, struct heap * heap) {
     int status = 0;
@@ -124,22 +139,9 @@ int script_create(struct script * script, size_t size, struct heap * heap, struc
                 } else if(script_undef_create(&script->undef, size, heap)) {
                     status = panic("failed to create script undef object");
                     goto undef_fail;
-                } else {
-                    map_insert(&script->function, "set", script_set);
-                    map_insert(&script->function, "min", script_min);
-                    map_insert(&script->function, "max", script_max);
-                    map_insert(&script->function, "pow", script_pow);
-                    map_insert(&script->function, "announce", script_zero);
-                    map_insert(&script->function, "callfunc", script_zero);
-                    map_insert(&script->function, "hateffect", script_zero);
-                    map_insert(&script->function, "input", script_zero);
-                    map_insert(&script->function, "playbgm", script_zero);
-                    map_insert(&script->function, "setarray", script_zero);
-                    map_insert(&script->function, "setfont", script_zero);
-                    map_insert(&script->function, "skilleffect", script_zero);
-                    map_insert(&script->function, "specialeffect", script_zero);
-                    map_insert(&script->function, "specialeffect2", script_zero);
-                    map_insert(&script->function, "rand", script_rand);
+                } else if(script_initialize(script)) {
+                    status = panic("failed to initialize script object");
+                    goto initialize_fail;
                 }
             }
         }
@@ -147,6 +149,8 @@ int script_create(struct script * script, size_t size, struct heap * heap, struc
 
     return status;
 
+initialize_fail:
+    script_undef_destroy(&script->undef);
 undef_fail:
     map_destroy(&script->function);
 function_fail:
@@ -193,6 +197,22 @@ int script_compile(struct script * script, char * string) {
     script_map_clear(script);
     strbuf_clear(&script->strbuf);
     store_clear(&script->store);
+
+    return status;
+}
+
+int script_initialize(struct script * script) {
+    int status = 0;
+    struct script_cb_node * node;
+
+    node = script_cb_root;
+    while(node->identifier) {
+        if(map_insert(&script->function, node->identifier, node->function)) {
+            status = panic("failed to insert map object");
+        } else {
+            node++;
+        }
+    }
 
     return status;
 }
@@ -1444,9 +1464,6 @@ int script_pow(struct script * script, struct stack * stack, struct script_range
             } else if(range_pow(range->range, x->range, y->range)) {
                 status = panic("failed to pow range object");
             } else {
-                fprintf(stdout, "%s:", range->string);
-                range_print(range->range);
-                fprintf(stdout, "\n");
                 *result = range;
             }
         }
