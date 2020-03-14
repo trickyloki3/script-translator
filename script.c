@@ -31,7 +31,6 @@ int script_set(struct script *, struct stack *, struct script_range **);
 int script_min(struct script *, struct stack *, struct script_range **);
 int script_max(struct script *, struct stack *, struct script_range **);
 int script_pow(struct script *, struct stack *, struct script_range **);
-int script_zero(struct script *, struct stack *, struct script_range **);
 int script_rand(struct script *, struct stack *, struct script_range **);
 
 struct script_cb_node {
@@ -42,8 +41,7 @@ struct script_cb_node {
     { "min", script_min },
     { "max", script_max },
     { "pow", script_pow },
-    { "zero", script_zero},
-    { "rand", script_rand},
+    { "rand", script_rand },
     { NULL, NULL}
 };
 
@@ -1467,20 +1465,6 @@ int script_pow(struct script * script, struct stack * stack, struct script_range
                 *result = range;
             }
         }
-    }
-
-    return status;
-}
-
-int script_zero(struct script * script, struct stack * stack, struct script_range ** result) {
-    int status = 0;
-    struct script_range * range;
-
-    range = script_range(script, "0");
-    if(!range) {
-        status = panic("failed to range script object");
-    } else {
-        *result = range;
     }
 
     return status;
