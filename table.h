@@ -48,22 +48,40 @@ int constant_create(struct constant *, size_t, struct heap *);
 void constant_destroy(struct constant *);
 int constant_parse(enum parser_event, int, struct string *, void *);
 
+struct function_node {
+    char * identifier;
+    char * description;
+};
+
+struct function {
+    struct store store;
+    struct map identifier;
+    struct function_node * function;
+};
+
+int function_create(struct function *, size_t, struct heap *);
+void function_destroy(struct function *);
+int function_parse(enum parser_event, int, struct string *, void *);
+
 struct table {
     struct schema schema;
     struct parser parser;
     struct item item;
     struct constant constant;
+    struct function function;
 };
 
 int table_create(struct table *, size_t, struct heap *);
 void table_destroy(struct table *);
 int table_item_parse(struct table *, char *);
 int table_constant_parse(struct table *, char *);
+int table_function_parse(struct table *, char *);
 
 struct item_node * item_start(struct table *);
 struct item_node * item_next(struct table *);
 struct item_node * item_id(struct table *, long);
 
 struct constant_node * constant_identifier(struct table *, char *);
+struct function_node * function_identifier(struct table *, char *);
 
 #endif

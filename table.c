@@ -23,6 +23,14 @@ struct schema_markup constant_markup[] = {
     {0, 0, 0},
 };
 
+struct schema_markup function_markup[] = {
+    {1, list, 0, NULL},
+    {2, map, 1, NULL},
+    {3, string, 2, "identifier"},
+    {3, string, 3, "description"},
+    {0, 0, 0},
+};
+
 int long_compare(void * x, void * y) {
     long l = *((long *) x);
     long r = *((long *) y);
@@ -244,6 +252,63 @@ int constant_parse(enum parser_event event, int mark, struct string * string, vo
     return status;
 }
 
+int function_create(struct function * function, size_t size, struct heap * heap) {
+    int status = 0;
+
+    if(store_create(&function->store, size)) {
+        status = panic("failed to create store object");
+    } else {
+        if(map_create(&function->identifier, (map_compare_cb) strcmp, heap->map_pool))
+            status = panic("failed to create map object");
+        if(status)
+            store_destroy(&function->store);
+    }
+
+    return status;
+}
+
+void function_destroy(struct function * function) {
+    map_destroy(&function->identifier);
+    store_destroy(&function->store);
+}
+
+int function_parse(enum parser_event event, int mark, struct string * string, void * context) {
+    int status = 0;
+
+    struct function * function = context;
+
+    switch(mark) {
+        case 1:
+            if(event == start) {
+                function->function = store_object(&function->store, sizeof(*function->function));
+                if(!function->function) {
+                    status = panic("failed to object store object");
+                } else {
+                    memset(function->function, 0, sizeof(*function->function));
+                }
+            } else if(event == end) {
+                if(!function->function->identifier) {
+                    status = panic("invalid string object");
+                } else if(map_insert(&function->identifier, function->function->identifier, function->function)) {
+                    status = panic("failed to insert map object");
+                }
+            }
+            break;
+        case 2:
+            function->function->identifier = store_char(&function->store, string->string, string->length);
+            if(!function->function->identifier)
+                status = panic("failed to char store object");
+            break;
+        case 3:
+            function->function->description = store_char(&function->store, string->string, string->length);
+            if(!function->function->description)
+                status = panic("failed to char store object");
+            break;
+    }
+
+    return status;
+}
+
 int table_create(struct table * table, size_t size, struct heap * heap) {
     int status = 0;
 
@@ -256,8 +321,14 @@ int table_create(struct table * table, size_t size, struct heap * heap) {
             if(item_create(&table->item, size, heap)) {
                 status = panic("failed to create item object");
             } else {
-                if(constant_create(&table->constant, size, heap))
+                if(constant_create(&table->constant, size, heap)) {
                     status = panic("failed to create constant object");
+                } else {
+                    if(function_create(&table->function, size, heap))
+                        status = panic("failed to create function object");
+                    if(status)
+                        constant_destroy(&table->constant);
+                }
                 if(status)
                     item_destroy(&table->item);
             }
@@ -272,6 +343,7 @@ int table_create(struct table * table, size_t size, struct heap * heap) {
 }
 
 void table_destroy(struct table * table) {
+    function_destroy(&table->function);
     constant_destroy(&table->constant);
     item_destroy(&table->item);
     parser_destroy(&table->parser);
@@ -302,6 +374,18 @@ int table_constant_parse(struct table * table, char * path) {
     return status;
 }
 
+int table_function_parse(struct table * table, char * path) {
+    int status = 0;
+
+    if(schema_load(&table->schema, function_markup)) {
+        status = panic("failed to load schema object");
+    } else if(parser_parse(&table->parser, &table->schema, function_parse, &table->function, path)) {
+        status = panic("failed to parse parser object");
+    }
+
+    return status;
+}
+
 struct item_node * item_start(struct table * table) {
     return map_start(&table->item.id).value;
 }
@@ -316,4 +400,8 @@ struct item_node * item_id(struct table * table, long id) {
 
 struct constant_node * constant_identifier(struct table * table, char * identifier) {
     return map_search(&table->constant.identifier, identifier);
+}
+
+struct function_node * function_identifier(struct table * table, char * identifier) {
+    return map_search(&table->function.identifier, identifier);
 }
