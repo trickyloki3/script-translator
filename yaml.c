@@ -407,7 +407,9 @@ int yaml_block(struct yaml * yaml, struct yaml_node * block) {
             if(yaml_scalar(yaml, block))
                 status = panic("failed to scalar yaml object");
         } else if(yaml->root->type == yaml_c_sequence_entry || yaml->root->type == yaml_c_mapping_value) {
-            if(yaml->stack->type != yaml->root->type) {
+            if(!yaml->stack) {
+                status = panic("invalid stack");
+            } else if(yaml->stack->type != yaml->root->type) {
                 status = panic("invalid sequence entry or map value");
             } else if(yaml->stack->scope != yaml->root->scope) {
                 status = panic("invalid scope - %d", yaml->stack->scope);
