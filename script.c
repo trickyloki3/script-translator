@@ -33,10 +33,10 @@ int function_max(struct script *, struct stack *, struct script_range **);
 int function_pow(struct script *, struct stack *, struct script_range **);
 int function_rand(struct script *, struct stack *, struct script_range **);
 
-struct script_cb_node {
+struct function_node {
     char * identifier;
     script_function function;
-} script_cb_root[] = {
+} function_root[] = {
     { "set", function_set },
     { "min", function_min },
     { "max", function_max },
@@ -201,9 +201,9 @@ int script_compile(struct script * script, char * string) {
 
 int script_initialize(struct script * script) {
     int status = 0;
-    struct script_cb_node * node;
+    struct function_node * node;
 
-    node = script_cb_root;
+    node = function_root;
     while(node->identifier) {
         if(map_insert(&script->function, node->identifier, node->function)) {
             status = panic("failed to insert map object");
