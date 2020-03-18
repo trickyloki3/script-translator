@@ -64,3 +64,17 @@ void * stack_pop(struct stack * stack) {
 void * stack_top(struct stack * stack) {
     return stack->root ? stack->root->object : NULL;
 }
+
+size_t stack_size(struct stack * stack) {
+    size_t count;
+    struct stack_node * node;
+
+    count = 0;
+    node = stack->root;
+    while(node) {
+        count++;
+        node = node->next;
+    }
+
+    return count;
+}
