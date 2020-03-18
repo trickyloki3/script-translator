@@ -80,6 +80,16 @@ void * store_object(struct store * store, size_t size) {
     return status ? NULL : object;
 }
 
+void * store_object_zero(struct store * store, size_t size) {
+    void * object;
+
+    object = store_object(store, size);
+    if(object)
+        memset(object, 0, size);
+
+    return object;
+}
+
 char * store_char(struct store * store, char * string, size_t length) {
     char * buffer;
 

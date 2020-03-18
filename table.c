@@ -77,11 +77,10 @@ int item_parse(enum parser_event event, int mark, struct string * string, void *
     switch(mark) {
         case 1:
             if(event == start) {
-                item->item = store_object(&item->store, sizeof(*item->item));
+                item->item = store_object_zero(&item->store, sizeof(*item->item));
                 if(!item->item) {
                     status = panic("failed to object store object");
                 } else {
-                    memset(item->item, 0, sizeof(*item->item));
                     item->index = 0;
                 }
             } else if(event == end) {
@@ -195,12 +194,9 @@ int constant_parse(enum parser_event event, int mark, struct string * string, vo
     switch(mark) {
         case 1:
             if(event == start) {
-                constant->constant = store_object(&constant->store, sizeof(*constant->constant));
-                if(!constant->constant) {
+                constant->constant = store_object_zero(&constant->store, sizeof(*constant->constant));
+                if(!constant->constant)
                     status = panic("failed to object store object");
-                } else {
-                    memset(constant->constant, 0, sizeof(*constant->constant));
-                }
             } else if(event == end) {
                 if(!constant->constant->identifier) {
                     status = panic("invalid string object");
@@ -226,12 +222,9 @@ int constant_parse(enum parser_event event, int mark, struct string * string, vo
             break;
         case 6:
             if(event == start) {
-                constant->range = store_object(&constant->store, sizeof(*constant->range));
-                if(!constant->range) {
+                constant->range = store_object_zero(&constant->store, sizeof(*constant->range));
+                if(!constant->range)
                     status = panic("failed to object store object");
-                } else {
-                    memset(constant->range, 0, sizeof(*constant->range));
-                }
             } else if(event == end) {
                 constant->range->next = constant->constant->range;
                 constant->constant->range = constant->range;
@@ -280,12 +273,9 @@ int argument_parse(enum parser_event event, int mark, struct string * string, vo
     switch(mark) {
         case 1:
             if(event == start) {
-                argument->argument = store_object(&argument->store, sizeof(*argument->argument));
-                if(!argument->argument) {
+                argument->argument = store_object_zero(&argument->store, sizeof(*argument->argument));
+                if(!argument->argument)
                     status = panic("failed to object store object");
-                } else {
-                    memset(argument->argument, 0, sizeof(*argument->argument));
-                }
             } else if(event == end) {
                 if(!argument->argument->identifier) {
                     status = panic("invalid string object");
