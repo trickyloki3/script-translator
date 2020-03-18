@@ -27,7 +27,9 @@ struct schema_markup argument_markup[] = {
     {1, list, 0, NULL},
     {2, map, 1, NULL},
     {3, string, 2, "identifier"},
-    {3, string, 3, "description"},
+    {3, string, 3, "argument"},
+    {3, list, 4, "data"},
+    {4, string, 5, NULL},
     {0, 0, 0},
 };
 
@@ -270,6 +272,9 @@ int argument_parse(enum parser_event event, int mark, struct string * string, vo
 
     struct argument * argument = context;
 
+    struct data_node * root;
+    struct data_node * data;
+
     switch(mark) {
         case 1:
             if(event == start) {
@@ -290,9 +295,36 @@ int argument_parse(enum parser_event event, int mark, struct string * string, vo
                 status = panic("failed to char store object");
             break;
         case 3:
-            argument->argument->description = store_char(&argument->store, string->string, string->length);
-            if(!argument->argument->description)
+            argument->argument->argument = store_char(&argument->store, string->string, string->length);
+            if(!argument->argument->argument)
                 status = panic("failed to char store object");
+            break;
+        case 4:
+            if(event = end) {
+                root = NULL;
+                while(argument->argument->data) {
+                    data = argument->argument->data;
+                    argument->argument->data = argument->argument->data->next;
+                    data->next = root;
+                    root = data;
+                }
+
+                argument->argument->data = root;
+            }
+            break;
+        case 5:
+            data = store_object(&argument->store, sizeof(*data));
+            if(!data) {
+                status = panic("failed to object store object");
+            } else {
+                data->string = store_char(&argument->store, string->string, string->length);
+                if(!data->string) {
+                    status = panic("failed to char store object");
+                } else {
+                    data->next = argument->argument->data;
+                    argument->argument->data = data;
+                }
+            }
             break;
     }
 
