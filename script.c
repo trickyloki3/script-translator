@@ -27,21 +27,21 @@ int script_evaluate(struct script *, struct script_node *, int, struct script_ra
 struct script_range * script_variable(struct script *, char *);
 int script_constant(struct script *, struct script_range *);
 
-int script_set(struct script *, struct stack *, struct script_range **);
-int script_min(struct script *, struct stack *, struct script_range **);
-int script_max(struct script *, struct stack *, struct script_range **);
-int script_pow(struct script *, struct stack *, struct script_range **);
-int script_rand(struct script *, struct stack *, struct script_range **);
+int function_set(struct script *, struct stack *, struct script_range **);
+int function_min(struct script *, struct stack *, struct script_range **);
+int function_max(struct script *, struct stack *, struct script_range **);
+int function_pow(struct script *, struct stack *, struct script_range **);
+int function_rand(struct script *, struct stack *, struct script_range **);
 
 struct script_cb_node {
     char * identifier;
     script_function function;
 } script_cb_root[] = {
-    { "set", script_set },
-    { "min", script_min },
-    { "max", script_max },
-    { "pow", script_pow },
-    { "rand", script_rand },
+    { "set", function_set },
+    { "min", function_min },
+    { "max", function_max },
+    { "pow", function_pow },
+    { "rand", function_rand },
     { NULL, NULL}
 };
 
@@ -1349,7 +1349,7 @@ int script_constant(struct script * script, struct script_range * constant) {
     return status;
 }
 
-int script_set(struct script * script, struct stack * stack, struct script_range ** result) {
+int function_set(struct script * script, struct stack * stack, struct script_range ** result) {
     int status = 0;
     struct script_range * x;
     struct script_range * y;
@@ -1386,7 +1386,7 @@ int script_set(struct script * script, struct stack * stack, struct script_range
     return status;
 }
 
-int script_min(struct script * script, struct stack * stack, struct script_range ** result) {
+int function_min(struct script * script, struct stack * stack, struct script_range ** result) {
     int status = 0;
     struct script_range * x;
     struct script_range * y;
@@ -1414,7 +1414,7 @@ int script_min(struct script * script, struct stack * stack, struct script_range
     return status;
 }
 
-int script_max(struct script * script, struct stack * stack, struct script_range ** result) {
+int function_max(struct script * script, struct stack * stack, struct script_range ** result) {
     int status = 0;
     struct script_range * x;
     struct script_range * y;
@@ -1442,7 +1442,7 @@ int script_max(struct script * script, struct stack * stack, struct script_range
     return status;
 }
 
-int script_pow(struct script * script, struct stack * stack, struct script_range ** result) {
+int function_pow(struct script * script, struct stack * stack, struct script_range ** result) {
     int status = 0;
     struct script_range * x;
     struct script_range * y;
@@ -1470,7 +1470,7 @@ int script_pow(struct script * script, struct stack * stack, struct script_range
     return status;
 }
 
-int script_rand(struct script * script, struct stack * stack, struct script_range ** result) {
+int function_rand(struct script * script, struct stack * stack, struct script_range ** result) {
     int status = 0;
     struct script_range * x;
     struct script_range * y;
