@@ -304,30 +304,30 @@ int table_create(struct table * table, size_t size, struct heap * heap) {
 
     if(schema_create(&table->schema, heap)) {
         status = panic("failed to create schema object");
-    } else {
-        if(parser_create(&table->parser, size, heap)) {
-            status = panic("failed to create parser object");
-        } else {
-            if(item_create(&table->item, size, heap)) {
-                status = panic("failed to create item object");
-            } else {
-                if(constant_create(&table->constant, size, heap)) {
-                    status = panic("failed to create constant object");
-                } else {
-                    if(argument_create(&table->argument, size, heap))
-                        status = panic("failed to create argument object");
-                    if(status)
-                        constant_destroy(&table->constant);
-                }
-                if(status)
-                    item_destroy(&table->item);
-            }
-            if(status)
-                parser_destroy(&table->parser);
-        }
-        if(status)
-            schema_destroy(&table->schema);
+    } else if(parser_create(&table->parser, size, heap)) {
+        status = panic("failed to create parser object");
+        goto parser_fail;
+    } else if(item_create(&table->item, size, heap)) {
+        status = panic("failed to create item object");
+        goto item_fail;
+    } else if(constant_create(&table->constant, size, heap)) {
+        status = panic("failed to create constant object");
+        goto constant_fail;
+    } else if(argument_create(&table->argument, size, heap)) {
+        status = panic("failed to create argument object");
+        goto argument_fail;
     }
+
+    return status;
+
+argument_fail:
+    constant_destroy(&table->constant);
+constant_fail:
+    item_destroy(&table->item);
+item_fail:
+    parser_destroy(&table->parser);
+parser_fail:
+    schema_destroy(&table->schema);
 
     return status;
 }
