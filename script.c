@@ -317,6 +317,8 @@ struct script_range * script_range(struct script * script, char * format, ...) {
     va_list vararg;
     struct script_range * range;
 
+    va_start(vararg, format);
+
     range = store_object(&script->store, sizeof(*range));
     if(!range) {
         status = panic("failed to object store object");
@@ -324,25 +326,27 @@ struct script_range * script_range(struct script * script, char * format, ...) {
         range->range = store_object(&script->store, sizeof(*range->range));
         if(!range->range) {
             status = panic("failed to object store object");
-        }  else if(range_create(range->range, script->heap->range_pool)) {
-            status = panic("failed to create range object");
         } else {
-            va_start(vararg, format);
-            if(strbuf_vprintf(&script->strbuf, format, vararg)) {
-                status = panic("failed to vprintf strbuf object");
+            if(range_create(range->range, script->heap->range_pool)) {
+                status = panic("failed to create range object");
             } else {
-                range->string = strbuf_char(&script->strbuf);
-                if(!range->string) {
-                    status = panic("failed to string strbuf object");
-                } else if(stack_push(&script->range, range)) {
-                    status = panic("failed to push stack object");
+                if(strbuf_vprintf(&script->strbuf, format, vararg)) {
+                    status = panic("failed to vprintf strbuf object");
+                } else {
+                    range->string = strbuf_char(&script->strbuf);
+                    if(!range->string) {
+                        status = panic("failed to string strbuf object");
+                    } else if(stack_push(&script->range, range)) {
+                        status = panic("failed to push stack object");
+                    }
                 }
+                if(status)
+                    range_destroy(range->range);
             }
-            va_end(vararg);
-            if(status)
-                range_destroy(range->range);
         }
     }
+
+    va_end(vararg);
 
     return status ? NULL : range;
 }
