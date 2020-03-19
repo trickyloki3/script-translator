@@ -19,8 +19,7 @@ struct script_range {
 };
 
 enum script_flag {
-    is_logic = 0x1,
-    is_stack = 0x2
+    is_logic = 0x1
 };
 
 struct script_undef {
@@ -42,7 +41,6 @@ struct script {
     struct strbuf strbuf;
     struct stack map;
     struct stack logic;
-    struct stack stack;
     struct stack range;
     struct map function;
     struct script_undef undef;

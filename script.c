@@ -13,10 +13,6 @@ int script_logic_push(struct script *);
 void script_logic_pop(struct script *);
 void script_logic_clear(struct script *);
 
-int script_stack_push(struct script *);
-void script_stack_pop(struct script *);
-void script_stack_clear(struct script *);
-
 struct script_range * script_range(struct script *, char *, ...);
 void script_range_clear(struct script *);
 
@@ -127,9 +123,6 @@ int script_create(struct script * script, size_t size, struct heap * heap, struc
                 } else if(stack_create(&script->logic, heap->stack_pool)) {
                     status = panic("failed to create stack object");
                     goto logic_fail;
-                } else if(stack_create(&script->stack, heap->stack_pool)) {
-                    status = panic("failed to create stack object");
-                    goto stack_fail;
                 } else if(stack_create(&script->range, heap->stack_pool)) {
                     status = panic("failed to create stack object");
                     goto range_fail;
@@ -156,8 +149,6 @@ undef_fail:
 function_fail:
     stack_destroy(&script->range);
 range_fail:
-    stack_destroy(&script->stack);
-stack_fail:
     stack_destroy(&script->logic);
 logic_fail:
     stack_destroy(&script->map);
@@ -176,7 +167,6 @@ void script_destroy(struct script * script) {
     script_undef_destroy(&script->undef);
     map_destroy(&script->function);
     stack_destroy(&script->range);
-    stack_destroy(&script->stack);
     stack_destroy(&script->logic);
     stack_destroy(&script->map);
     strbuf_destroy(&script->strbuf);
@@ -192,7 +182,6 @@ int script_compile(struct script * script, char * string) {
         status = panic("failed to parse script object");
 
     script_range_clear(script);
-    script_stack_clear(script);
     script_logic_clear(script);
     script_map_clear(script);
     strbuf_clear(&script->strbuf);
@@ -296,42 +285,6 @@ void script_logic_clear(struct script * script) {
     while(logic) {
         logic_destroy(logic);
         logic = stack_pop(&script->logic);
-    }
-}
-
-int script_stack_push(struct script * script) {
-    int status = 0;
-    struct stack * stack;
-
-    stack = store_object(&script->store, sizeof(*stack));
-    if(!stack) {
-        status = panic("failed to object store object");
-    } else if(stack_create(stack, script->heap->stack_pool)) {
-        status = panic("failed to create stack object");
-    } else {
-        if(stack_push(&script->stack, stack))
-            status = panic("failed to push stack object");
-        if(status)
-            stack_destroy(stack);
-    }
-    return status;
-}
-
-void script_stack_pop(struct script * script) {
-    struct stack * stack;
-
-    stack = stack_pop(&script->stack);
-    if(stack)
-        stack_destroy(stack);
-}
-
-void script_stack_clear(struct script * script) {
-    struct stack * stack;
-
-    stack = stack_pop(&script->stack);
-    while(stack) {
-        stack_destroy(stack);
-        stack = stack_pop(&script->stack);
     }
 }
 
@@ -510,7 +463,6 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
 
     struct map * map;
     struct logic * logic;
-    struct stack * stack;
     struct script_range * range;
     function_cb function;
 
@@ -527,34 +479,15 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
             break;
         case script_identifier:
             if(root->root) {
-                if(script_stack_push(script)) {
-                    status = panic("failed to stack push script object");
+                if(script_undef_add(&script->undef, root->identifier)) {
+                    status = panic("failed to add script undef object");
                 } else {
-                    stack = stack_top(&script->stack);
-                    if(!stack) {
-                        status = panic("invalid stack");
-                    } else if(script_evaluate(script, root->root, flag | is_stack, &x)) {
-                        status = panic("failed to evaluate script object");
-                    } else if(!stack_top(stack) && stack_push(stack, x)) {
-                        status = panic("failed to push stack object");
+                    range = script_range(script, "%s", root->identifier);
+                    if(!range) {
+                        status = panic("failed to range script object");
                     } else {
-                        function = map_search(&script->function, root->identifier);
-                        if(!function) {
-                            if(script_undef_add(&script->undef, root->identifier)) {
-                                status = panic("failed to add script undef object");
-                            } else {
-                                range = script_range(script, "%s", root->identifier);
-                                if(!range) {
-                                    status = panic("failed to range script object");
-                                } else {
-                                    *result = range;
-                                }
-                            }
-                        } else if(function(script, stack, result)) {
-                            status = panic("failed to function script object");
-                        }
+                        *result = range;
                     }
-                    script_stack_pop(script);
                 }
             } else {
                 range = script_variable(script, root->identifier);
@@ -577,31 +510,13 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                 script_evaluate(script, root->root->next, flag, &y) ) {
                 status = panic("failed to evaluate script object");
             } else {
-                if(flag & is_stack) {
-                    stack = stack_top(&script->stack);
-                    if(!stack) {
-                        status = panic("invalid stack");
-                    } else if(root->root->token == script_comma) {
-                        if(stack_push(stack, y))
-                            status = panic("failed to push stack object");
-                    } else if(root->root->next->token == script_comma) {
-                        if(stack_push(stack, x))
-                            status = panic("failed to push stack object");
-                    } else {
-                        if(stack_push(stack, y) || stack_push(stack, x))
-                            status = panic("failed to push stack object");
-                    }
-                }
-
-                if(!status) {
-                    range = script_range(script, "%s", y->string);
-                    if(!range) {
-                        status = panic("failed to range script object");
-                    } else if(range_assign(range->range, y->range)) {
-                        status = panic("failed to assign range object");
-                    } else {
-                        *result = range;
-                    }
+                range = script_range(script, "%s", y->string);
+                if(!range) {
+                    status = panic("failed to range script object");
+                } else if(range_assign(range->range, y->range)) {
+                    status = panic("failed to assign range object");
+                } else {
+                    *result = range;
                 }
             }
             break;
