@@ -7,6 +7,8 @@ int script_initialize(struct script *);
 
 int script_map_push(struct script *);
 void script_map_pop(struct script *);
+int script_map_insert(struct script *, struct script_range *);
+struct script_range * script_map_search(struct script *, char *);
 void script_map_clear(struct script *);
 
 int script_logic_push(struct script *);
@@ -20,7 +22,6 @@ int script_parse(struct script *, char *);
 int script_parse_loop(struct script *, struct string *);
 
 int script_evaluate(struct script *, struct script_node *, int, struct script_range **);
-struct script_range * script_variable(struct script *, char *);
 int script_constant(struct script *, struct script_range *);
 
 int function_set(struct script *, struct stack *, struct script_range **);
@@ -163,6 +164,7 @@ parser_fail:
 
     return status;
 }
+
 void script_destroy(struct script * script) {
     script_undef_destroy(&script->undef);
     map_destroy(&script->function);
@@ -235,6 +237,28 @@ void script_map_pop(struct script * script) {
     map = stack_pop(&script->map);
     if(map)
         map_destroy(map);
+}
+
+int script_map_insert(struct script * script, struct script_range * range) {
+    int status = 0;
+    struct map * map;
+
+    map = stack_top(&script->map);
+    if(!map) {
+        status = panic("invalid map");
+    } else if(map_insert(map, range->string, range)) {
+        status = panic("failed to insert map object");
+    }
+
+    return status;
+}
+
+struct script_range * script_map_search(struct script * script, char * identifier) {
+    struct map * map;
+
+    map = stack_top(&script->map);
+
+    return map ? map_search(map, identifier) : NULL;
 }
 
 void script_map_clear(struct script * script) {
@@ -461,7 +485,6 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
     struct script_range * x;
     struct script_range * y;
 
-    struct map * map;
     struct logic * logic;
     struct script_range * range;
     function_cb function;
@@ -490,7 +513,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                     }
                 }
             } else {
-                range = script_variable(script, root->identifier);
+                range = script_map_search(script, root->identifier);
                 if(range) {
                     *result = range;
                 } else {
@@ -530,15 +553,10 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                     status = panic("failed to range script object");
                 } else if(range_assign(range->range, y->range)) {
                     status = panic("failed to assign range object");
+                } else if(script_map_insert(script, range)) {
+                    status = panic("failed to map insert script object");
                 } else {
-                    map = stack_top(&script->map);
-                    if(!map) {
-                        status = panic("invalid map");
-                    } else if(map_insert(map, range->string, range)) {
-                        status = panic("failed to insert map object");
-                    } else {
-                        *result = range;
-                    }
+                    *result = range;
                 }
             }
             break;
@@ -552,15 +570,10 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                     status = panic("failed to range script object");
                 } else if(range_plus(range->range, x->range, y->range)) {
                     status = panic("failed to plus range object");
+                } else if(script_map_insert(script, range)) {
+                    status = panic("failed to map insert script object");
                 } else {
-                    map = stack_top(&script->map);
-                    if(!map) {
-                        status = panic("invalid map");
-                    } else if(map_insert(map, range->string, range)) {
-                        status = panic("failed to insert map object");
-                    } else {
-                        *result = range;
-                    }
+                    *result = range;
                 }
             }
             break;
@@ -574,15 +587,10 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                     status = panic("failed to range script object");
                 } else if(range_minus(range->range, x->range, y->range)) {
                     status = panic("failed to minus range object");
+                } else if(script_map_insert(script, range)) {
+                    status = panic("failed to map insert script object");
                 } else {
-                    map = stack_top(&script->map);
-                    if(!map) {
-                        status = panic("invalid map");
-                    } else if(map_insert(map, range->string, range)) {
-                        status = panic("failed to insert map object");
-                    } else {
-                        *result = range;
-                    }
+                    *result = range;
                 }
             }
             break;
@@ -1234,14 +1242,6 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
     return status;
 }
 
-struct script_range * script_variable(struct script * script, char * identifier) {
-    struct map * map;
-
-    map = stack_top(&script->map);
-
-    return map ? map_search(map, identifier) : NULL;
-}
-
 int script_constant(struct script * script, struct script_range * constant) {
     int status = 0;
     struct constant_node * node;
@@ -1287,15 +1287,10 @@ int function_set(struct script * script, struct stack * stack, struct script_ran
                 status = panic("failed to range script object");
             } else if(range_assign(range->range, y->range)) {
                 status = panic("failed to assign range object");
+            }  else if(script_map_insert(script, range)) {
+                status = panic("failed to map insert script object");
             } else {
-                map = stack_top(&script->map);
-                if(!map) {
-                    status = panic("invalid map");
-                } else if(map_insert(map, range->string, range)) {
-                    status = panic("failed to insert map object");
-                } else {
-                    *result = range;
-                }
+                *result = range;
             }
         }
     }
