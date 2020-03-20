@@ -24,6 +24,14 @@ struct script_range {
     char * string;
 };
 
+#define ARRAY_TOTAL 32
+
+struct script_array {
+    void ** array;
+    size_t count;
+    size_t total;
+};
+
 struct script_undef {
     struct strbuf strbuf;
     struct map map;
@@ -44,6 +52,7 @@ struct script {
     struct stack map;
     struct stack logic;
     struct stack range;
+    struct stack array;
     struct map function;
     struct script_undef undef;
 };
