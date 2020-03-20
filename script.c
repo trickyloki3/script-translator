@@ -23,6 +23,10 @@ void script_range_clear(struct script *);
 int script_parse(struct script *, char *);
 int script_parse_loop(struct script *, struct string *);
 
+enum script_flag {
+    is_logic = 0x1
+};
+
 int script_evaluate(struct script *, struct script_node *, int, struct script_range **);
 int script_constant(struct script *, struct script_range *);
 

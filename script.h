@@ -14,18 +14,14 @@ struct script_node {
 };
 
 enum script_type {
-    identifier,
-    integer
+    integer,
+    identifier
 };
 
 struct script_range {
     enum script_type type;
     struct range * range;
     char * string;
-};
-
-enum script_flag {
-    is_logic = 0x1
 };
 
 struct script_undef {
