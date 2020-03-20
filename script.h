@@ -13,7 +13,13 @@ struct script_node {
     struct script_node * next;
 };
 
+enum script_type {
+    identifier,
+    integer
+};
+
 struct script_range {
+    enum script_type type;
     struct range * range;
     char * string;
 };
