@@ -40,13 +40,13 @@ enum script_flag {
 int script_evaluate(struct script *, struct script_node *, int, struct script_range **);
 int script_constant(struct script *, struct script_range *);
 
-int function_set(struct script *, struct stack *, struct script_range **);
-int function_min(struct script *, struct stack *, struct script_range **);
-int function_max(struct script *, struct stack *, struct script_range **);
-int function_pow(struct script *, struct stack *, struct script_range **);
-int function_rand(struct script *, struct stack *, struct script_range **);
+int function_set(struct script *, struct script_array *, struct script_range **);
+int function_min(struct script *, struct script_array *, struct script_range **);
+int function_max(struct script *, struct script_array *, struct script_range **);
+int function_pow(struct script *, struct script_array *, struct script_range **);
+int function_rand(struct script *, struct script_array *, struct script_range **);
 
-typedef int (*function_cb) (struct script *, struct stack *, struct script_range **);
+typedef int (*function_cb) (struct script *, struct script_array *, struct script_range **);
 
 struct function_entry {
     char * identifier;
@@ -625,15 +625,20 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                         } else if(!script_array_get(array, 0) && script_array_add(array, x)) {
                             status = panic("failed to add script array object");
                         } else {
-                            if(script_undef_add(&script->undef, root->identifier)) {
-                                status = panic("failed to add script undef object");
-                            } else {
-                                range = script_range(script, identifier, "%s", root->identifier);
-                                if(!range) {
-                                    status = panic("failed to range script object");
+                            function = map_search(&script->function, root->identifier);
+                            if(!function) {
+                                if(script_undef_add(&script->undef, root->identifier)) {
+                                    status = panic("failed to add script undef object");
                                 } else {
-                                    *result = range;
+                                    range = script_range(script, identifier, "%s", root->identifier);
+                                    if(!range) {
+                                        status = panic("failed to range script object");
+                                    } else {
+                                        *result = range;
+                                    }
                                 }
+                            } else if(function(script, array, result)) {
+                                status = panic("failed to function script object");
                             }
                         }
                     }
@@ -1368,7 +1373,7 @@ int script_constant(struct script * script, struct script_range * range) {
     return status;
 }
 
-int function_set(struct script * script, struct stack * stack, struct script_range ** result) {
+int function_set(struct script * script, struct script_array * array, struct script_range ** result) {
     int status = 0;
     struct script_range * x;
     struct script_range * y;
@@ -1376,11 +1381,11 @@ int function_set(struct script * script, struct stack * stack, struct script_ran
     struct map * map;
     struct script_range * range;
 
-    x = stack_pop(stack);
+    x = script_array_get(array, 0);
     if(!x) {
         status = panic("invalid indentifier");
     } else {
-        y = stack_pop(stack);
+        y = script_array_get(array, 1);
         if(!y) {
             status = panic("invalid expression");
         } else {
@@ -1400,17 +1405,17 @@ int function_set(struct script * script, struct stack * stack, struct script_ran
     return status;
 }
 
-int function_min(struct script * script, struct stack * stack, struct script_range ** result) {
+int function_min(struct script * script, struct script_array * array, struct script_range ** result) {
     int status = 0;
     struct script_range * x;
     struct script_range * y;
     struct script_range * range;
 
-    x = stack_pop(stack);
+    x = script_array_get(array, 0);
     if(!x) {
         status = panic("invalid min");
     } else {
-        y = stack_pop(stack);
+        y = script_array_get(array, 1);
         if(!y) {
             status = panic("invalid max");
         } else {
@@ -1428,17 +1433,17 @@ int function_min(struct script * script, struct stack * stack, struct script_ran
     return status;
 }
 
-int function_max(struct script * script, struct stack * stack, struct script_range ** result) {
+int function_max(struct script * script, struct script_array * array, struct script_range ** result) {
     int status = 0;
     struct script_range * x;
     struct script_range * y;
     struct script_range * range;
 
-    x = stack_pop(stack);
+    x = script_array_get(array, 0);
     if(!x) {
         status = panic("invalid min");
     } else {
-        y = stack_pop(stack);
+        y = script_array_get(array, 1);
         if(!y) {
             status = panic("invalid max");
         } else {
@@ -1456,17 +1461,17 @@ int function_max(struct script * script, struct stack * stack, struct script_ran
     return status;
 }
 
-int function_pow(struct script * script, struct stack * stack, struct script_range ** result) {
+int function_pow(struct script * script, struct script_array * array, struct script_range ** result) {
     int status = 0;
     struct script_range * x;
     struct script_range * y;
     struct script_range * range;
 
-    x = stack_pop(stack);
+    x = script_array_get(array, 0);
     if(!x) {
         status = panic("invalid base");
     } else {
-        y = stack_pop(stack);
+        y = script_array_get(array, 1);
         if(!y) {
             status = panic("invalid power");
         } else {
@@ -1484,17 +1489,17 @@ int function_pow(struct script * script, struct stack * stack, struct script_ran
     return status;
 }
 
-int function_rand(struct script * script, struct stack * stack, struct script_range ** result) {
+int function_rand(struct script * script, struct script_array * array, struct script_range ** result) {
     int status = 0;
     struct script_range * x;
     struct script_range * y;
     struct script_range * range;
 
-    x = stack_pop(stack);
+    x = script_array_get(array, 0);
     if(!x) {
         status = panic("invalid min");
     } else {
-        y = stack_pop(stack);
+        y = script_array_get(array, 1);
         if(!y) {
             range = script_range(script, integer, "rand(%s)", x->string);
             if(!range) {
