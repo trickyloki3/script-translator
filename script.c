@@ -973,7 +973,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                     if(!logic) {
                         status = panic("invalid logic");
                     } else {
-                        if(root->root->token == script_identifier) {
+                        if(x->type == identifier) {
                             range = script_range(script, integer, "%s", x->string);
                             if(!range) {
                                 status = panic("failed to range script object");
@@ -984,7 +984,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                             }
                         }
 
-                        if(root->root->next->token == script_identifier && !status) {
+                        if(y->type == identifier && !status) {
                             range = script_range(script, integer, "%s", y->string);
                             if(!range) {
                                 status = panic("failed to range script object");
@@ -1019,7 +1019,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                     if(!logic) {
                         status = panic("invalid logic");
                     } else {
-                        if(root->root->token == script_identifier) {
+                        if(x->type == identifier) {
                             range = script_range(script, integer, "%s", x->string);
                             if(!range) {
                                 status = panic("failed to range script object");
@@ -1030,7 +1030,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                             }
                         }
 
-                        if(root->root->next->token == script_identifier && !status) {
+                        if(y->type == identifier && !status) {
                             range = script_range(script, integer, "%s", y->string);
                             if(!range) {
                                 status = panic("failed to range script object");
@@ -1065,7 +1065,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                     if(!logic) {
                         status = panic("invalid logic");
                     } else {
-                        if(root->root->token == script_identifier) {
+                        if(x->type == identifier) {
                             range = script_range(script, integer, "%s", x->string);
                             if(!range) {
                                 status = panic("failed to range script object");
@@ -1076,7 +1076,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                             }
                         }
 
-                        if(root->root->next->token == script_identifier && !status) {
+                        if(y->type == identifier && !status) {
                             range = script_range(script, integer, "%s", y->string);
                             if(!range) {
                                 status = panic("failed to range script object");
@@ -1111,7 +1111,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                     if(!logic) {
                         status = panic("invalid logic");
                     } else {
-                        if(root->root->token == script_identifier) {
+                        if(x->type == identifier) {
                             range = script_range(script, integer, "%s", x->string);
                             if(!range) {
                                 status = panic("failed to range script object");
@@ -1122,7 +1122,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                             }
                         }
 
-                        if(root->root->next->token == script_identifier && !status) {
+                        if(y->type == identifier && !status) {
                             range = script_range(script, integer, "%s", y->string);
                             if(!range) {
                                 status = panic("failed to range script object");
@@ -1157,7 +1157,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                     if(!logic) {
                         status = panic("invalid logic");
                     } else {
-                        if(root->root->token == script_identifier) {
+                        if(x->type == identifier) {
                             range = script_range(script, integer, "%s", x->string);
                             if(!range) {
                                 status = panic("failed to range script object");
@@ -1168,7 +1168,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                             }
                         }
 
-                        if(root->root->next->token == script_identifier && !status) {
+                        if(y->type == identifier && !status) {
                             range = script_range(script, integer, "%s", y->string);
                             if(!range) {
                                 status = panic("failed to range script object");
@@ -1203,7 +1203,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                     if(!logic) {
                         status = panic("invalid logic");
                     } else {
-                        if(root->root->token == script_identifier) {
+                        if(x->type == identifier) {
                             range = script_range(script, integer, "%s", x->string);
                             if(!range) {
                                 status = panic("failed to range script object");
@@ -1214,7 +1214,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                             }
                         }
 
-                        if(root->root->next->token == script_identifier && !status) {
+                        if(y->type == identifier && !status) {
                             range = script_range(script, integer, "%s", y->string);
                             if(!range) {
                                 status = panic("failed to range script object");
