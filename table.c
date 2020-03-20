@@ -1,7 +1,6 @@
 #include "table.h"
 
 int long_compare(void *, void *);
-int char_compare(void *, void *);
 
 struct schema_markup csv_markup[] = {
     {1, list, 0, NULL},
@@ -39,10 +38,6 @@ int long_compare(void * x, void * y) {
     return l < r ? -1 : l > r ? 1 : 0;
 }
 
-int char_compare(void * x, void * y) {
-    return strcmp(x, y);
-}
-
 int item_create(struct item * item, size_t size, struct heap * heap) {
     int status = 0;
 
@@ -52,7 +47,7 @@ int item_create(struct item * item, size_t size, struct heap * heap) {
         if(map_create(&item->id, long_compare, heap->map_pool)) {
             status = panic("failed to create map object");
         } else {
-            if(map_create(&item->name, char_compare, heap->map_pool))
+            if(map_create(&item->name, (map_compare_cb) strcmp, heap->map_pool))
                 status = panic("failed to create map object");
             if(status)
                 map_destroy(&item->id);
@@ -173,7 +168,7 @@ int constant_create(struct constant * constant, size_t size, struct heap * heap)
     if(store_create(&constant->store, size)) {
         status = panic("failed to create store object");
     } else {
-        if(map_create(&constant->identifier, char_compare, heap->map_pool))
+        if(map_create(&constant->identifier, (map_compare_cb) strcmp, heap->map_pool))
             status = panic("failed to create map object");
         if(status)
             store_destroy(&constant->store);
