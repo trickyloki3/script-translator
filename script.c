@@ -7,9 +7,9 @@ int script_initialize(struct script *);
 
 int script_map_push(struct script *);
 void script_map_pop(struct script *);
+void script_map_clear(struct script *);
 int script_map_insert(struct script *, struct script_range *);
 struct script_range * script_map_search(struct script *, char *);
-void script_map_clear(struct script *);
 
 int script_logic_push(struct script *);
 void script_logic_pop(struct script *);
@@ -241,6 +241,16 @@ void script_map_pop(struct script * script) {
         map_destroy(map);
 }
 
+void script_map_clear(struct script * script) {
+    struct map * map;
+
+    map = stack_pop(&script->map);
+    while(map) {
+        map_destroy(map);
+        map = stack_pop(&script->map);
+    }
+}
+
 int script_map_insert(struct script * script, struct script_range * range) {
     int status = 0;
     struct map * map;
@@ -261,16 +271,6 @@ struct script_range * script_map_search(struct script * script, char * identifie
     map = stack_top(&script->map);
 
     return map ? map_search(map, identifier) : NULL;
-}
-
-void script_map_clear(struct script * script) {
-    struct map * map;
-
-    map = stack_pop(&script->map);
-    while(map) {
-        map_destroy(map);
-        map = stack_pop(&script->map);
-    }
 }
 
 int script_logic_push(struct script * script) {
@@ -1227,27 +1227,27 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
     return status;
 }
 
-int script_constant(struct script * script, struct script_range * constant) {
+int script_constant(struct script * script, struct script_range * range) {
     int status = 0;
-    struct constant_node * node;
-    struct constant_range * range;
+    struct constant_node * constant;
+    struct constant_range * iterator;
 
-    node = constant_identifier(script->table, constant->string);
-    if(node) {
-        if(node->range) {
-            range = node->range;
-            while(range && !status) {
-                if(range_add(constant->range, range->min, range->max)) {
+    constant = constant_identifier(script->table, range->string);
+    if(constant) {
+        if(constant->range) {
+            iterator = constant->range;
+            while(iterator && !status) {
+                if(range_add(range->range, iterator->min, iterator->max)) {
                     status = panic("failed to add range object");
                 } else {
-                    range = range->next;
+                    iterator = iterator->next;
                 }
             }
-        } else if(range_add(constant->range, node->value, node->value)) {
+        } else if(range_add(range->range, constant->value, constant->value)) {
             status = panic("failed to add range object");
         }
 
-        constant->type = integer;
+        range->type = integer;
     }
 
     return status;
