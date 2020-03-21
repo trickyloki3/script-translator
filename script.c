@@ -598,7 +598,9 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
 
     struct script_range * range;
     struct script_array * array;
+
     function_cb function;
+    struct argument_node * argument;
 
     switch(root->token) {
         case script_integer:
@@ -626,10 +628,18 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                             status = panic("failed to add script array object");
                         } else {
                             function = map_search(&script->function, root->identifier);
-                            if(!function) {
-                                if(script_undef_add(&script->undef, root->identifier)) {
+                            if(function) {
+                                if(function(script, array, result))
+                                    status = panic("failed to function script object");
+                            } else {
+                                argument = argument_identifier(script->table, root->identifier);
+                                if(argument) {
+
+                                } else if(script_undef_add(&script->undef, root->identifier)) {
                                     status = panic("failed to add script undef object");
-                                } else {
+                                }
+
+                                if(!status) {
                                     range = script_range(script, identifier, "%s", root->identifier);
                                     if(!range) {
                                         status = panic("failed to range script object");
@@ -637,8 +647,6 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                                         *result = range;
                                     }
                                 }
-                            } else if(function(script, array, result)) {
-                                status = panic("failed to function script object");
                             }
                         }
                     }
