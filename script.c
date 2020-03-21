@@ -1358,7 +1358,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
 int script_constant(struct script * script, struct script_range * range) {
     int status = 0;
     struct constant_node * constant;
-    struct constant_range * iterator;
+    struct range_node * iterator;
 
     constant = constant_identifier(script->table, range->string);
     if(constant) {

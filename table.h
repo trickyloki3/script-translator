@@ -24,24 +24,18 @@ void item_destroy(struct item *);
 int item_parse(enum parser_event, int, struct string *, void *);
 int item_script_parse(struct item *, char *);
 
-struct constant_range {
-    long min;
-    long max;
-    struct constant_range * next;
-};
-
 struct constant_node {
     char * identifier;
     long value;
     char * tag;
-    struct constant_range * range;
+    struct range_node * range;
 };
 
 struct constant {
     struct store store;
     struct map identifier;
     struct constant_node * constant;
-    struct constant_range * range;
+    struct range_node * range;
 };
 
 int constant_create(struct constant *, size_t, struct heap *);
