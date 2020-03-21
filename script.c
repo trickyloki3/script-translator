@@ -649,7 +649,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                 if(range) {
                     *result = range;
                 } else {
-                    range = script_range(script, identifier, "%s", root->identifier);
+                    range = script_range(script, integer, "%s", root->identifier);
                     if(!range) {
                         status = panic("failed to range script object");
                     } else if(script_constant(script, range)) {
@@ -1366,8 +1366,6 @@ int script_constant(struct script * script, struct script_range * range) {
         } else if(range_add(range->range, constant->value, constant->value)) {
             status = panic("failed to add range object");
         }
-
-        range->type = integer;
     }
 
     return status;
