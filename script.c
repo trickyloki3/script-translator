@@ -236,7 +236,7 @@ int script_map_push(struct script * script) {
     struct map * map;
     struct map * top;
 
-    map = store_object(&script->store, sizeof(*map));
+    map = store_malloc(&script->store, sizeof(*map));
     if(!map) {
         status = panic("failed to object store object");
     } else {
@@ -299,7 +299,7 @@ int script_logic_push(struct script * script) {
     struct logic * logic;
     struct logic * top;
 
-    logic = store_object(&script->store, sizeof(*logic));
+    logic = store_malloc(&script->store, sizeof(*logic));
     if(!logic) {
         status = panic("failed to object store object");
     } else {
@@ -370,12 +370,12 @@ struct script_range * script_range(struct script * script, enum script_type type
 
     va_start(vararg, format);
 
-    range = store_object(&script->store, sizeof(*range));
+    range = store_malloc(&script->store, sizeof(*range));
     if(!range) {
         status = panic("failed to object store object");
     } else {
         range->type = type;
-        range->range = store_object(&script->store, sizeof(*range->range));
+        range->range = store_malloc(&script->store, sizeof(*range->range));
         if(!range->range) {
             status = panic("failed to object store object");
         } else {
@@ -417,7 +417,7 @@ struct script_array * script_array(struct script * script) {
     int status = 0;
     struct script_array * array;
 
-    array = store_object(&script->store, sizeof(*array) + sizeof(*array->array) * ARRAY_TOTAL);
+    array = store_malloc(&script->store, sizeof(*array) + sizeof(*array->array) * ARRAY_TOTAL);
     if(!array) {
         status = panic("failed to object store object");
     } else {

@@ -78,7 +78,7 @@ int item_parse(enum parser_event event, int mark, struct string * string, void *
     switch(mark) {
         case 1:
             if(event == start) {
-                item->item = store_object_zero(&item->store, sizeof(*item->item));
+                item->item = store_calloc(&item->store, sizeof(*item->item));
                 if(!item->item) {
                     status = panic("failed to object store object");
                 } else {
@@ -104,7 +104,7 @@ int item_parse(enum parser_event event, int mark, struct string * string, void *
                         status = panic("failed to strtol string object");
                     break;
                 case 2:
-                    item->item->name = store_char(&item->store, string->string, string->length);
+                    item->item->name = store_strcpy(&item->store, string->string, string->length);
                     if(!item->item->name)
                         status = panic("failed to char store object");
                     break;
@@ -137,17 +137,17 @@ int item_script_parse(struct item * item, char * string) {
             if(!curly) {
                 switch(index) {
                     case 0:
-                        item->item->bonus = store_char(&item->store, anchor, string - anchor + 1);
+                        item->item->bonus = store_strcpy(&item->store, anchor, string - anchor + 1);
                         if(!item->item->bonus)
                             status = panic("failed to char store object");
                         break;
                     case 1:
-                        item->item->equip = store_char(&item->store, anchor, string - anchor + 1);
+                        item->item->equip = store_strcpy(&item->store, anchor, string - anchor + 1);
                         if(!item->item->equip)
                             status = panic("failed to char store object");
                         break;
                     case 2:
-                        item->item->unequip = store_char(&item->store, anchor, string - anchor + 1);
+                        item->item->unequip = store_strcpy(&item->store, anchor, string - anchor + 1);
                         if(!item->item->unequip)
                             status = panic("failed to char store object");
                         break;
@@ -195,7 +195,7 @@ int constant_parse(enum parser_event event, int mark, struct string * string, vo
     switch(mark) {
         case 1:
             if(event == start) {
-                constant->constant = store_object_zero(&constant->store, sizeof(*constant->constant));
+                constant->constant = store_calloc(&constant->store, sizeof(*constant->constant));
                 if(!constant->constant)
                     status = panic("failed to object store object");
             } else if(event == end) {
@@ -207,7 +207,7 @@ int constant_parse(enum parser_event event, int mark, struct string * string, vo
             }
             break;
         case 2:
-            constant->constant->identifier = store_char(&constant->store, string->string, string->length);
+            constant->constant->identifier = store_strcpy(&constant->store, string->string, string->length);
             if(!constant->constant->identifier)
                 status = panic("failed to char store object");
             break;
@@ -217,13 +217,13 @@ int constant_parse(enum parser_event event, int mark, struct string * string, vo
                 status = panic("failed to strtol string object");
             break;
         case 4:
-            constant->constant->tag = store_char(&constant->store, string->string, string->length);
+            constant->constant->tag = store_strcpy(&constant->store, string->string, string->length);
             if(!constant->constant->tag)
                 status = panic("failed to char store object");
             break;
         case 6:
             if(event == start) {
-                constant->range = store_object_zero(&constant->store, sizeof(*constant->range));
+                constant->range = store_calloc(&constant->store, sizeof(*constant->range));
                 if(!constant->range)
                     status = panic("failed to object store object");
             } else if(event == end) {
@@ -278,7 +278,7 @@ int argument_parse(enum parser_event event, int mark, struct string * string, vo
     switch(mark) {
         case 1:
             if(event == start) {
-                argument->argument = store_object_zero(&argument->store, sizeof(*argument->argument));
+                argument->argument = store_calloc(&argument->store, sizeof(*argument->argument));
                 if(!argument->argument)
                     status = panic("failed to object store object");
             } else if(event == end) {
@@ -290,12 +290,12 @@ int argument_parse(enum parser_event event, int mark, struct string * string, vo
             }
             break;
         case 2:
-            argument->argument->identifier = store_char(&argument->store, string->string, string->length);
+            argument->argument->identifier = store_strcpy(&argument->store, string->string, string->length);
             if(!argument->argument->identifier)
                 status = panic("failed to char store object");
             break;
         case 3:
-            argument->argument->argument = store_char(&argument->store, string->string, string->length);
+            argument->argument->argument = store_strcpy(&argument->store, string->string, string->length);
             if(!argument->argument->argument)
                 status = panic("failed to char store object");
             break;
@@ -313,11 +313,11 @@ int argument_parse(enum parser_event event, int mark, struct string * string, vo
             }
             break;
         case 5:
-            data = store_object(&argument->store, sizeof(*data));
+            data = store_malloc(&argument->store, sizeof(*data));
             if(!data) {
                 status = panic("failed to object store object");
             } else {
-                data->string = store_char(&argument->store, string->string, string->length);
+                data->string = store_strcpy(&argument->store, string->string, string->length);
                 if(!data->string) {
                     status = panic("failed to char store object");
                 } else {
@@ -328,7 +328,7 @@ int argument_parse(enum parser_event event, int mark, struct string * string, vo
             break;
         case 7:
             if(event == start) {
-                argument->range = store_object_zero(&argument->store, sizeof(*argument->range));
+                argument->range = store_calloc(&argument->store, sizeof(*argument->range));
                 if(!argument->range)
                     status = panic("failed to object store object");
             } else if(event == end) {

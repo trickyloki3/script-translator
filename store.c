@@ -62,7 +62,7 @@ int store_alloc(struct store * store) {
     return status;
 }
 
-void * store_object(struct store * store, size_t size) {
+void * store_malloc(struct store * store, size_t size) {
     int status = 0;
     void * object = NULL;
 
@@ -80,20 +80,20 @@ void * store_object(struct store * store, size_t size) {
     return status ? NULL : object;
 }
 
-void * store_object_zero(struct store * store, size_t size) {
+void * store_calloc(struct store * store, size_t size) {
     void * object;
 
-    object = store_object(store, size);
+    object = store_malloc(store, size);
     if(object)
         memset(object, 0, size);
 
     return object;
 }
 
-char * store_char(struct store * store, char * string, size_t length) {
+char * store_strcpy(struct store * store, char * string, size_t length) {
     char * buffer;
 
-    buffer = store_object(store, length + 1);
+    buffer = store_malloc(store, length + 1);
     if(buffer) {
         memcpy(buffer, string, length);
         buffer[length] = 0;

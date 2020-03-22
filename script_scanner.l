@@ -307,7 +307,7 @@ int script_node_identifier(struct store * store, char * string, size_t length, s
     if(!node) {
         status = panic("failed to create script node object");
     } else {
-        node->identifier = store_char(store, string, length);
+        node->identifier = store_strcpy(store, string, length);
         if(!node->identifier) {
             status = panic("failed to char store object");
         } else {

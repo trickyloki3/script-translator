@@ -289,7 +289,7 @@ void yyerror(struct script * script, char const * message) {
 struct script_node * script_node_create(struct store * store, int token) {
     struct script_node * node;
 
-    node = store_object(store, sizeof(*node));
+    node = store_malloc(store, sizeof(*node));
     if(node) {
         node->token = token;
         node->identifier = NULL;
