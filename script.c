@@ -19,6 +19,7 @@ int script_logic_top_pop(struct script *);
 
 struct script_range * script_range(struct script *, enum script_type, char *, ...);
 struct script_range * script_range_constant(struct script *, struct constant_node *);
+struct script_range * script_range_variable(struct script *, char *);
 void script_range_clear(struct script *);
 
 struct script_array * script_array(struct script *);
@@ -430,6 +431,20 @@ struct script_range * script_range_constant(struct script * script, struct const
     return status ? NULL : range;
 }
 
+struct script_range * script_range_variable(struct script * script, char * variable) {
+    int status = 0;
+    struct script_range * range;
+
+    range = script_map_search(script, variable);
+    if(!range) {
+        range = script_range(script, identifier, "%s", variable);
+        if(!range)
+            status = panic("failed to range script object");
+    }
+
+    return status ? NULL : range;
+}
+
 void script_range_clear(struct script * script) {
     struct script_range * range;
 
@@ -681,25 +696,20 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                     script_array_pop(script);
                 }
             } else {
-                range = script_map_search(script, root->identifier);
-                if(range) {
-                    *result = range;
-                } else {
-                    constant = constant_identifier(script->table, root->identifier);
-                    if(constant) {
-                        range = script_range_constant(script, constant);
-                        if(!range) {
-                            status = panic("failed to constant script object");
-                        } else {
-                            *result = range;
-                        }
+                constant = constant_identifier(script->table, root->identifier);
+                if(constant) {
+                    range = script_range_constant(script, constant);
+                    if(!range) {
+                        status = panic("failed to range constant script object");
                     } else {
-                        range = script_range(script, identifier, "%s", root->identifier);
-                        if(!range) {
-                            status = panic("failed to range script object");
-                        } else {
-                            *result = range;
-                        }
+                        *result = range;
+                    }
+                } else {
+                    range = script_range_variable(script, root->identifier);
+                    if(!range) {
+                        status = panic("failed to range variable script object");
+                    } else {
+                        *result = range;
                     }
                 }
             }
