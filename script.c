@@ -18,6 +18,7 @@ int script_logic_top_push(struct script *, enum logic_type, void *);
 int script_logic_top_pop(struct script *);
 
 struct script_range * script_range(struct script *, enum script_type, char *, ...);
+struct script_range * script_range_constant(struct script *, struct constant_node *);
 void script_range_clear(struct script *);
 
 struct script_array * script_array(struct script *);
@@ -38,7 +39,6 @@ enum script_flag {
 };
 
 int script_evaluate(struct script *, struct script_node *, int, struct script_range **);
-int script_constant(struct script *, struct script_range *);
 
 int function_set(struct script *, struct script_array *, struct script_range **);
 int function_min(struct script *, struct script_array *, struct script_range **);
@@ -403,6 +403,33 @@ struct script_range * script_range(struct script * script, enum script_type type
     return status ? NULL : range;
 }
 
+struct script_range * script_range_constant(struct script * script, struct constant_node * constant) {
+    int status = 0;
+    struct script_range * range;
+    struct range_node * node;
+
+    range = script_range(script, integer, "%s", constant->tag ? constant->tag : constant->identifier);
+    if(!range) {
+        status = panic("failed to range script object");
+    } else {
+        if(constant->range) {
+            node = constant->range;
+            while(node && !status) {
+                if(range_add(range->range, node->min, node->max)) {
+                    status = panic("failed to add range object");
+                } else {
+                    node = node->next;
+                }
+            }
+        } else {
+            if(range_add(range->range, constant->value, constant->value))
+                status = panic("failed to add range object");
+        }
+    }
+
+    return status ? NULL : range;
+}
+
 void script_range_clear(struct script * script) {
     struct script_range * range;
 
@@ -601,6 +628,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
 
     function_cb function;
     struct argument_node * argument;
+    struct constant_node * constant;
 
     switch(root->token) {
         case script_integer:
@@ -657,13 +685,21 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                 if(range) {
                     *result = range;
                 } else {
-                    range = script_range(script, integer, "%s", root->identifier);
-                    if(!range) {
-                        status = panic("failed to range script object");
-                    } else if(script_constant(script, range)) {
-                        status = panic("failed to constant script object");
+                    constant = constant_identifier(script->table, root->identifier);
+                    if(constant) {
+                        range = script_range_constant(script, constant);
+                        if(!range) {
+                            status = panic("failed to constant script object");
+                        } else {
+                            *result = range;
+                        }
                     } else {
-                        *result = range;
+                        range = script_range(script, identifier, "%s", root->identifier);
+                        if(!range) {
+                            status = panic("failed to range script object");
+                        } else {
+                            *result = range;
+                        }
                     }
                 }
             }
@@ -1350,30 +1386,6 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
         default:
             status = panic("invalid token - %d", root->token);
             break;
-    }
-
-    return status;
-}
-
-int script_constant(struct script * script, struct script_range * range) {
-    int status = 0;
-    struct constant_node * constant;
-    struct range_node * iterator;
-
-    constant = constant_identifier(script->table, range->string);
-    if(constant) {
-        if(constant->range) {
-            iterator = constant->range;
-            while(iterator && !status) {
-                if(range_add(range->range, iterator->min, iterator->max)) {
-                    status = panic("failed to add range object");
-                } else {
-                    iterator = iterator->next;
-                }
-            }
-        } else if(range_add(range->range, constant->value, constant->value)) {
-            status = panic("failed to add range object");
-        }
     }
 
     return status;
