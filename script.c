@@ -40,6 +40,7 @@ enum script_flag {
 };
 
 int script_evaluate(struct script *, struct script_node *, int, struct script_range **);
+struct script_range * script_evaluate_argument(struct script *, struct script_array *, struct argument_node *);
 
 struct script_range * function_set(struct script *, struct script_array *);
 struct script_range * function_min(struct script *, struct script_array *);
@@ -59,6 +60,18 @@ struct function_entry {
     { "pow", function_pow },
     { "rand", function_rand },
     { NULL, NULL}
+};
+
+struct script_range * argument_default(struct script *, struct script_array *, struct argument_node *);
+
+typedef struct script_range * (*argument_cb) (struct script *, struct script_array *, struct argument_node *);
+
+struct argument_entry {
+    char * identifier;
+    argument_cb argument;
+} argument_array[] = {
+    { "default", argument_default },
+    { NULL, NULL }
 };
 
 int script_undef_create(struct script_undef * undef, size_t size, struct heap * heap) {
@@ -150,6 +163,9 @@ int script_create(struct script * script, size_t size, struct heap * heap, struc
                 } else if(map_create(&script->function, (map_compare_cb) strcmp, heap->map_pool)) {
                     status = panic("failed to create map object");
                     goto function_fail;
+                } else if(map_create(&script->argument, (map_compare_cb) strcmp, heap->map_pool)) {
+                    status = panic("failed to create map object");
+                    goto argument_fail;
                 } else if(script_undef_create(&script->undef, size, heap)) {
                     status = panic("failed to create script undef object");
                     goto undef_fail;
@@ -166,6 +182,8 @@ int script_create(struct script * script, size_t size, struct heap * heap, struc
 initialize_fail:
     script_undef_destroy(&script->undef);
 undef_fail:
+    map_destroy(&script->argument);
+argument_fail:
     map_destroy(&script->function);
 function_fail:
     stack_destroy(&script->array);
@@ -189,6 +207,7 @@ parser_fail:
 
 void script_destroy(struct script * script) {
     script_undef_destroy(&script->undef);
+    map_destroy(&script->argument);
     map_destroy(&script->function);
     stack_destroy(&script->array);
     stack_destroy(&script->range);
@@ -218,14 +237,24 @@ int script_compile(struct script * script, char * string) {
 
 int script_initialize(struct script * script) {
     int status = 0;
-    struct function_entry * entry;
+    struct function_entry * function;
+    struct argument_entry * argument;
 
-    entry = function_array;
-    while(entry->identifier) {
-        if(map_insert(&script->function, entry->identifier, entry->function)) {
+    function = function_array;
+    while(function->identifier) {
+        if(map_insert(&script->function, function->identifier, function->function)) {
             status = panic("failed to insert map object");
         } else {
-            entry++;
+            function++;
+        }
+    }
+
+    argument = argument_array;
+    while(argument->identifier) {
+        if(map_insert(&script->argument, argument->identifier, argument->argument)) {
+            status = panic("failed to insert map object");
+        } else {
+            argument++;
         }
     }
 
@@ -681,17 +710,22 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                             } else {
                                 argument = argument_identifier(script->table, root->identifier);
                                 if(argument) {
-
-                                } else if(script_undef_add(&script->undef, root->identifier)) {
-                                    status = panic("failed to add script undef object");
-                                }
-
-                                if(!status) {
-                                    range = script_range(script, identifier, "%s", root->identifier);
+                                    range = script_evaluate_argument(script, array, argument);
                                     if(!range) {
-                                        status = panic("failed to range script object");
+                                        status = panic("failed to evaluate argument script object");
                                     } else {
                                         *result = range;
+                                    }
+                                } else {
+                                    if(script_undef_add(&script->undef, root->identifier)) {
+                                        status = panic("failed to add script undef object");
+                                    } else {
+                                        range = script_range(script, identifier, "%s", root->identifier);
+                                        if(!range) {
+                                            status = panic("failed to range script object");
+                                        } else {
+                                            *result = range;
+                                        }
                                     }
                                 }
                             }
@@ -1405,6 +1439,23 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
     return status;
 }
 
+struct script_range * script_evaluate_argument(struct script * script, struct script_array * array, struct argument_node * argument) {
+    int status = 0;
+    argument_cb callback;
+    struct script_range * range;
+
+    callback = map_search(&script->argument, argument->argument);
+    if(!callback) {
+        status = panic("invalid argument - %s", argument->argument);
+    } else {
+        range = callback(script, array, argument);
+        if(!range)
+            status = panic("failed to argument range script object");
+    }
+
+    return status ? NULL : range;
+}
+
 struct script_range * function_set(struct script * script, struct script_array * array) {
     int status = 0;
     struct script_range * x;
@@ -1542,4 +1593,8 @@ struct script_range * function_rand(struct script * script, struct script_array 
     }
 
     return status ? NULL : range;
+}
+
+struct script_range * argument_default(struct script * script, struct script_array * array, struct argument_node * argument) {
+    return NULL;
 }

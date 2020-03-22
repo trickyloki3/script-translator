@@ -54,6 +54,7 @@ struct script {
     struct stack range;
     struct stack array;
     struct map function;
+    struct map argument;
     struct script_undef undef;
 };
 
