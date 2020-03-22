@@ -41,13 +41,13 @@ enum script_flag {
 
 int script_evaluate(struct script *, struct script_node *, int, struct script_range **);
 
-int function_set(struct script *, struct script_array *, struct script_range **);
-int function_min(struct script *, struct script_array *, struct script_range **);
-int function_max(struct script *, struct script_array *, struct script_range **);
-int function_pow(struct script *, struct script_array *, struct script_range **);
-int function_rand(struct script *, struct script_array *, struct script_range **);
+struct script_range * function_set(struct script *, struct script_array *);
+struct script_range * function_min(struct script *, struct script_array *);
+struct script_range * function_max(struct script *, struct script_array *);
+struct script_range * function_pow(struct script *, struct script_array *);
+struct script_range * function_rand(struct script *, struct script_array *);
 
-typedef int (*function_cb) (struct script *, struct script_array *, struct script_range **);
+typedef struct script_range * (*function_cb) (struct script *, struct script_array *);
 
 struct function_entry {
     char * identifier;
@@ -672,8 +672,12 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                         } else {
                             function = map_search(&script->function, root->identifier);
                             if(function) {
-                                if(function(script, array, result))
-                                    status = panic("failed to function script object");
+                                range = function(script, array);
+                                if(!range) {
+                                    status = panic("failed to function range script object");
+                                } else {
+                                    *result = range;
+                                }
                             } else {
                                 argument = argument_identifier(script->table, root->identifier);
                                 if(argument) {
@@ -1401,7 +1405,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
     return status;
 }
 
-int function_set(struct script * script, struct script_array * array, struct script_range ** result) {
+struct script_range * function_set(struct script * script, struct script_array * array) {
     int status = 0;
     struct script_range * x;
     struct script_range * y;
@@ -1424,16 +1428,14 @@ int function_set(struct script * script, struct script_array * array, struct scr
                 status = panic("failed to assign range object");
             }  else if(script_map_insert(script, range)) {
                 status = panic("failed to map insert script object");
-            } else {
-                *result = range;
             }
         }
     }
 
-    return status;
+    return status ? NULL : range;
 }
 
-int function_min(struct script * script, struct script_array * array, struct script_range ** result) {
+struct script_range * function_min(struct script * script, struct script_array * array) {
     int status = 0;
     struct script_range * x;
     struct script_range * y;
@@ -1452,16 +1454,14 @@ int function_min(struct script * script, struct script_array * array, struct scr
                 status = panic("failed to range script object");
             } else if(range_min(range->range, x->range, y->range)) {
                 status = panic("failed to add range object");
-            } else {
-                *result = range;
             }
         }
     }
 
-    return status;
+    return status ? NULL : range;
 }
 
-int function_max(struct script * script, struct script_array * array, struct script_range ** result) {
+struct script_range * function_max(struct script * script, struct script_array * array) {
     int status = 0;
     struct script_range * x;
     struct script_range * y;
@@ -1480,16 +1480,14 @@ int function_max(struct script * script, struct script_array * array, struct scr
                 status = panic("failed to range script object");
             } else if(range_max(range->range, x->range, y->range)) {
                 status = panic("failed to add range object");
-            } else {
-                *result = range;
             }
         }
     }
 
-    return status;
+    return status ? NULL : range;
 }
 
-int function_pow(struct script * script, struct script_array * array, struct script_range ** result) {
+struct script_range * function_pow(struct script * script, struct script_array * array) {
     int status = 0;
     struct script_range * x;
     struct script_range * y;
@@ -1508,16 +1506,14 @@ int function_pow(struct script * script, struct script_array * array, struct scr
                 status = panic("failed to range script object");
             } else if(range_pow(range->range, x->range, y->range)) {
                 status = panic("failed to pow range object");
-            } else {
-                *result = range;
             }
         }
     }
 
-    return status;
+    return status ? NULL : range;
 }
 
-int function_rand(struct script * script, struct script_array * array, struct script_range ** result) {
+struct script_range * function_rand(struct script * script, struct script_array * array) {
     int status = 0;
     struct script_range * x;
     struct script_range * y;
@@ -1534,8 +1530,6 @@ int function_rand(struct script * script, struct script_array * array, struct sc
                 status = panic("failed to range script object");
             } else if(range_add(range->range, 0, x->range->max - 1)) {
                 status = panic("failed to add range object");
-            } else {
-                *result = range;
             }
         } else {
             range = script_range(script, integer, "rand(%s,%s)", x->string, y->string);
@@ -1543,11 +1537,9 @@ int function_rand(struct script * script, struct script_array * array, struct sc
                 status = panic("failed to range script object");
             } else if(range_add(range->range, x->range->min, y->range->max)) {
                 status = panic("failed to add range object");
-            } else {
-                *result = range;
             }
         }
     }
 
-    return status;
+    return status ? NULL : range;
 }

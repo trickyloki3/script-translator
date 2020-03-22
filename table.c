@@ -300,7 +300,7 @@ int argument_parse(enum parser_event event, int mark, struct string * string, vo
                 status = panic("failed to char store object");
             break;
         case 4:
-            if(event = end) {
+            if(event == end) {
                 root = NULL;
                 while(argument->argument->data) {
                     data = argument->argument->data;
