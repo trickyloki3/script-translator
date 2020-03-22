@@ -29,6 +29,10 @@ struct schema_markup argument_markup[] = {
     {3, string, 3, "argument"},
     {3, list, 4, "data"},
     {4, string, 5, NULL},
+    {3, list, 6, "range"},
+    {4, map, 7, NULL},
+    {5, string, 8, "min"},
+    {5, string, 9, "max"},
     {0, 0, 0},
 };
 
@@ -267,6 +271,7 @@ int argument_parse(enum parser_event event, int mark, struct string * string, vo
 
     struct argument * argument = context;
 
+    char * last;
     struct data_node * root;
     struct data_node * data;
 
@@ -320,6 +325,26 @@ int argument_parse(enum parser_event event, int mark, struct string * string, vo
                     argument->argument->data = data;
                 }
             }
+            break;
+        case 7:
+            if(event == start) {
+                argument->range = store_object_zero(&argument->store, sizeof(*argument->range));
+                if(!argument->range)
+                    status = panic("failed to object store object");
+            } else if(event == end) {
+                argument->range->next = argument->argument->range;
+                argument->argument->range = argument->range;
+            }
+            break;
+        case 8:
+            argument->range->min = strtol(string->string, &last, 10);
+            if(*last)
+                status = panic("failed to strtol string object");
+            break;
+        case 9:
+            argument->range->max = strtol(string->string, &last, 10);
+            if(*last)
+                status = panic("failed to strtol string object");
             break;
     }
 

@@ -51,12 +51,14 @@ struct argument_node {
     char * identifier;
     char * argument;
     struct data_node * data;
+    struct range_node * range;
 };
 
 struct argument {
     struct store store;
     struct map identifier;
     struct argument_node * argument;
+    struct range_node * range;
 };
 
 int argument_create(struct argument *, size_t, struct heap *);
