@@ -35,13 +35,12 @@ struct script_array * script_array_top(struct script *);
 int script_parse(struct script *, char *);
 int script_parse_loop(struct script *, struct string *);
 
-int script_translate(struct script *, struct script_node *);
-
 enum script_flag {
     is_logic = 0x1,
     is_array = 0x2
 };
 
+int script_translate(struct script *, struct script_node *);
 int script_evaluate(struct script *, struct script_node *, int, struct script_range **);
 struct script_range * script_execute(struct script *, struct script_array *, struct argument_node *);
 
@@ -65,9 +64,9 @@ struct function_entry {
     { NULL, NULL}
 };
 
-struct script_range * argument_default(struct script *, struct script_array *, struct argument_node *);
+char * argument_default(struct script *, struct script_array *, struct data_node *);
 
-typedef struct script_range * (*argument_cb) (struct script *, struct script_array *, struct argument_node *);
+typedef char * (*argument_cb) (struct script *, struct script_array *, struct data_node *);
 
 struct argument_entry {
     char * identifier;
@@ -1520,9 +1519,14 @@ struct script_range * script_execute(struct script * script, struct script_array
     if(!callback) {
         status = panic("invalid argument - %s", argument->argument);
     } else {
-        range = callback(script, array, argument);
-        if(!range)
-            status = panic("failed to argument range script object");
+        range = script_range_argument(script, argument);
+        if(!range) {
+            status = panic("failed to range argument script object");
+        } else {
+            range->string = callback(script, array, argument->data);
+            if(!range->string)
+                status = panic("failed to range string script object");
+        }
     }
 
     return status ? NULL : range;
@@ -1665,14 +1669,6 @@ struct script_range * function_rand(struct script * script, struct script_array 
     return status ? NULL : range;
 }
 
-struct script_range * argument_default(struct script * script, struct script_array * array, struct argument_node * argument) {
-    int status = 0;
-    struct script_range * range;
-
-    range = script_range_argument(script, argument);
-    if(!range)
-        status = panic("failed to range argument script object");
-
-
-    return status ? NULL : range;
+char * argument_default(struct script * script, struct script_array * array, struct data_node * data) {
+    return NULL;
 }
