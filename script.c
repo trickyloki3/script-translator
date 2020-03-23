@@ -18,6 +18,7 @@ int script_logic_top_push(struct script *, enum logic_type, void *);
 int script_logic_top_pop(struct script *);
 
 struct script_range * script_range(struct script *, enum script_type, char *, ...);
+struct script_range * script_range_argument(struct script *, struct argument_node *);
 struct script_range * script_range_constant(struct script *, struct constant_node *);
 struct script_range * script_range_variable(struct script *, char *);
 void script_range_clear(struct script *);
@@ -42,7 +43,7 @@ enum script_flag {
 };
 
 int script_evaluate(struct script *, struct script_node *, int, struct script_range **);
-struct script_range * script_evaluate_argument(struct script *, struct script_array *, struct argument_node *);
+struct script_range * script_execute(struct script *, struct script_array *, struct argument_node *);
 
 struct script_range * function_set(struct script *, struct script_array *);
 struct script_range * function_min(struct script *, struct script_array *);
@@ -489,6 +490,21 @@ struct script_range * script_range(struct script * script, enum script_type type
     return status ? NULL : range;
 }
 
+struct script_range * script_range_argument(struct script * script, struct argument_node * argument) {
+    int status = 0;
+    struct script_range * range;
+
+    range = script_range(script, identifier, "%s", argument->identifier);
+    if(!range) {
+        status = panic("failed to range script object");
+    } else if(argument->range) {
+        if(range_add_list(range->range, argument->range))
+            status = panic("failed to add list range object");
+    }
+
+    return status ? NULL : range;
+}
+
 struct script_range * script_range_constant(struct script * script, struct constant_node * constant) {
     int status = 0;
     struct script_range * range;
@@ -766,9 +782,9 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                             } else {
                                 argument = argument_identifier(script->table, root->identifier);
                                 if(argument) {
-                                    range = script_evaluate_argument(script, array, argument);
+                                    range = script_execute(script, array, argument);
                                     if(!range) {
-                                        status = panic("failed to evaluate argument script object");
+                                        status = panic("failed to execute script object");
                                     } else {
                                         *result = range;
                                     }
@@ -1495,7 +1511,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
     return status;
 }
 
-struct script_range * script_evaluate_argument(struct script * script, struct script_array * array, struct argument_node * argument) {
+struct script_range * script_execute(struct script * script, struct script_array * array, struct argument_node * argument) {
     int status = 0;
     argument_cb callback;
     struct script_range * range;
@@ -1653,9 +1669,10 @@ struct script_range * argument_default(struct script * script, struct script_arr
     int status = 0;
     struct script_range * range;
 
-    range = script_range(script, identifier, "%s", argument->identifier);
+    range = script_range_argument(script, argument);
     if(!range)
-        status = panic("failed to range script object");
+        status = panic("failed to range argument script object");
+
 
     return status ? NULL : range;
 }
