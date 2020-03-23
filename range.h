@@ -20,6 +20,7 @@ struct range {
 int range_create(struct range *, struct pool *);
 void range_destroy(struct range *);
 int range_add(struct range *, long, long);
+int range_add_list(struct range *, struct range_node *);
 int range_remove(struct range *, long, long);
 void range_print(struct range *);
 int range_assign(struct range *, struct range *);

@@ -492,21 +492,14 @@ struct script_range * script_range(struct script * script, enum script_type type
 struct script_range * script_range_constant(struct script * script, struct constant_node * constant) {
     int status = 0;
     struct script_range * range;
-    struct range_node * node;
 
     range = script_range(script, integer, "%s", constant->tag ? constant->tag : constant->identifier);
     if(!range) {
         status = panic("failed to range script object");
     } else {
         if(constant->range) {
-            node = constant->range;
-            while(node && !status) {
-                if(range_add(range->range, node->min, node->max)) {
-                    status = panic("failed to add range object");
-                } else {
-                    node = node->next;
-                }
-            }
+            if(range_add_list(range->range, constant->range))
+                status = panic("failed to add list range object");
         } else {
             if(range_add(range->range, constant->value, constant->value))
                 status = panic("failed to add range object");
@@ -1523,7 +1516,6 @@ struct script_range * function_set(struct script * script, struct script_array *
     int status = 0;
     struct script_range * x;
     struct script_range * y;
-
     struct script_range * range;
 
     x = script_array_get(array, 0);
