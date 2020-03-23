@@ -34,6 +34,8 @@ struct script_array * script_array_top(struct script *);
 int script_parse(struct script *, char *);
 int script_parse_loop(struct script *, struct string *);
 
+int script_translate(struct script *, struct script_node *);
+
 enum script_flag {
     is_logic = 0x1,
     is_array = 0x2
@@ -73,6 +75,64 @@ struct argument_entry {
     { "default", argument_default },
     { NULL, NULL }
 };
+
+int script_buffer_create(struct script_buffer * buffer, size_t size, struct heap * heap) {
+    int status = 0;
+
+    buffer->size = size;
+    if(!buffer->size) {
+        status = panic("invalid size");
+    } else {
+        buffer->pool = heap_pool(heap, sizeof(struct strbuf));
+        if(!buffer->pool) {
+            status = panic("failed to pool heap object");
+        } else if(stack_create(&buffer->stack, heap->stack_pool)) {
+            status = panic("failed to create stack object");
+        }
+    }
+
+    return status;
+}
+
+void script_buffer_destroy(struct script_buffer * buffer) {
+    struct strbuf * strbuf;
+
+    strbuf = stack_pop(&buffer->stack);
+    while(strbuf) {
+        strbuf_destroy(strbuf);
+        pool_put(buffer->pool, strbuf);
+        strbuf = stack_pop(&buffer->stack);
+    }
+
+    stack_destroy(&buffer->stack);
+}
+
+struct strbuf * script_buffer_get(struct script_buffer * buffer) {
+    int status = 0;
+    struct strbuf * strbuf;
+
+    strbuf = stack_pop(&buffer->stack);
+    if(!strbuf) {
+        strbuf = pool_get(buffer->pool);
+        if(!strbuf) {
+            status = panic("out of memory");
+        } else {
+            if(strbuf_create(strbuf, buffer->size))
+                status = panic("failed to create strbuf object");
+            if(status)
+                pool_put(buffer->pool, strbuf);
+        }
+    }
+
+    return status ? NULL : strbuf;
+}
+
+void script_buffer_put(struct script_buffer * buffer, struct strbuf * strbuf) {
+    if(stack_push(&buffer->stack, strbuf)) {
+        strbuf_destroy(strbuf);
+        pool_put(buffer->pool, strbuf);
+    }
+}
 
 int script_undef_create(struct script_undef * undef, size_t size, struct heap * heap) {
     int status = 0;
@@ -115,7 +175,7 @@ void script_undef_print(struct script_undef * undef) {
 
     kv = map_start(&undef->map);
     while(kv.key) {
-        fprintf(stdout, "%s ", kv.key);
+        fprintf(stdout, "%s ", (char *) kv.key);
         kv = map_next(&undef->map);
     }
 }
@@ -1456,7 +1516,6 @@ struct script_range * function_set(struct script * script, struct script_array *
     struct script_range * x;
     struct script_range * y;
 
-    struct map * map;
     struct script_range * range;
 
     x = script_array_get(array, 0);

@@ -32,6 +32,17 @@ struct script_array {
     size_t total;
 };
 
+struct script_buffer {
+    size_t size;
+    struct pool * pool;
+    struct stack stack;
+};
+
+int script_buffer_create(struct script_buffer *, size_t, struct heap *);
+void script_buffer_destroy(struct script_buffer *);
+struct strbuf * script_buffer_get(struct script_buffer *);
+void script_buffer_put(struct script_buffer *, struct strbuf *);
+
 struct script_undef {
     struct store store;
     struct map map;
