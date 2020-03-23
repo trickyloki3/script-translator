@@ -33,7 +33,7 @@ struct script_array {
 };
 
 struct script_undef {
-    struct strbuf strbuf;
+    struct store store;
     struct map map;
 };
 

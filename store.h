@@ -21,6 +21,7 @@ void store_clear(struct store *);
 void * store_malloc(struct store *, size_t);
 void * store_calloc(struct store *, size_t);
 char * store_strcpy(struct store *, char *, size_t);
+char * store_printf(struct store *, char *, ...);
 char * store_vprintf(struct store *, char *, va_list);
 
 #endif

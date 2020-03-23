@@ -77,13 +77,13 @@ struct argument_entry {
 int script_undef_create(struct script_undef * undef, size_t size, struct heap * heap) {
     int status = 0;
 
-    if(strbuf_create(&undef->strbuf, size)) {
-        status = panic("failed to create strbuf object");
+    if(store_create(&undef->store, size)) {
+        status = panic("failed to create store object");
     } else {
         if(map_create(&undef->map, (map_compare_cb) strcmp, heap->map_pool))
             status = panic("failed to create map object");
         if(status)
-            strbuf_destroy(&undef->strbuf);
+            store_destroy(&undef->store);
     }
 
     return status;
@@ -91,7 +91,7 @@ int script_undef_create(struct script_undef * undef, size_t size, struct heap * 
 
 void script_undef_destroy(struct script_undef * undef) {
     map_destroy(&undef->map);
-    strbuf_destroy(&undef->strbuf);
+    store_destroy(&undef->store);
 }
 
 int script_undef_add(struct script_undef * undef, char * identifier) {
@@ -99,15 +99,11 @@ int script_undef_add(struct script_undef * undef, char * identifier) {
     char * string;
 
     if(!map_search(&undef->map, identifier)) {
-        if(strbuf_printf(&undef->strbuf, "%s", identifier)) {
-            status = panic("failed to printf strbuf object");
-        } else {
-            string = strbuf_char(&undef->strbuf);
-            if(!string) {
-                status = panic("failed to char strbuf object");
-            } else if(map_insert(&undef->map, string, string)) {
-                status = panic("failed to insert map object");
-            }
+        string = store_printf(&undef->store, "%s", identifier);
+        if(!string) {
+            status = panic("failed to printf store object");
+        } else if(map_insert(&undef->map, string, string)) {
+            status = panic("failed to insert map object");
         }
     }
 
