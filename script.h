@@ -56,11 +56,11 @@ struct script {
     struct map function;
     struct map argument;
     struct script_undef undef;
+    struct script_node * root;
 };
 
 int script_create(struct script *, size_t, struct heap *, struct table *);
 void script_destroy(struct script *);
 int script_compile(struct script *, char *);
-int script_translate(struct script *, struct script_node *);
 
 #endif

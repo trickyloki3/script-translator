@@ -222,8 +222,11 @@ void script_destroy(struct script * script) {
 int script_compile(struct script * script, char * string) {
     int status = 0;
 
-    if(script_parse(script, string))
+    if(script_parse(script, string)) {
         status = panic("failed to parse script object");
+    } else if(script_translate(script, script->root)) {
+        status = panic("failed to translate script object");
+    }
 
     script_array_clear(script);
     script_range_clear(script);

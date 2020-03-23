@@ -59,8 +59,7 @@ void yyerror(struct script *, char const *);
 %%
 
 script  : statement_block {
-              if(script_translate(script, $1))
-                  YYABORT;
+              script->root = $$;
           }
 
 statement_block : statement {
