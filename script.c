@@ -415,15 +415,11 @@ struct script_range * script_range(struct script * script, enum script_type type
             if(range_create(range->range, script->heap->range_pool)) {
                 status = panic("failed to create range object");
             } else {
-                if(strbuf_vprintf(&script->strbuf, format, vararg)) {
-                    status = panic("failed to vprintf strbuf object");
-                } else {
-                    range->string = strbuf_char(&script->strbuf);
-                    if(!range->string) {
-                        status = panic("failed to string strbuf object");
-                    } else if(stack_push(&script->range, range)) {
-                        status = panic("failed to push stack object");
-                    }
+                range->string = store_vprintf(&script->store, format, vararg);
+                if(!range->string) {
+                    status = panic("failed to vprintf store object");
+                } else if(stack_push(&script->range, range)) {
+                    status = panic("failed to push stack object");
                 }
                 if(status)
                     range_destroy(range->range);
@@ -1599,5 +1595,12 @@ struct script_range * function_rand(struct script * script, struct script_array 
 }
 
 struct script_range * argument_default(struct script * script, struct script_array * array, struct argument_node * argument) {
-    return NULL;
+    int status = 0;
+    struct script_range * range;
+
+    range = script_range(script, identifier, "%s", argument->identifier);
+    if(!range)
+        status = panic("failed to range script object");
+
+    return status ? NULL : range;
 }

@@ -101,3 +101,43 @@ char * store_strcpy(struct store * store, char * string, size_t length) {
 
     return buffer;
 }
+
+char * store_vprintf(struct store * store, char * format, va_list vararg) {
+    int status = 0;
+
+    int result;
+    char * string;
+    va_list varcpy;
+
+    va_copy(varcpy, vararg);
+
+    if(!store->root && store_alloc(store)) {
+        status = panic("out of memory");
+    } else {
+        result = vsnprintf(store->root->pos, store->root->end - store->root->pos, format, vararg);
+        if(0 > result) {
+            status = panic("failed vsnprintf");
+        } else if(store->root->end - store->root->pos < result + 1) {
+            if(store_alloc(store)) {
+                status = panic("out of memory");
+            } else {
+                result = vsnprintf(store->root->pos, store->root->end - store->root->pos, format, varcpy);
+                if(0 > result) {
+                    status = panic("failed vsnprintf");
+                } else if(store->root->end - store->root->pos < result + 1) {
+                    status = panic("out of memory");
+                } else {
+                    string = store->root->pos;
+                    store->root->pos += result + 1;
+                }
+            }
+        } else {
+            string = store->root->pos;
+            store->root->pos += result + 1;
+        }
+    }
+
+    va_end(varcpy);
+
+    return status ? NULL : string;
+}
