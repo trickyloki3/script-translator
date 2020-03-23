@@ -128,6 +128,8 @@ struct strbuf * script_buffer_get(struct script_buffer * buffer) {
 }
 
 void script_buffer_put(struct script_buffer * buffer, struct strbuf * strbuf) {
+    strbuf_clear(strbuf);
+
     if(stack_push(&buffer->stack, strbuf)) {
         strbuf_destroy(strbuf);
         pool_put(buffer->pool, strbuf);
@@ -201,9 +203,6 @@ int script_create(struct script * script, size_t size, struct heap * heap, struc
                 } else if(store_create(&script->store, size)) {
                     status = panic("failed to create store object");
                     goto store_fail;
-                } else if(strbuf_create(&script->strbuf, size)) {
-                    status = panic("failed to create strbuf object");
-                    goto strbuf_fail;
                 } else if(stack_create(&script->map, heap->stack_pool)) {
                     status = panic("failed to create stack object");
                     goto map_fail;
@@ -222,6 +221,9 @@ int script_create(struct script * script, size_t size, struct heap * heap, struc
                 } else if(map_create(&script->argument, (map_compare_cb) strcmp, heap->map_pool)) {
                     status = panic("failed to create map object");
                     goto argument_fail;
+                } else if(script_buffer_create(&script->buffer, size, heap)) {
+                    status = panic("failed to create script buffer object");
+                    goto buffer_fail;
                 } else if(script_undef_create(&script->undef, size, heap)) {
                     status = panic("failed to create script undef object");
                     goto undef_fail;
@@ -238,6 +240,8 @@ int script_create(struct script * script, size_t size, struct heap * heap, struc
 initialize_fail:
     script_undef_destroy(&script->undef);
 undef_fail:
+    script_buffer_destroy(&script->buffer);
+buffer_fail:
     map_destroy(&script->argument);
 argument_fail:
     map_destroy(&script->function);
@@ -250,8 +254,6 @@ range_fail:
 logic_fail:
     stack_destroy(&script->map);
 map_fail:
-    strbuf_destroy(&script->strbuf);
-strbuf_fail:
     store_destroy(&script->store);
 store_fail:
     scriptpstate_delete(script->parser);
@@ -263,13 +265,13 @@ parser_fail:
 
 void script_destroy(struct script * script) {
     script_undef_destroy(&script->undef);
+    script_buffer_destroy(&script->buffer);
     map_destroy(&script->argument);
     map_destroy(&script->function);
     stack_destroy(&script->array);
     stack_destroy(&script->range);
     stack_destroy(&script->logic);
     stack_destroy(&script->map);
-    strbuf_destroy(&script->strbuf);
     store_destroy(&script->store);
     scriptpstate_delete(script->parser);
     scriptlex_destroy(script->scanner);
@@ -288,7 +290,6 @@ int script_compile(struct script * script, char * string) {
     script_range_clear(script);
     script_logic_clear(script);
     script_map_clear(script);
-    strbuf_clear(&script->strbuf);
     store_clear(&script->store);
 
     return status;
@@ -600,19 +601,26 @@ struct script_array * script_array_top(struct script * script) {
 
 int script_parse(struct script * script, char * string) {
     int status = 0;
+    struct strbuf * strbuf;
     struct string * buffer;
 
-    if(strbuf_printf(&script->strbuf, "%s", string)) {
-        status = panic("failed to printf strbuf object");
-    } else if(strbuf_putcn(&script->strbuf, '\0', 2)) {
-        status = panic("failed to putcn strbuf object");
+    strbuf = script_buffer_get(&script->buffer);
+    if(!strbuf) {
+        status = panic("failed to get script buffer object");
     } else {
-        buffer = strbuf_string(&script->strbuf);
-        if(!buffer) {
-            status = panic("failed to string strbuf object");
-        } else if(script_parse_loop(script, buffer)) {
-            status = panic("failed to parse loop script object");
+        if(strbuf_printf(strbuf, "%s", string)) {
+            status = panic("failed to printf strbuf object");
+        } else if(strbuf_putcn(strbuf, '\0', 2)) {
+            status = panic("failed to putcn strbuf object");
+        } else {
+            buffer = strbuf_string(strbuf);
+            if(!buffer) {
+                status = panic("failed to string strbuf object");
+            } else if(script_parse_loop(script, buffer)) {
+                status = panic("failed to parse loop script object");
+            }
         }
+        script_buffer_put(&script->buffer, strbuf);
     }
 
     return status;

@@ -59,13 +59,13 @@ struct script {
     void * scanner;
     void * parser;
     struct store store;
-    struct strbuf strbuf;
     struct stack map;
     struct stack logic;
     struct stack range;
     struct stack array;
     struct map function;
     struct map argument;
+    struct script_buffer buffer;
     struct script_undef undef;
     struct script_node * root;
 };
