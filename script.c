@@ -67,10 +67,10 @@ struct function_entry {
 };
 
 int argument_write(struct script *, struct script_array *, struct strbuf *, char *);
-char * argument_default(struct script *, struct script_array *, struct data_node *);
-char * argument_signed(struct script *, struct script_array *, struct data_node *);
+int argument_default(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
+int argument_signed(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
 
-typedef char * (*argument_cb) (struct script *, struct script_array *, struct data_node *);
+typedef int (*argument_cb) (struct script *, struct script_array *, struct argument_node *, struct strbuf *);
 
 struct argument_entry {
     char * identifier;
@@ -1536,6 +1536,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
 struct script_range * script_execute(struct script * script, struct script_array * array, struct argument_node * argument) {
     int status = 0;
     argument_cb callback;
+    struct strbuf * strbuf;
     struct script_range * range;
 
     callback = map_search(&script->argument, argument->argument);
@@ -1546,9 +1547,19 @@ struct script_range * script_execute(struct script * script, struct script_array
         if(!range) {
             status = panic("failed to range argument script object");
         } else {
-            range->string = callback(script, array, argument->data);
-            if(!range->string)
-                status = panic("failed to range string script object");
+            strbuf = script_buffer_get(&script->buffer);
+            if(!strbuf) {
+                status = panic("failed to get script buffer object");
+            } else {
+                if(callback(script, array, argument, strbuf)) {
+                    status = panic("failed to execute argument object");
+                } else {
+                    range->string = script_store_strbuf(script, strbuf);
+                    if(!range->string)
+                        status = panic("failed to range string script object");
+                }
+                script_buffer_put(&script->buffer, strbuf);
+            }
         }
     }
 
@@ -1719,7 +1730,7 @@ int argument_write(struct script * script, struct script_array * array, struct s
                 } while(*string == ',' && !status);
 
                 if(*string != '|') {
-                    status = panic("expected colon");
+                    status = panic("expected vertical bar");
                 } else {
                     anchor = string + 1;
                     string = strchr(string, '}');
@@ -1741,13 +1752,14 @@ int argument_write(struct script * script, struct script_array * array, struct s
                             } else {
 
                             }
-                            anchor = string + 1;
+                            anchor = ++string;
                         }
                     }
                 }
             }
+        } else {
+            string++;
         }
-        string++;
     }
 
     if(!status)
@@ -1757,66 +1769,45 @@ int argument_write(struct script * script, struct script_array * array, struct s
     return status;
 }
 
-char * argument_default(struct script * script, struct script_array * array, struct data_node * data) {
+int argument_default(struct script * script, struct script_array * array, struct argument_node * argument, struct strbuf * strbuf) {
     int status = 0;
+    struct data_node * data;
 
-    char * string;
-    struct strbuf * strbuf;
-
-    strbuf = script_buffer_get(&script->buffer);
-    if(!strbuf) {
-        status = panic("failed to get script buffer object");
-    } else {
-        while(data && !status) {
-            if(argument_write(script, array, strbuf, data->string)) {
-                status = panic("failed to parse argument object");
-            } else {
-                data = data->next;
-            }
+    data = argument->data;
+    while(data && !status) {
+        if(argument_write(script, array, strbuf, data->string)) {
+            status = panic("failed to parse argument object");
+        } else {
+            data = data->next;
         }
-
-        if(!status) {
-            string = script_store_strbuf(script, strbuf);
-            if(!string)
-                status = panic("failed to store strbuf script object");
-        }
-
-        script_buffer_put(&script->buffer, strbuf);
     }
 
-    return status ? NULL : string;
+    return status;
 }
 
-char * argument_signed(struct script * script, struct script_array * array, struct data_node * data) {
+int argument_signed(struct script * script, struct script_array * array, struct argument_node * argument, struct strbuf * strbuf) {
     int status = 0;
-
-    char * string;
-    struct strbuf * strbuf;
+    struct data_node * data;
     struct script_range * range;
 
-    strbuf = script_buffer_get(&script->buffer);
-    if(!strbuf) {
-        status = panic("failed to get script buffer object");
+    range = script_array_get(array, 0);
+    if(!range) {
+        status = panic("failed to get script array object");
     } else {
-        range = script_array_get(array, 0);
-        if(!range) {
-            status = panic("failed to get script array object");
+        if(!argument->data) {
+            status = panic("invalid data");
         } else {
-            if(data && range->range->max < 0)
+            data = argument->data;
+            if(range->range->max < 0)
                 data = data->next;
 
             if(!data) {
                 status = panic("invalid data");
             } else if(argument_write(script, array, strbuf, data->string)) {
                 status = panic("failed to write argument object");
-            } else {
-                string = script_store_strbuf(script, strbuf);
-                if(!string)
-                    status = panic("failed to store strbuf script object");
             }
         }
-        script_buffer_put(&script->buffer, strbuf);
     }
 
-    return status ? NULL : string;
+    return status;
 }
