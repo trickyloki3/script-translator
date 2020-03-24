@@ -67,8 +67,8 @@ struct function_entry {
 };
 
 int argument_write(struct script *, struct script_array *, struct strbuf *, char *);
-int argument_default(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
-int argument_signed(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
+int argument_list(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
+int argument_sign(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
 
 typedef int (*argument_cb) (struct script *, struct script_array *, struct argument_node *, struct strbuf *);
 
@@ -76,8 +76,8 @@ struct argument_entry {
     char * identifier;
     argument_cb argument;
 } argument_array[] = {
-    { "default", argument_default },
-    { "signed", argument_signed },
+    { "list", argument_list },
+    { "sign", argument_sign },
     { NULL, NULL }
 };
 
@@ -1769,7 +1769,7 @@ int argument_write(struct script * script, struct script_array * array, struct s
     return status;
 }
 
-int argument_default(struct script * script, struct script_array * array, struct argument_node * argument, struct strbuf * strbuf) {
+int argument_list(struct script * script, struct script_array * array, struct argument_node * argument, struct strbuf * strbuf) {
     int status = 0;
     struct data_node * data;
 
@@ -1785,7 +1785,7 @@ int argument_default(struct script * script, struct script_array * array, struct
     return status;
 }
 
-int argument_signed(struct script * script, struct script_array * array, struct argument_node * argument, struct strbuf * strbuf) {
+int argument_sign(struct script * script, struct script_array * array, struct argument_node * argument, struct strbuf * strbuf) {
     int status = 0;
     struct data_node * data;
     struct script_range * range;
