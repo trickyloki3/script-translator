@@ -69,6 +69,8 @@ struct function_entry {
 int argument_write(struct script *, struct script_array *, struct strbuf *, char *);
 int argument_list(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
 int argument_sign(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
+int argument_zero(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
+int argument_integer(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
 
 typedef int (*argument_cb) (struct script *, struct script_array *, struct argument_node *, struct strbuf *);
 
@@ -78,6 +80,8 @@ struct argument_entry {
 } argument_array[] = {
     { "list", argument_list },
     { "sign", argument_sign },
+    { "zero", argument_zero },
+    { "integer", argument_integer },
     { NULL, NULL }
 };
 
@@ -1710,6 +1714,7 @@ int argument_write(struct script * script, struct script_array * array, struct s
     struct script_range * range;
     struct script_array * subset;
     struct argument_node * argument;
+    argument_cb callback;
 
     anchor = string;
     while(*string && !status) {
@@ -1750,7 +1755,12 @@ int argument_write(struct script * script, struct script_array * array, struct s
                                     status = panic("failed to printf strbuf object");
                                 }
                             } else {
-
+                                callback = map_search(&script->argument, anchor);
+                                if(!callback) {
+                                    status = panic("invalid argument - %s", anchor);
+                                } else if(callback(script, array, argument, strbuf)) {
+                                    status = panic("failed to execute argument object");
+                                }
                             }
                             anchor = ++string;
                         }
@@ -1806,6 +1816,45 @@ int argument_sign(struct script * script, struct script_array * array, struct ar
             } else if(argument_write(script, array, strbuf, data->string)) {
                 status = panic("failed to write argument object");
             }
+        }
+    }
+
+    return status;
+}
+
+int argument_zero(struct script * script, struct script_array * array, struct argument_node * argument, struct strbuf * strbuf) {
+    int status = 0;
+    struct script_range * range;
+
+    if(!argument->data) {
+        status = panic("invalid data");
+    } else {
+        range = script_array_get(array, 0);
+        if(!range) {
+            status = panic("failed to get script array object");
+        } else if(range->range->min && range->range->max) {
+            if(argument_write(script, array, strbuf, argument->data->string))
+                status = panic("failed to write argument object");
+        }
+    }
+
+    return status;
+}
+
+int argument_integer(struct script * script, struct script_array * array, struct argument_node * argument, struct strbuf * strbuf) {
+    int status = 0;
+    struct script_range * range;
+
+    range = script_array_get(array, 0);
+    if(!range) {
+        status = panic("failed to get script array object");
+    } else {
+        if(range->range->min == range->range->max) {
+            if(strbuf_printf(strbuf, "%ld", range->range->min))
+                status = panic("failed to printf strbuf object");
+        } else {
+            if(strbuf_printf(strbuf, "%ld ~ %ld", range->range->min, range->range->max))
+                status = panic("failed to printf strbuf object");
         }
     }
 
