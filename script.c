@@ -832,20 +832,30 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                     script_array_pop(script);
                 }
             } else {
-                constant = constant_identifier(script->table, root->identifier);
-                if(constant) {
-                    range = script_range_constant(script, constant);
+                argument = argument_identifier(script->table, root->identifier);
+                if(argument) {
+                    range = script_execute(script, array, argument);
                     if(!range) {
-                        status = panic("failed to range constant script object");
+                        status = panic("failed to execute script object");
                     } else {
                         *result = range;
                     }
                 } else {
-                    range = script_range_variable(script, root->identifier);
-                    if(!range) {
-                        status = panic("failed to range variable script object");
+                    constant = constant_identifier(script->table, root->identifier);
+                    if(constant) {
+                        range = script_range_constant(script, constant);
+                        if(!range) {
+                            status = panic("failed to range constant script object");
+                        } else {
+                            *result = range;
+                        }
                     } else {
-                        *result = range;
+                        range = script_range_variable(script, root->identifier);
+                        if(!range) {
+                            status = panic("failed to range variable script object");
+                        } else {
+                            *result = range;
+                        }
                     }
                 }
             }
