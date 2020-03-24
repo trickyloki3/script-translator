@@ -32,6 +32,8 @@ void script_array_pop(struct script *);
 void script_array_clear(struct script *);
 struct script_array * script_array_top(struct script *);
 
+char * script_store_strbuf(struct script *, struct strbuf *);
+
 int script_parse(struct script *, char *);
 int script_parse_loop(struct script *, struct string *);
 
@@ -605,6 +607,24 @@ void script_array_clear(struct script * script) {
 
 struct script_array * script_array_top(struct script * script) {
     return stack_top(&script->array);
+}
+
+char * script_store_strbuf(struct script * script, struct strbuf * strbuf) {
+    int status = 0;
+
+    char * result;
+    struct string * string;
+
+    string = strbuf_string(strbuf);
+    if(!string) {
+        status = panic("failed to string strbuf object");
+    } else {
+        result = store_strcpy(&script->store, string->string, string->length);
+        if(!result)
+            status = panic("failed to strcpy store object");
+    }
+
+    return status ? NULL : result;
 }
 
 int script_parse(struct script * script, char * string) {
@@ -1670,5 +1690,28 @@ struct script_range * function_rand(struct script * script, struct script_array 
 }
 
 char * argument_default(struct script * script, struct script_array * array, struct data_node * data) {
-    return NULL;
+    int status = 0;
+    char * string;
+    struct strbuf * strbuf;
+
+    strbuf = script_buffer_get(&script->buffer);
+    if(!strbuf) {
+        status = panic("failed to get script buffer object");
+    } else {
+        while(data && !status) {
+
+            data = data->next;
+        }
+
+        if(!status) {
+            string = script_store_strbuf(script, strbuf);
+            if(!string)
+                status = panic("failed to store strbuf script object");
+        }
+
+        script_buffer_put(&script->buffer, strbuf);
+    }
+
+
+    return status ? NULL : string;
 }
