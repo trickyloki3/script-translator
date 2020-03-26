@@ -52,6 +52,7 @@ struct argument_node {
     char * argument;
     struct data_node * data;
     struct range_node * range;
+    long newline;
 };
 
 struct argument {

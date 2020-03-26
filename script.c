@@ -1825,6 +1825,9 @@ int argument_sign(struct script * script, struct script_array * array, struct ar
                 status = panic("invalid data");
             } else if(argument_write(script, array, strbuf, data->string)) {
                 status = panic("failed to write argument object");
+            } else if(argument->newline) {
+                if(strbuf_putcn(strbuf, '\n', argument->newline))
+                    status = panic("failed to putcn strbuf object");
             }
         }
     }
@@ -1843,8 +1846,12 @@ int argument_zero(struct script * script, struct script_array * array, struct ar
         if(!range) {
             status = panic("failed to get script array object");
         } else if(range->range->min && range->range->max) {
-            if(argument_write(script, array, strbuf, argument->data->string))
+            if(argument_write(script, array, strbuf, argument->data->string)) {
                 status = panic("failed to write argument object");
+            } else if(argument->newline) {
+                if(strbuf_putcn(strbuf, '\n', argument->newline))
+                    status = panic("failed to putcn strbuf object");
+            }
         }
     }
 

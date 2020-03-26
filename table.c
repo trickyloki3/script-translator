@@ -33,6 +33,7 @@ struct schema_markup argument_markup[] = {
     {4, map, 7, NULL},
     {5, string, 8, "min"},
     {5, string, 9, "max"},
+    {3, string, 10, "newline"},
     {0, 0, 0},
 };
 
@@ -343,6 +344,11 @@ int argument_parse(enum parser_event event, int mark, struct string * string, vo
             break;
         case 9:
             argument->range->max = strtol(string->string, &last, 10);
+            if(*last)
+                status = panic("failed to strtol string object");
+            break;
+        case 10:
+            argument->argument->newline = strtol(string->string, &last, 10);
             if(*last)
                 status = panic("failed to strtol string object");
             break;
