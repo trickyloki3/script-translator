@@ -72,6 +72,7 @@ int argument_sign(struct script *, struct script_array *, struct argument_node *
 int argument_zero(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
 int argument_integer(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
 int argument_percent(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
+int argument_item(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
 
 typedef int (*argument_cb) (struct script *, struct script_array *, struct argument_node *, struct strbuf *);
 
@@ -84,6 +85,7 @@ struct argument_entry {
     { "zero", argument_zero },
     { "integer", argument_integer },
     { "percent", argument_percent },
+    { "item", argument_item },
     { NULL, NULL }
 };
 
@@ -1770,7 +1772,7 @@ int argument_write(struct script * script, struct script_array * array, struct s
                                 callback = map_search(&script->argument, anchor);
                                 if(!callback) {
                                     status = panic("invalid argument - %s", anchor);
-                                } else if(callback(script, array, argument, strbuf)) {
+                                } else if(callback(script, subset, argument, strbuf)) {
                                     status = panic("failed to execute argument object");
                                 }
                             }
@@ -1894,6 +1896,35 @@ int argument_percent(struct script * script, struct script_array * array, struct
         } else {
             if(strbuf_printf(strbuf, "%ld%% ~ %ld%%", range->range->min, range->range->max))
                 status = panic("failed to printf strbuf object");
+        }
+    }
+
+    return status;
+}
+
+int argument_item(struct script * script, struct script_array * array, struct argument_node * argument, struct strbuf * strbuf) {
+    int status = 0;
+    struct script_range * range;
+    struct range_node * node;
+
+    long i;
+    struct item_node * item;
+
+    range = script_array_get(array, 0);
+    if(!range) {
+        status = panic("failed to get script array object");
+    } else {
+        node = range->range->root;
+        while(node && !status) {
+            for(i = node->min; i <= node->max && !status; i++) {
+                item = item_id(script->table, i);
+                if(!item) {
+                    status = panic("invalid item id - %ld", i);
+                } else if(strbuf_printf(strbuf, "%s", item->name)) {
+                    status = panic("failed to printf strbuf object");
+                }
+            }
+            node = node->next;
         }
     }
 
