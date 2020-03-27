@@ -51,6 +51,7 @@ struct script_range * function_min(struct script *, struct script_array *);
 struct script_range * function_max(struct script *, struct script_array *);
 struct script_range * function_pow(struct script *, struct script_array *);
 struct script_range * function_rand(struct script *, struct script_array *);
+struct script_range * function_first(struct script *, struct script_array *);
 
 typedef struct script_range * (*function_cb) (struct script *, struct script_array *);
 
@@ -63,6 +64,10 @@ struct function_entry {
     { "max", function_max },
     { "pow", function_pow },
     { "rand", function_rand },
+    { "gettime", function_first },
+    { "readparam", function_first },
+    { "getequipid", function_first },
+    { "vip_status", function_first },
     { NULL, NULL}
 };
 
@@ -1722,6 +1727,10 @@ struct script_range * function_rand(struct script * script, struct script_array 
     }
 
     return status ? NULL : range;
+}
+
+struct script_range * function_first(struct script * script, struct script_array * array) {
+    return script_array_get(array, 0);
 }
 
 int argument_write(struct script * script, struct script_array * array, struct strbuf * strbuf, char * string) {
