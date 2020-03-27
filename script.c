@@ -70,8 +70,10 @@ int argument_write(struct script *, struct script_array *, struct strbuf *, char
 int argument_list(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
 int argument_sign(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
 int argument_zero(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
+int argument_string(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
 int argument_integer(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
 int argument_percent(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
+
 int argument_item(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
 
 typedef int (*argument_cb) (struct script *, struct script_array *, struct argument_node *, struct strbuf *);
@@ -83,6 +85,7 @@ struct argument_entry {
     { "list", argument_list },
     { "sign", argument_sign },
     { "zero", argument_zero },
+    { "string", argument_string },
     { "integer", argument_integer },
     { "percent", argument_percent },
     { "item", argument_item },
@@ -1857,6 +1860,20 @@ int argument_zero(struct script * script, struct script_array * array, struct ar
                 status = panic("failed to putcn strbuf object");
             }
         }
+    }
+
+    return status;
+}
+
+int argument_string(struct script * script, struct script_array * array, struct argument_node * argument, struct strbuf * strbuf) {
+    int status = 0;
+    struct script_range * range;
+
+    range = script_array_get(array, 0);
+    if(!range) {
+        status = panic("failed to get script array object");
+    } else if(strbuf_printf(strbuf, "%s", range->string)) {
+        status = panic("failed to printf strbuf object");
     }
 
     return status;
