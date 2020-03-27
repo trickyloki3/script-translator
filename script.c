@@ -846,7 +846,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
             } else {
                 argument = argument_identifier(script->table, root->identifier);
                 if(argument) {
-                    range = script_execute(script, array, argument);
+                    range = script_execute(script, NULL, argument);
                     if(!range) {
                         status = panic("failed to execute script object");
                     } else {
