@@ -1745,22 +1745,31 @@ int argument_write(struct script * script, struct script_array * array, struct s
     anchor = string;
     while(*string && !status) {
         if(*string == '{') {
-            subset = script_array(script);
-            if(!subset) {
-                status = panic("failed to array script object");
-            } else if(strbuf_strcpy(strbuf, anchor, string - anchor)) {
+            if(strbuf_strcpy(strbuf, anchor, string - anchor)) {
                 status = panic("failed to strcpy strbuf object");
             } else {
-                do {
-                    range = script_array_get(array, strtol(string + 1, &string, 10));
-                    if(!range) {
-                        status = panic("failed to get script array object");
-                    } else if(script_array_add(subset, range)) {
-                        status = panic("failed to add script array object");
+                if(*(string + 1) == '*') {
+                    subset = array;
+                    string += 2;
+                } else {
+                    subset = script_array(script);
+                    if(!subset) {
+                        status = panic("failed to array script object");
+                    } else {
+                        do {
+                            range = script_array_get(array, strtol(string + 1, &string, 10));
+                            if(!range) {
+                                status = panic("failed to get script array object");
+                            } else if(script_array_add(subset, range)) {
+                                status = panic("failed to add script array object");
+                            }
+                        } while(*string == ',' && !status);
                     }
-                } while(*string == ',' && !status);
+                }
 
-                if(*string != '|') {
+                if(status) {
+                    /* error */
+                } else if(*string != '|') {
                     status = panic("expected vertical bar");
                 } else {
                     anchor = string + 1;
@@ -1930,27 +1939,37 @@ int argument_percent(struct script * script, struct script_array * array, struct
 
 int argument_item(struct script * script, struct script_array * array, struct argument_node * argument, struct strbuf * strbuf) {
     int status = 0;
-    struct script_range * range;
-    struct range_node * node;
 
-    long i;
+    size_t i;
+    struct script_range * range;
+
+    long j;
+    struct range_node * node;
     struct item_node * item;
 
-    range = script_array_get(array, 0);
-    if(!range) {
-        status = panic("failed to get script array object");
-    } else {
-        node = range->range->root;
-        while(node && !status) {
-            for(i = node->min; i <= node->max && !status; i++) {
-                item = item_id(script->table, i);
-                if(!item) {
-                    status = panic("invalid item id - %ld", i);
-                } else if(strbuf_printf(strbuf, "%s", item->name)) {
-                    status = panic("failed to printf strbuf object");
+    for(i = 0; i < array->count && !status; i++) {
+        range = script_array_get(array, i);
+        if(!range) {
+            status = panic("failed to get script array object");
+        } else {
+            node = range->range->root;
+            while(node && !status) {
+                for(j = node->min; j <= node->max && !status; j++) {
+                    item = item_id(script->table, j);
+                    if(!item) {
+                        status = panic("invalid item id - %ld", j);
+                    } else {
+                        if(!i && j == node->min) {
+                            if(strbuf_printf(strbuf, "%s", item->name))
+                                status = panic("failed to printf strbuf object");
+                        } else {
+                            if(strbuf_printf(strbuf, ", %s", item->name))
+                                status = panic("failed to printf strbuf object");
+                        }
+                    }
                 }
+                node = node->next;
             }
-            node = node->next;
         }
     }
 
