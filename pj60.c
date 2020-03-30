@@ -1,7 +1,13 @@
 #include "yaml.h"
 
+enum type {
+    list = 0x1,
+    map = 0x2,
+    str = 0x4
+};
+
 struct node {
-    enum event_type type;
+    enum type type;
     struct node * list;
     struct map * map;
     struct node * next;
@@ -15,7 +21,7 @@ struct data {
     char * key;
 };
 
-struct node * node_create(struct data *, enum event_type);
+struct node * node_create(struct data *, enum type);
 void node_destroy(struct node *);
 void node_print(struct node *, int, char *);
 
@@ -65,7 +71,7 @@ int main(int argc, char ** argv) {
     return status;
 }
 
-struct node * node_create(struct data * data, enum event_type type) {
+struct node * node_create(struct data * data, enum type type) {
     int status = 0;
     struct node * node;
 
@@ -75,15 +81,11 @@ struct node * node_create(struct data * data, enum event_type type) {
     } else {
         node->type = type;
         node->list = NULL;
-        if(node->type == map_begin) {
-            node->map = store_malloc(&data->store, sizeof(*node->map));
-            if(!node->map) {
-                status = panic("failed to malloc store object");
-            } else if(map_create(node->map, (map_compare_cb) strcmp, data->heap->map_pool)) {
-                status = panic("failed to create map object");
-            }
-        } else {
-            node->map = NULL;
+        node->map = store_malloc(&data->store, sizeof(*node->map));
+        if(!node->map) {
+            status = panic("failed to malloc store object");
+        } else if(map_create(node->map, (map_compare_cb) strcmp, data->heap->map_pool)) {
+            status = panic("failed to create map object");
         }
         node->next = NULL;
     }
@@ -94,18 +96,16 @@ struct node * node_create(struct data * data, enum event_type type) {
 void node_destroy(struct node * node) {
     struct map_kv kv;
 
-    if(node->map) {
-        kv = map_start(node->map);
-        while(kv.key) {
-            node_destroy(kv.value);
-            kv = map_next(node->map);
-        }
-        map_destroy(node->map);
+    kv = map_start(node->map);
+    while(kv.key) {
+        node_destroy(kv.value);
+        kv = map_next(node->map);
     }
 
-    if(node->list) {
+    if(node->list)
         node_destroy(node->list);
-    }
+
+    map_destroy(node->map);
 }
 
 void node_print(struct node * node, int scope, char * key) {
@@ -119,11 +119,11 @@ void node_print(struct node * node, int scope, char * key) {
         fprintf(stdout, "[%s]", key);
 
     switch(node->type) {
-        case list_begin:
+        case list:
             fprintf(stdout, "[list]\n");
             node_print(node->list, scope + 1, NULL);
             break;
-        case map_begin:
+        case map:
             fprintf(stdout, "[map]\n");
             kv = map_start(node->map);
             while(kv.key) {
@@ -131,7 +131,7 @@ void node_print(struct node * node, int scope, char * key) {
                 kv = map_next(node->map);
             }
             break;
-        case scalar:
+        case str:
             fprintf(stdout, "[string]\n");
             break;
     }
@@ -150,7 +150,7 @@ int data_create(struct data * data, size_t size, struct heap * heap) {
             if(strbuf_create(&data->strbuf, size)) {
                 status = panic("failed to create strbuf object");
             } else {
-                data->root = node_create(data, list_begin);
+                data->root = node_create(data, list);
                 if(!data->root) {
                     status = panic("failed to create node object");
                 } else {
@@ -186,19 +186,19 @@ int data_parse(enum event_type type, struct string * string, void * data) {
     } else {
         key = data_key_top(data);
         if(key) {
-            if(node->type != map_begin) {
+            if(node->type != map) {
                 status = panic("expected map");
             } else {
                 if(type == list_begin) {
                     value = map_search(node->map, key);
                     if(value) {
-                        if(value->type != type) {
+                        if(value->type != list) {
                             status = panic("expected list - %s", key);
                         } else {
                             data_node_push(data, value);
                         }
                     } else {
-                        value = node_create(data, type);
+                        value = node_create(data, list);
                         if(!value) {
                             status = panic("failed to create node object");
                         } else {
@@ -217,13 +217,13 @@ int data_parse(enum event_type type, struct string * string, void * data) {
                 } else if(type == map_begin) {
                     value = map_search(node->map, key);
                     if(value) {
-                        if(value->type != type) {
+                        if(value->type != map) {
                             status = panic("expected map - %s", key);
                         } else {
                             data_node_push(data, value);
                         }
                     } else {
-                        value = node_create(data, type);
+                        value = node_create(data, map);
                         if(!value) {
                             status = panic("failed to create node object");
                         } else {
@@ -242,10 +242,10 @@ int data_parse(enum event_type type, struct string * string, void * data) {
                 } else if(type == scalar) {
                     value = map_search(node->map, key);
                     if(value) {
-                        if(value->type != type)
+                        if(value->type != str)
                             status = panic("expected scalar - %s", key);
                     } else {
-                        value = node_create(data, type);
+                        value = node_create(data, str);
                         if(!value) {
                             status = panic("failed to create node object");
                         } else {
@@ -264,18 +264,18 @@ int data_parse(enum event_type type, struct string * string, void * data) {
                 }
             }
             data_key_pop(data);
-        } else if(node->type == list_begin) {
+        } else if(node->type == list) {
             if(type == list_end) {
                 data_node_pop(data);
             } else if(type == list_begin) {
                 if(node->list) {
-                    if(node->list->type != type) {
+                    if(node->list->type != list) {
                         status = panic("expected list");
                     } else {
                         data_node_push(data, node->list);
                     }
                 } else {
-                    node->list = node_create(data, type);
+                    node->list = node_create(data, list);
                     if(!node->list) {
                         status = panic("failed to create node object");
                     } else {
@@ -284,13 +284,13 @@ int data_parse(enum event_type type, struct string * string, void * data) {
                 }
             } else if(type == map_begin) {
                 if(node->list) {
-                    if(node->list->type != type) {
+                    if(node->list->type != map) {
                         status = panic("expected map");
                     } else {
                         data_node_push(data, node->list);
                     }
                 } else {
-                    node->list = node_create(data, type);
+                    node->list = node_create(data, map);
                     if(!node->list) {
                         status = panic("failed to create node object");
                     } else {
@@ -299,17 +299,17 @@ int data_parse(enum event_type type, struct string * string, void * data) {
                 }
             } else if(type == scalar) {
                 if(node->list) {
-                    if(node->list->type != type)
+                    if(node->list->type != str)
                         status = panic("expected scalar");
                 } else {
-                    node->list = node_create(data, type);
+                    node->list = node_create(data, str);
                     if(!node->list)
                         status = panic("failed to create node object");
                 }
             } else {
                 status = panic("invalid type - %d", type);
             }
-        } else if(node->type == map_begin) {
+        } else if(node->type == map) {
             if(type == map_end) {
                 data_node_pop(data);
             } else if(type == scalar) {
