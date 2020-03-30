@@ -130,53 +130,36 @@ void node_print(struct node * node, int scope, char * key) {
     switch(node->type) {
         case list | map | str:
             fprintf(stdout, "[list, map, string]\n");
-
-            node_print(node->list, scope + 1, NULL);
-
-            kv = map_start(node->map);
-            while(kv.key) {
-                node_print(kv.value, scope + 1, kv.key);
-                kv = map_next(node->map);
-            }
             break;
         case list | map:
             fprintf(stdout, "[list, map]\n");
-
-            node_print(node->list, scope + 1, NULL);
-
-            kv = map_start(node->map);
-            while(kv.key) {
-                node_print(kv.value, scope + 1, kv.key);
-                kv = map_next(node->map);
-            }
             break;
         case list | str:
             fprintf(stdout, "[list, string]\n");
-            node_print(node->list, scope + 1, NULL);
             break;
         case map | str:
             fprintf(stdout, "[map, string]\n");
-            kv = map_start(node->map);
-            while(kv.key) {
-                node_print(kv.value, scope + 1, kv.key);
-                kv = map_next(node->map);
-            }
             break;
         case list:
             fprintf(stdout, "[list]\n");
-            node_print(node->list, scope + 1, NULL);
             break;
         case map:
             fprintf(stdout, "[map]\n");
-            kv = map_start(node->map);
-            while(kv.key) {
-                node_print(kv.value, scope + 1, kv.key);
-                kv = map_next(node->map);
-            }
             break;
         case str:
             fprintf(stdout, "[string]\n");
             break;
+    }
+
+    if(node->type & list)
+        node_print(node->list, scope + 1, NULL);
+
+    if(node->type & map) {
+        kv = map_start(node->map);
+        while(kv.key) {
+            node_print(kv.value, scope + 1, kv.key);
+            kv = map_next(node->map);
+        }
     }
 }
 
@@ -385,65 +368,48 @@ void data_markup_loop(struct data * data, struct node * node, int scope, char * 
             key ?
                 fprintf(stdout, "    {%d, list | map | string, %d, \"%s\"},\n", scope, data->mark++, key) :
                 fprintf(stdout, "    {%d, list | map | string, %d, NULL},\n", scope, data->mark++);
-
-            data_markup_loop(data, node->list, scope + 1, NULL);
-
-            kv = map_start(node->map);
-            while(kv.key) {
-                data_markup_loop(data, kv.value, scope + 1, kv.key);
-                kv = map_next(node->map);
-            }
             break;
         case list | map:
             key ?
                 fprintf(stdout, "    {%d, list | map, %d, \"%s\"},\n", scope, data->mark++, key) :
                 fprintf(stdout, "    {%d, list | map, %d, NULL},\n", scope, data->mark++);
-
-            data_markup_loop(data, node->list, scope + 1, NULL);
-
-            kv = map_start(node->map);
-            while(kv.key) {
-                data_markup_loop(data, kv.value, scope + 1, kv.key);
-                kv = map_next(node->map);
-            }
             break;
         case list | str:
             key ?
                 fprintf(stdout, "    {%d, list | string, %d, \"%s\"},\n", scope, data->mark++, key) :
                 fprintf(stdout, "    {%d, list | string, %d, NULL},\n", scope, data->mark++);
-            data_markup_loop(data, node->list, scope + 1, NULL);
             break;
         case map | str:
             key ?
                 fprintf(stdout, "    {%d, map | string, %d, \"%s\"},\n", scope, data->mark++, key) :
                 fprintf(stdout, "    {%d, map | string, %d, NULL},\n", scope, data->mark++);
-            kv = map_start(node->map);
-            while(kv.key) {
-                data_markup_loop(data, kv.value, scope + 1, kv.key);
-                kv = map_next(node->map);
-            }
             break;
         case list:
             key ?
                 fprintf(stdout, "    {%d, list, %d, \"%s\"},\n", scope, data->mark++, key) :
                 fprintf(stdout, "    {%d, list, %d, NULL},\n", scope, data->mark++);
-            data_markup_loop(data, node->list, scope + 1, NULL);
             break;
         case map:
             key ?
                 fprintf(stdout, "    {%d, map, %d, \"%s\"},\n", scope, data->mark++, key) :
                 fprintf(stdout, "    {%d, map, %d, NULL},\n", scope, data->mark++);
-            kv = map_start(node->map);
-            while(kv.key) {
-                data_markup_loop(data, kv.value, scope + 1, kv.key);
-                kv = map_next(node->map);
-            }
             break;
         case str:
             key ?
                 fprintf(stdout, "    {%d, string, %d, \"%s\"},\n", scope, data->mark++, key) :
                 fprintf(stdout, "    {%d, string, %d, NULL},\n", scope, data->mark++);
             break;
+    }
+
+    if(node->type & list)
+        data_markup_loop(data, node->list, scope + 1, NULL);
+
+    if(node->type & map) {
+        kv = map_start(node->map);
+        while(kv.key) {
+            data_markup_loop(data, kv.value, scope + 1, kv.key);
+            kv = map_next(node->map);
+        }
     }
 }
 
