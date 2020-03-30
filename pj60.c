@@ -20,6 +20,7 @@ struct data {
     struct strbuf strbuf;
     struct node * root;
     char * key;
+    int mark;
 };
 
 struct node * node_create(struct data *, enum type);
@@ -30,6 +31,8 @@ int data_create(struct data *, size_t, struct heap *);
 void data_destroy(struct data *);
 int data_parse(enum event_type, struct string *, void *);
 void data_print(struct data *);
+void data_markup(struct data *, char *);
+void data_markup_loop(struct data *, struct node *, int, char *);
 
 static inline struct node * data_node_top(struct data *);
 static inline int data_node_push(struct data *, struct node *, enum type);
@@ -46,8 +49,8 @@ int main(int argc, char ** argv) {
     struct yaml yaml;
     struct data data;
 
-    if(argc != 2) {
-        status = panic("%s <path>", argv[0]);
+    if(argc < 2) {
+        status = panic("%s <path> <name>", argv[0]);
     } else if(heap_create(&heap, 4096)) {
         status = panic("failed to create heap object");
     } else {
@@ -60,7 +63,11 @@ int main(int argc, char ** argv) {
                 if(yaml_parse(&yaml, argv[1], 4096, data_parse, &data)) {
                     status = panic("failed to parse yaml object");
                 } else {
-                    data_print(&data);
+                    if(argc == 3) {
+                        data_markup(&data, argv[2]);
+                    } else {
+                        data_print(&data);
+                    }
                 }
                 data_destroy(&data);
             }
@@ -192,6 +199,7 @@ int data_create(struct data * data, size_t size, struct heap * heap) {
                 } else {
                     data->root->state = list;
                     data->key = NULL;
+                    data->mark = 0;
                 }
                 if(status)
                     strbuf_destroy(&data->strbuf);
@@ -360,6 +368,69 @@ int data_parse(enum event_type type, struct string * string, void * data) {
 void data_print(struct data * data) {
     if(data->root->list)
         node_print(data->root->list, 0, NULL);
+}
+
+void data_markup(struct data * data, char * name) {
+    fprintf(stdout, "struct schema_markup %s_markup[] = {\n", name);
+    if(data->root->list)
+        data_markup_loop(data, data->root->list, 1, NULL);
+    fprintf(stdout, "    {0, 0, 0}\n};\n");
+}
+
+void data_markup_loop(struct data * data, struct node * node, int scope, char * key) {
+    struct map_kv kv;
+
+    switch(node->type) {
+        case list | map | str:
+            fprintf(stdout, "    {%d, list | map | string, %d, %s},\n", scope, data->mark++, key ? key : "NULL");
+
+            data_markup_loop(data, node->list, scope + 1, NULL);
+
+            kv = map_start(node->map);
+            while(kv.key) {
+                data_markup_loop(data, kv.value, scope + 1, kv.key);
+                kv = map_next(node->map);
+            }
+            break;
+        case list | map:
+            fprintf(stdout, "    {%d, list | map, %d, %s},\n", scope, data->mark++, key ? key : "NULL");
+
+            data_markup_loop(data, node->list, scope + 1, NULL);
+
+            kv = map_start(node->map);
+            while(kv.key) {
+                data_markup_loop(data, kv.value, scope + 1, kv.key);
+                kv = map_next(node->map);
+            }
+            break;
+        case list | str:
+            fprintf(stdout, "    {%d, list | string, %d, %s},\n", scope, data->mark++, key ? key : "NULL");
+            data_markup_loop(data, node->list, scope + 1, NULL);
+            break;
+        case map | str:
+            fprintf(stdout, "    {%d, map | string, %d, %s},\n", scope, data->mark++, key ? key : "NULL");
+            kv = map_start(node->map);
+            while(kv.key) {
+                data_markup_loop(data, kv.value, scope + 1, kv.key);
+                kv = map_next(node->map);
+            }
+            break;
+        case list:
+            fprintf(stdout, "    {%d, list, %d, %s},\n", scope, data->mark++, key ? key : "NULL");
+            data_markup_loop(data, node->list, scope + 1, NULL);
+            break;
+        case map:
+            fprintf(stdout, "    {%d, map, %d, %s},\n", scope, data->mark++, key ? key : "NULL");
+            kv = map_start(node->map);
+            while(kv.key) {
+                data_markup_loop(data, kv.value, scope + 1, kv.key);
+                kv = map_next(node->map);
+            }
+            break;
+        case str:
+            fprintf(stdout, "    {%d, string, %d, %s},\n", scope, data->mark++, key ? key : "NULL");
+            break;
+    }
 }
 
 static inline struct node * data_node_top(struct data * data) {
