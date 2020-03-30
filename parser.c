@@ -53,21 +53,38 @@ void schema_node_print(struct schema_node * node, int indent, char * key) {
         fprintf(stdout, "[%s]", key);
 
     switch(node->type) {
+        case list | map | string:
+            fprintf(stdout, "[list, map, string][%d]\n", node->mark);
+            break;
+        case list | map:
+            fprintf(stdout, "[list, map][%d]\n", node->mark);
+            break;
+        case list | string:
+            fprintf(stdout, "[list, string][%d]\n", node->mark);
+            break;
+        case map | string:
+            fprintf(stdout, "[map, string][%d]\n", node->mark);
+            break;
         case list:
-            fprintf(stdout, "[list:%d]\n", node->mark);
-            schema_node_print(node->data, indent + 1, NULL);
+            fprintf(stdout, "[list][%d]\n", node->mark);
             break;
         case map:
-            fprintf(stdout, "[map:%d]\n", node->mark);
-            kv = map_start(&node->map);
-            while(kv.key) {
-                schema_node_print(kv.value, indent + 1, kv.key);
-                kv = map_next(&node->map);
-            }
+            fprintf(stdout, "[map][%d]\n", node->mark);
             break;
         case string:
-            fprintf(stdout, "[string:%d]\n", node->mark);
+            fprintf(stdout, "[string][%d]\n", node->mark);
             break;
+    }
+
+    if(node->type & list)
+        schema_node_print(node->data, indent + 1, NULL);
+
+    if(node->type & map) {
+        kv = map_start(&node->map);
+        while(kv.key) {
+            schema_node_print(kv.value, indent + 1, kv.key);
+            kv = map_next(&node->map);
+        }
     }
 }
 
@@ -105,27 +122,31 @@ int schema_push(struct schema * schema, enum schema_type type, int mark, char * 
     if(!node) {
         status = panic("failed to create schema node object");
     } else {
-        if(schema->root->type == list) {
-            if(schema->root->data) {
-                status = panic("invalid data");
+        if(key) {
+            if(schema->root->type & map) {
+                if(map_insert(&schema->root->map, key, node))
+                    status = panic("failed to insert map object");
             } else {
-                schema->root->data = node;
+                status = panic("expected map");
             }
-        } else if(schema->root->type == map) {
-            if(!key) {
-                status = panic("invalid key");
-            } else if(map_insert(&schema->root->map, key, node)) {
-                status = panic("failed to insert map object");
+        } else {
+            if(schema->root->type & list) {
+                if(schema->root->data) {
+                    status = panic("invalid data");
+                } else {
+                    schema->root->data = node;
+                }
+            } else {
+                status = panic("expected list");
             }
         }
+
         if(status) {
-            /* skip push on error */
-        } else if(node->type == list || node->type == map) {
+            schema_node_destroy(schema, node);
+        } else if(node->type & list || node->type & map) {
             node->next = schema->root;
             schema->root = node;
         }
-        if(status)
-            schema_node_destroy(schema, node);
     }
 
     return status;
@@ -146,14 +167,14 @@ int schema_load(struct schema * schema, struct schema_markup * markup) {
 
     schema_clear(schema);
 
-    while(markup->level) {
+    while(markup->level && !status) {
         while(root && root->level >= markup->level) {
             schema_pop(schema);
             root = root->next;
         }
         if(schema_push(schema, markup->type, markup->mark, markup->key)) {
             status = panic("failed to push schema object");
-        } else if(markup->type == list || markup->type == map) {
+        } else if(markup->type & list || markup->type & map) {
             markup->next = root;
             root = markup;
         }
