@@ -22,10 +22,13 @@ OBJECT+=script_parser.o
 OBJECT+=script_scanner.o
 OBJECT+=script.o
 LDLIBS+=-lm
-all: clean pj59
+all: clean pj59 pj60
 
 pj59: $(OBJECT)
 	$(CC) $(CFLAGS) -o $@ pj59.c $^ $(LDFLAGS) $(LDLIBS)
+
+pj60: $(OBJECT)
+	$(CC) $(CFLAGS) -o $@ pj60.c $^ $(LDFLAGS) $(LDLIBS)
 
 %.c: %.y
 	bison $^
@@ -62,3 +65,4 @@ clean:
 	@rm -f script_scanner.c
 	@rm -f script_scanner.h
 	@rm -f pj59
+	@rm -f pj60
