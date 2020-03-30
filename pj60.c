@@ -8,6 +8,7 @@ enum type {
 
 struct node {
     enum type type;
+    enum type state;
     struct node * list;
     struct map * map;
     struct node * next;
@@ -31,7 +32,7 @@ int data_parse(enum event_type, struct string *, void *);
 void data_print(struct data *);
 
 static inline struct node * data_node_top(struct data *);
-static inline int data_node_push(struct data *, struct node *);
+static inline int data_node_push(struct data *, struct node *, enum type);
 static inline void data_node_pop(struct data *);
 
 static inline char * data_key_top(struct data *);
@@ -80,6 +81,7 @@ struct node * node_create(struct data * data, enum type type) {
         status = panic("failed to malloc store object");
     } else {
         node->type = type;
+        node->state = 0;
         node->list = NULL;
         node->map = store_malloc(&data->store, sizeof(*node->map));
         if(!node->map) {
@@ -188,6 +190,7 @@ int data_create(struct data * data, size_t size, struct heap * heap) {
                 if(!data->root) {
                     status = panic("failed to create node object");
                 } else {
+                    data->root->state = list;
                     data->key = NULL;
                 }
                 if(status)
@@ -223,14 +226,14 @@ int data_parse(enum event_type type, struct string * string, void * data) {
     } else {
         key = data_key_top(data);
         if(key) {
-            if(node->type != map) {
+            if(node->state != map) {
                 status = panic("expected map");
             } else {
                 if(type == list_begin) {
                     value = map_search(node->map, key);
                     if(value) {
                         value->type |= list;
-                        data_node_push(data, value);
+                        data_node_push(data, value, list);
                     } else {
                         value = node_create(data, list);
                         if(!value) {
@@ -242,7 +245,7 @@ int data_parse(enum event_type type, struct string * string, void * data) {
                             } else if(map_insert(node->map, key, value)) {
                                 status = panic("failed to insert map object");
                             } else {
-                                data_node_push(data, value);
+                                data_node_push(data, value, list);
                             }
                             if(status)
                                 node_destroy(value);
@@ -252,7 +255,7 @@ int data_parse(enum event_type type, struct string * string, void * data) {
                     value = map_search(node->map, key);
                     if(value) {
                         value->type |= map;
-                        data_node_push(data, value);
+                        data_node_push(data, value, map);
                     } else {
                         value = node_create(data, map);
                         if(!value) {
@@ -264,7 +267,7 @@ int data_parse(enum event_type type, struct string * string, void * data) {
                             } else if(map_insert(node->map, key, value)) {
                                 status = panic("failed to insert map object");
                             } else {
-                                data_node_push(data, value);
+                                data_node_push(data, value, map);
                             }
                             if(status)
                                 node_destroy(value);
@@ -294,7 +297,7 @@ int data_parse(enum event_type type, struct string * string, void * data) {
                 }
             }
             data_key_pop(data);
-        } else if(node->type & list) {
+        } else if(node->state == list) {
             if(type == list_end) {
                 data_node_pop(data);
             } else if(type == list_begin) {
@@ -302,14 +305,14 @@ int data_parse(enum event_type type, struct string * string, void * data) {
                     if(node->list->type != list) {
                         status = panic("expected list");
                     } else {
-                        data_node_push(data, node->list);
+                        data_node_push(data, node->list, list);
                     }
                 } else {
                     node->list = node_create(data, list);
                     if(!node->list) {
                         status = panic("failed to create node object");
                     } else {
-                        data_node_push(data, node->list);
+                        data_node_push(data, node->list, list);
                     }
                 }
             } else if(type == map_begin) {
@@ -317,14 +320,14 @@ int data_parse(enum event_type type, struct string * string, void * data) {
                     if(node->list->type != map) {
                         status = panic("expected map");
                     } else {
-                        data_node_push(data, node->list);
+                        data_node_push(data, node->list, map);
                     }
                 } else {
                     node->list = node_create(data, map);
                     if(!node->list) {
                         status = panic("failed to create node object");
                     } else {
-                        data_node_push(data, node->list);
+                        data_node_push(data, node->list, map);
                     }
                 }
             } else if(type == scalar) {
@@ -339,7 +342,7 @@ int data_parse(enum event_type type, struct string * string, void * data) {
             } else {
                 status = panic("invalid type - %d", type);
             }
-        } else if(node->type & map) {
+        } else if(node->state == map) {
             if(type == map_end) {
                 data_node_pop(data);
             } else if(type == scalar) {
@@ -363,12 +366,14 @@ static inline struct node * data_node_top(struct data * data) {
     return data->root;
 }
 
-static inline int data_node_push(struct data * data, struct node * node) {
+static inline int data_node_push(struct data * data, struct node * node, enum type state) {
+    node->state = state;
     node->next = data->root;
     data->root = node;
 }
 
 static inline void data_node_pop(struct data * data) {
+    data->root->state = 0;
     data->root = data->root->next;
 }
 
