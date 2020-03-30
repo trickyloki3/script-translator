@@ -119,6 +119,40 @@ void node_print(struct node * node, int scope, char * key) {
         fprintf(stdout, "[%s]", key);
 
     switch(node->type) {
+        case list | map | str:
+            fprintf(stdout, "[list, map, string]\n");
+
+            node_print(node->list, scope + 1, NULL);
+
+            kv = map_start(node->map);
+            while(kv.key) {
+                node_print(kv.value, scope + 1, kv.key);
+                kv = map_next(node->map);
+            }
+            break;
+        case list | map:
+            fprintf(stdout, "[list, map]\n");
+
+            node_print(node->list, scope + 1, NULL);
+
+            kv = map_start(node->map);
+            while(kv.key) {
+                node_print(kv.value, scope + 1, kv.key);
+                kv = map_next(node->map);
+            }
+            break;
+        case list | str:
+            fprintf(stdout, "[list, string]\n");
+            node_print(node->list, scope + 1, NULL);
+            break;
+        case map | str:
+            fprintf(stdout, "[map, string]\n");
+            kv = map_start(node->map);
+            while(kv.key) {
+                node_print(kv.value, scope + 1, kv.key);
+                kv = map_next(node->map);
+            }
+            break;
         case list:
             fprintf(stdout, "[list]\n");
             node_print(node->list, scope + 1, NULL);
@@ -195,11 +229,8 @@ int data_parse(enum event_type type, struct string * string, void * data) {
                 if(type == list_begin) {
                     value = map_search(node->map, key);
                     if(value) {
-                        if(value->type != list) {
-                            status = panic("expected list - %s", key);
-                        } else {
-                            data_node_push(data, value);
-                        }
+                        value->type |= list;
+                        data_node_push(data, value);
                     } else {
                         value = node_create(data, list);
                         if(!value) {
@@ -220,11 +251,8 @@ int data_parse(enum event_type type, struct string * string, void * data) {
                 } else if(type == map_begin) {
                     value = map_search(node->map, key);
                     if(value) {
-                        if(value->type != map) {
-                            status = panic("expected map - %s", key);
-                        } else {
-                            data_node_push(data, value);
-                        }
+                        value->type |= map;
+                        data_node_push(data, value);
                     } else {
                         value = node_create(data, map);
                         if(!value) {
@@ -245,8 +273,7 @@ int data_parse(enum event_type type, struct string * string, void * data) {
                 } else if(type == scalar) {
                     value = map_search(node->map, key);
                     if(value) {
-                        if(value->type != str)
-                            status = panic("expected scalar - %s", key);
+                        value->type |= str;
                     } else {
                         value = node_create(data, str);
                         if(!value) {
@@ -267,7 +294,7 @@ int data_parse(enum event_type type, struct string * string, void * data) {
                 }
             }
             data_key_pop(data);
-        } else if(node->type == list) {
+        } else if(node->type & list) {
             if(type == list_end) {
                 data_node_pop(data);
             } else if(type == list_begin) {
@@ -312,7 +339,7 @@ int data_parse(enum event_type type, struct string * string, void * data) {
             } else {
                 status = panic("invalid type - %d", type);
             }
-        } else if(node->type == map) {
+        } else if(node->type & map) {
             if(type == map_end) {
                 data_node_pop(data);
             } else if(type == scalar) {
