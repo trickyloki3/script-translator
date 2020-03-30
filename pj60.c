@@ -41,16 +41,16 @@ int main(int argc, char ** argv) {
 
     if(argc != 2) {
         status = panic("%s <path>", argv[0]);
-    } else if(heap_create(&heap, 65536)) {
+    } else if(heap_create(&heap, 4096)) {
         status = panic("failed to create heap object");
     } else {
-        if(yaml_create(&yaml, 65536, &heap)) {
+        if(yaml_create(&yaml, 4096, &heap)) {
             status = panic("failed to create yaml object");
         } else {
-            if(data_create(&data, 65536, &heap)) {
+            if(data_create(&data, 4096, &heap)) {
                 status = panic("failed to create data object");
             } else {
-                if(yaml_parse(&yaml, argv[1], 65536, data_parse, &data)) {
+                if(yaml_parse(&yaml, argv[1], 4096, data_parse, &data)) {
                     status = panic("failed to parse yaml object");
                 } else {
                     data_print(&data);
@@ -325,7 +325,8 @@ int data_parse(enum event_type type, struct string * string, void * data) {
 }
 
 void data_print(struct data * data) {
-    node_print(data->root, 0, NULL);
+    if(data->root->list)
+        node_print(data->root->list, 0, NULL);
 }
 
 static inline struct node * data_node_top(struct data * data) {
