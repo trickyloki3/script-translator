@@ -168,6 +168,9 @@ int data_create(struct data * data, size_t size, struct heap * heap) {
 }
 
 void data_destroy(struct data * data) {
+    while(data->root->next)
+        data->root = data->root->next;
+
     node_destroy(data->root);
     strbuf_destroy(&data->strbuf);
     store_destroy(&data->store);
