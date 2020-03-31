@@ -13,6 +13,7 @@ enum schema_type {
 
 struct schema_node {
     enum schema_type type;
+    enum schema_type state;
     int mark;
     struct schema_node * list;
     struct schema_node * next;

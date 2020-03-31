@@ -14,6 +14,7 @@ static inline struct schema_node * schema_node_create(struct schema * schema, en
     node = pool_get(schema->pool);
     if(node) {
         node->type = type;
+        node->state = 0;
         node->mark = mark;
         node->list = NULL;
         node->next = NULL;
@@ -96,8 +97,11 @@ int schema_create(struct schema * schema, struct heap * heap) {
         status = panic("failed to pool heap object");
     } else {
         schema->root = schema_node_create(schema, list, 0, heap->map_pool);
-        if(!schema->root)
+        if(!schema->root) {
             status = panic("failed to create schema node object");
+        } else {
+            schema->root->state = list;
+        }
     }
 
     return status;
@@ -226,7 +230,7 @@ void parser_destroy(struct parser * parser) {
     csv_destroy(&parser->csv);
 }
 
-int parser_start(struct parser * parser, struct schema_node * node, enum event_type type, struct string * data) {
+int parser_start(struct parser * parser, struct schema_node * node, enum event_type type, struct string * value) {
     int status = 0;
 
     if(type == list_begin) {
@@ -234,6 +238,7 @@ int parser_start(struct parser * parser, struct schema_node * node, enum event_t
             if(parser->callback(start, node->mark, NULL, parser->context)) {
                 status = panic("failed to process start event");
             } else {
+                node->state = list;
                 node->next = parser->root;
                 parser->root = node;
             }
@@ -245,6 +250,7 @@ int parser_start(struct parser * parser, struct schema_node * node, enum event_t
             if(parser->callback(start, node->mark, NULL, parser->context)) {
                 status = panic("failed to process start event");
             } else {
+                node->state = map;
                 node->next = parser->root;
                 parser->root = node;
             }
@@ -253,7 +259,7 @@ int parser_start(struct parser * parser, struct schema_node * node, enum event_t
         }
     } else if(type == scalar) {
         if(node->type & string) {
-            if(parser->callback(next, node->mark, data, parser->context))
+            if(parser->callback(next, node->mark, value, parser->context))
                 status = panic("failed to process start event");
         } else {
             status = panic("unexpected string");
@@ -265,7 +271,7 @@ int parser_start(struct parser * parser, struct schema_node * node, enum event_t
     return status;
 }
 
-int parser_event(enum event_type type, struct string * data, void * context) {
+int parser_event(enum event_type type, struct string * value, void * context) {
     int status = 0;
     struct parser * parser;
     struct schema_node * node;
@@ -273,7 +279,7 @@ int parser_event(enum event_type type, struct string * data, void * context) {
     parser = context;
     node = parser->data;
     if(node) {
-        if(parser_start(parser, node, type, data)) {
+        if(parser_start(parser, node, type, value)) {
             status = panic("failed to start parser object");
         } else {
             parser->data = NULL;
@@ -282,27 +288,29 @@ int parser_event(enum event_type type, struct string * data, void * context) {
         node = parser->root;
         if(!node) {
             status = panic("invalid node");
-        } else if(node->type == list) {
+        } else if(node->state == list) {
             if(type == list_end) {
                 if(parser->callback(end, node->mark, NULL, parser->context)) {
                     status = panic("failed to process end event");
                 } else {
+                    parser->root->state = 0;
                     parser->root = parser->root->next;
                 }
-            } else if(parser_start(parser, node->list, type, data)) {
+            } else if(parser_start(parser, node->list, type, value)) {
                 status = panic("failed to start parser object");
             }
-        } else if(node->type == map) {
+        } else if(node->state == map) {
             if(type == map_end) {
                 if(parser->callback(end, node->mark, NULL, parser->context)) {
                     status = panic("failed to process end event");
                 } else {
+                    parser->root->state = 0;
                     parser->root = parser->root->next;
                 }
             } else if(type == scalar) {
-                parser->data = map_search(&node->map, data->string);
+                parser->data = map_search(&node->map, value->string);
                 if(!parser->data)
-                    status = panic("invalid key - %s", data->string);
+                    status = panic("invalid key - %s", value->string);
             } else {
                 status = panic("invalid type - %d", type);
             }
