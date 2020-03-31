@@ -35,7 +35,7 @@ void data_markup(struct data *, char *);
 void data_markup_loop(struct data *, struct node *, int, char *);
 
 static inline struct node * data_node_top(struct data *);
-static inline int data_node_push(struct data *, struct node *, enum type);
+static inline void data_node_push(struct data *, struct node *, enum type);
 static inline void data_node_pop(struct data *);
 
 static inline char * data_key_top(struct data *);
@@ -421,7 +421,7 @@ static inline struct node * data_node_top(struct data * data) {
     return data->root;
 }
 
-static inline int data_node_push(struct data * data, struct node * node, enum type state) {
+static inline void data_node_push(struct data * data, struct node * node, enum type state) {
     node->state = state;
     node->next = data->root;
     data->root = node;
