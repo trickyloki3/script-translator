@@ -358,44 +358,36 @@ void data_markup(struct data * data, char * name) {
 void data_markup_loop(struct data * data, struct node * node, int scope, char * key) {
     struct map_kv kv;
 
-    fprintf(stdout, "    ");
+    fprintf(stdout, "    {%d, ", scope);
 
     switch(node->type) {
         case list | map | str:
-            key ?
-                fprintf(stdout, "{%d, list | map | string, %d, \"%s\"},\n", scope, data->mark++, key) :
-                fprintf(stdout, "{%d, list | map | string, %d, NULL},\n", scope, data->mark++);
+            fprintf(stdout, "list | map | string, %d", data->mark++);
             break;
         case list | map:
-            key ?
-                fprintf(stdout, "{%d, list | map, %d, \"%s\"},\n", scope, data->mark++, key) :
-                fprintf(stdout, "{%d, list | map, %d, NULL},\n", scope, data->mark++);
+            fprintf(stdout, "list | map, %d", data->mark++);
             break;
         case list | str:
-            key ?
-                fprintf(stdout, "{%d, list | string, %d, \"%s\"},\n", scope, data->mark++, key) :
-                fprintf(stdout, "{%d, list | string, %d, NULL},\n", scope, data->mark++);
+            fprintf(stdout, "list | string, %d", data->mark++);
             break;
         case map | str:
-            key ?
-                fprintf(stdout, "{%d, map | string, %d, \"%s\"},\n", scope, data->mark++, key) :
-                fprintf(stdout, "{%d, map | string, %d, NULL},\n", scope, data->mark++);
+            fprintf(stdout, "map | string, %d", data->mark++);
             break;
         case list:
-            key ?
-                fprintf(stdout, "{%d, list, %d, \"%s\"},\n", scope, data->mark++, key) :
-                fprintf(stdout, "{%d, list, %d, NULL},\n", scope, data->mark++);
+            fprintf(stdout, "list, %d", data->mark++);
             break;
         case map:
-            key ?
-                fprintf(stdout, "{%d, map, %d, \"%s\"},\n", scope, data->mark++, key) :
-                fprintf(stdout, "{%d, map, %d, NULL},\n", scope, data->mark++);
+            fprintf(stdout, "map, %d", data->mark++);
             break;
         case str:
-            key ?
-                fprintf(stdout, "{%d, string, %d, \"%s\"},\n", scope, data->mark++, key) :
-                fprintf(stdout, "{%d, string, %d, NULL},\n", scope, data->mark++);
+            fprintf(stdout, "string, %d", data->mark++);
             break;
+    }
+
+    if(key) {
+        fprintf(stdout, ", \"%s\"},\n", key);
+    } else {
+        fprintf(stdout, ", NULL},\n");
     }
 
     if(node->type & list)
