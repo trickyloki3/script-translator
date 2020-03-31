@@ -14,7 +14,7 @@ int main(int argc, char ** argv) {
     } else if(heap_create(&heap, 4096)) {
         status = panic("failed to create heap object");
     } else {
-        if(table_create(&table, 65536, &heap)) {
+        if(table_create(&table, 4096, &heap)) {
             status = panic("failed to create table object");
         } else {
             if(table_item_parse(&table, "item_db.txt")) {
@@ -24,7 +24,7 @@ int main(int argc, char ** argv) {
             } else if (table_argument_parse(&table, "argument.yml")) {
                 status = panic("failed to function parse table object");
             } else {
-                if(script_create(&script, 65536, &heap, &table)) {
+                if(script_create(&script, 4096, &heap, &table)) {
                     status = panic("failed to create script object");
                 } else {
                     if(argc < 3) {
