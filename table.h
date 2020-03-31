@@ -102,6 +102,7 @@ int table_argument_parse(struct table *, char *);
 struct item_node * item_start(struct table *);
 struct item_node * item_next(struct table *);
 struct item_node * item_id(struct table *, long);
+struct item_node * item_name(struct table *, char *);
 
 struct skill_node * skill_id(struct table *, long);
 struct skill_node * skill_name(struct table *, char *);

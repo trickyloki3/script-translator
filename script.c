@@ -1954,23 +1954,34 @@ int argument_item(struct script * script, struct script_array * array, struct ar
         if(!range) {
             status = panic("failed to get script array object");
         } else {
-            node = range->range->root;
-            while(node && !status) {
-                for(j = node->min; j <= node->max && !status; j++) {
-                    item = item_id(script->table, j);
-                    if(!item) {
-                        status = panic("invalid item id - %ld", j);
-                    } else {
-                        if(!i && j == node->min) {
-                            if(strbuf_printf(strbuf, "%s", item->name))
-                                status = panic("failed to printf strbuf object");
+            item = item_name(script->table, range->string);
+            if(item) {
+                if(!i) {
+                    if(strbuf_printf(strbuf, "%s", item->name))
+                        status = panic("failed to printf strbuf object");
+                } else {
+                    if(strbuf_printf(strbuf, ", %s", item->name))
+                        status = panic("failed to printf strbuf object");
+                }
+            } else {
+                node = range->range->root;
+                while(node && !status) {
+                    for(j = node->min; j <= node->max && !status; j++) {
+                        item = item_id(script->table, j);
+                        if(!item) {
+                            status = panic("invalid item id - %ld", j);
                         } else {
-                            if(strbuf_printf(strbuf, ", %s", item->name))
-                                status = panic("failed to printf strbuf object");
+                            if(!i && j == node->min) {
+                                if(strbuf_printf(strbuf, "%s", item->name))
+                                    status = panic("failed to printf strbuf object");
+                            } else {
+                                if(strbuf_printf(strbuf, ", %s", item->name))
+                                    status = panic("failed to printf strbuf object");
+                            }
                         }
                     }
+                    node = node->next;
                 }
-                node = node->next;
             }
         }
     }

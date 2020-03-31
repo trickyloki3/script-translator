@@ -791,6 +791,10 @@ struct item_node * item_id(struct table * table, long id) {
     return map_search(&table->item.id, &id);
 }
 
+struct item_node * item_name(struct table * table, char * name) {
+    return map_search(&table->item.name, name);
+}
+
 struct skill_node * skill_id(struct table * table, long id) {
     return map_search(&table->skill.id, &id);
 }
