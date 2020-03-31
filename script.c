@@ -1783,21 +1783,19 @@ int argument_write(struct script * script, struct script_array * array, struct s
                         if(!anchor) {
                             status = panic("failed to strcpy store object");
                         } else {
-                            argument = argument_identifier(script->table, anchor);
-                            if(argument) {
-                                range = script_execute(script, subset, argument);
-                                if(!range) {
-                                    status = panic("failed to execute script object");
-                                } else if(strbuf_printf(strbuf, "%s", range->string)) {
-                                    status = panic("failed to printf strbuf object");
+                            callback = map_search(&script->argument, anchor);
+                            if(!callback) {
+                                argument = argument_identifier(script->table, anchor);
+                                if(argument) {
+                                    range = script_execute(script, subset, argument);
+                                    if(!range) {
+                                        status = panic("failed to execute script object");
+                                    } else if(strbuf_printf(strbuf, "%s", range->string)) {
+                                        status = panic("failed to printf strbuf object");
+                                    }
                                 }
-                            } else {
-                                callback = map_search(&script->argument, anchor);
-                                if(!callback) {
-                                    status = panic("invalid argument - %s", anchor);
-                                } else if(callback(script, subset, argument, strbuf)) {
-                                    status = panic("failed to execute argument object");
-                                }
+                            } else if(callback(script, subset, argument, strbuf)) {
+                                status = panic("failed to execute argument object");
                             }
                             anchor = ++string;
                         }
