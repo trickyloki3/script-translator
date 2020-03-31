@@ -80,6 +80,7 @@ int argument_integer(struct script *, struct script_array *, struct argument_nod
 int argument_percent(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
 
 int argument_item(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
+int argument_skill(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
 
 typedef int (*argument_cb) (struct script *, struct script_array *, struct argument_node *, struct strbuf *);
 
@@ -94,6 +95,7 @@ struct argument_entry {
     { "integer", argument_integer },
     { "percent", argument_percent },
     { "item", argument_item },
+    { "skill", argument_skill },
     { NULL, NULL }
 };
 
@@ -1969,6 +1971,56 @@ int argument_item(struct script * script, struct script_array * array, struct ar
                     }
                 }
                 node = node->next;
+            }
+        }
+    }
+
+    return status;
+}
+
+int argument_skill(struct script * script, struct script_array * array, struct argument_node * argument, struct strbuf * strbuf) {
+    int status = 0;
+
+    size_t i;
+    struct script_range * range;
+
+    long j;
+    struct range_node * node;
+    struct skill_node * skill;
+
+    for(i = 0; i < array->count && !status; i++) {
+        range = script_array_get(array, i);
+        if(!range) {
+            status = panic("failed to get script array object");
+        } else {
+            skill = skill_name(script->table, range->string);
+            if(skill) {
+                if(!i) {
+                    if(strbuf_printf(strbuf, "%s", skill->description))
+                        status = panic("failed to printf strbuf object");
+                } else {
+                    if(strbuf_printf(strbuf, ", %s", skill->description))
+                        status = panic("failed to printf strbuf object");
+                }
+            } else {
+                node = range->range->root;
+                while(node && !status) {
+                    for(j = node->min; j <= node->max && !status; j++) {
+                        skill = skill_id(script->table, j);
+                        if(!skill) {
+                            status = panic("invalid skill id - %ld", j);
+                        } else {
+                            if(!i && j == node->min) {
+                                if(strbuf_printf(strbuf, "%s", skill->description))
+                                    status = panic("failed to printf strbuf object");
+                            } else {
+                                if(strbuf_printf(strbuf, ", %s", skill->description))
+                                    status = panic("failed to printf strbuf object");
+                            }
+                        }
+                    }
+                    node = node->next;
+                }
             }
         }
     }
