@@ -15,7 +15,7 @@ static inline struct schema_node * schema_node_create(struct schema * schema, en
     if(node) {
         node->type = type;
         node->mark = mark;
-        node->data = NULL;
+        node->list = NULL;
         node->next = NULL;
         if(map_create(&node->map, (map_compare_cb) strcmp, pool))
             status = panic("failed to create map object");
@@ -35,8 +35,8 @@ static inline void schema_node_destroy(struct schema * schema, struct schema_nod
         kv = map_next(&node->map);
     }
 
-    if(node->data)
-        schema_node_destroy(schema, node->data);
+    if(node->list)
+        schema_node_destroy(schema, node->list);
 
     map_destroy(&node->map);
     pool_put(schema->pool, node);
@@ -77,7 +77,7 @@ void schema_node_print(struct schema_node * node, int indent, char * key) {
     }
 
     if(node->type & list)
-        schema_node_print(node->data, indent + 1, NULL);
+        schema_node_print(node->list, indent + 1, NULL);
 
     if(node->type & map) {
         kv = map_start(&node->map);
@@ -108,9 +108,9 @@ void schema_destroy(struct schema * schema) {
 }
 
 void schema_clear(struct schema * schema) {
-    if(schema->root->data) {
-        schema_node_destroy(schema, schema->root->data);
-        schema->root->data = NULL;
+    if(schema->root->list) {
+        schema_node_destroy(schema, schema->root->list);
+        schema->root->list = NULL;
     }
 }
 
@@ -131,10 +131,10 @@ int schema_push(struct schema * schema, enum schema_type type, int mark, char * 
             }
         } else {
             if(schema->root->type & list) {
-                if(schema->root->data) {
+                if(schema->root->list) {
                     status = panic("invalid data");
                 } else {
-                    schema->root->data = node;
+                    schema->root->list = node;
                 }
             } else {
                 status = panic("expected list");
@@ -158,7 +158,7 @@ void schema_pop(struct schema * schema) {
 }
 
 struct schema_node * schema_top(struct schema * schema) {
-    return schema->root->data;
+    return schema->root->list;
 }
 
 int schema_load(struct schema * schema, struct schema_markup * markup) {
@@ -283,7 +283,7 @@ int parser_event(enum event_type event, struct string * string, void * context) 
                     } else {
                         parser->root = parser->root->next;
                     }
-                } else if(parser_node(parser, event, string, parser->root->data)) {
+                } else if(parser_node(parser, event, string, parser->root->list)) {
                     status = panic("failed to node parser object");
                 }
             } else if(parser->root->type == map) {
