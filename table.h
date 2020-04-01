@@ -75,6 +75,33 @@ int mercenary_create(struct mercenary *, size_t, struct heap *);
 void mercenary_destroy(struct mercenary *);
 int mercenary_parse(enum parser_event, int, struct string *, void *);
 
+struct material_node {
+    long id;
+    long amount;
+    struct material_node * next;
+};
+
+struct produce_node {
+    long id;
+    long item_id;
+    long item_level;
+    long skill_id;
+    long skill_level;
+    struct material_node * material;
+};
+
+struct produce {
+    struct store store;
+    struct map id;
+    struct produce_node * produce;
+    struct material_node * material;
+    size_t index;
+};
+
+int produce_create(struct produce *, size_t, struct heap *);
+void produce_destroy(struct produce *);
+int produce_parse(enum parser_event, int, struct string *, void *);
+
 struct constant_node {
     char * identifier;
     long value;
@@ -124,6 +151,7 @@ struct table {
     struct skill skill;
     struct mob mob;
     struct mercenary mercenary;
+    struct produce produce;
     struct constant constant;
     struct argument argument;
 };
@@ -134,6 +162,7 @@ int table_item_parse(struct table *, char *);
 int table_skill_parse(struct table *, char *);
 int table_mob_parse(struct table *, char *);
 int table_mercenary_parse(struct table *, char *);
+int table_produce_parse(struct table *, char *);
 int table_constant_parse(struct table *, char *);
 int table_argument_parse(struct table *, char *);
 

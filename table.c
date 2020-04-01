@@ -339,7 +339,7 @@ int item_parse(enum parser_event event, int mark, struct string * string, void *
             if(event == start) {
                 item->item = store_calloc(&item->store, sizeof(*item->item));
                 if(!item->item) {
-                    status = panic("failed to object store object");
+                    status = panic("failed to calloc store object");
                 } else {
                     item->index = 0;
                 }
@@ -463,7 +463,7 @@ int skill_parse(enum parser_event event, int mark, struct string * string, void 
             if(event == start) {
                 skill->skill = store_calloc(&skill->store, sizeof(*skill->skill));
                 if(!skill->skill)
-                    status = panic("failed to object store object");
+                    status = panic("failed to calloc store object");
             } else if(event == end) {
                 if(!skill->skill->name) {
                     status = panic("invalid name");
@@ -532,7 +532,7 @@ int mob_parse(enum parser_event event, int mark, struct string * string, void * 
             if(event == start) {
                 mob->mob = store_calloc(&mob->store, sizeof(*mob->mob));
                 if(!mob->mob) {
-                    status = panic("failed to object store object");
+                    status = panic("failed to calloc store object");
                 } else {
                     mob->index = 0;
                 }
@@ -604,7 +604,7 @@ int mercenary_parse(enum parser_event event, int mark, struct string * string, v
             if(event == start) {
                 mercenary->mercenary = store_calloc(&mercenary->store, sizeof(*mercenary->mercenary));
                 if(!mercenary->mercenary) {
-                    status = panic("failed to object store object");
+                    status = panic("failed to calloc store object");
                 } else {
                     mercenary->index = 0;
                 }
@@ -630,6 +630,103 @@ int mercenary_parse(enum parser_event event, int mark, struct string * string, v
                     break;
             }
             mercenary->index++;
+            break;
+    }
+
+    return status;
+}
+
+int produce_create(struct produce * produce, size_t size, struct heap * heap) {
+    int status = 0;
+
+    if(store_create(&produce->store, size)) {
+        status = panic("failed to create store object");
+    } else {
+        if(map_create(&produce->id, long_compare, heap->map_pool))
+            status = panic("failed to create map object");
+        if(status)
+            store_destroy(&produce->store);
+    }
+
+    return status;
+}
+
+void produce_destroy(struct produce * produce) {
+    map_destroy(&produce->id);
+    store_destroy(&produce->store);
+}
+
+int produce_parse(enum parser_event event, int mark, struct string * string, void * context) {
+    int status = 0;
+
+    char * last;
+    struct produce * produce = context;
+
+    switch(mark) {
+        case 1:
+            if(event == start) {
+                produce->produce = store_calloc(&produce->store, sizeof(*produce->produce));
+                if(!produce->produce) {
+                    status = panic("failed to calloc store object");
+                } else {
+                    produce->material = NULL;
+                    produce->index = 0;
+                }
+            } else if(event == end) {
+                if(map_insert(&produce->id, &produce->produce->id, produce->produce))
+                    status = panic("failed to insert map object");
+            }
+            break;
+        case 2:
+            switch(produce->index) {
+                case 0:
+                    produce->produce->id = strtol(string->string, &last, 10);
+                    if(*last)
+                        status = panic("failed to strtol string object");
+                    break;
+                case 1:
+                    produce->produce->item_id = strtol(string->string, &last, 10);
+                    if(*last)
+                        status = panic("failed to strtol string object");
+                    break;
+                case 2:
+                    produce->produce->item_level = strtol(string->string, &last, 10);
+                    if(*last)
+                        status = panic("failed to strtol string object");
+                    break;
+                case 3:
+                    produce->produce->skill_id = strtol(string->string, &last, 10);
+                    if(*last)
+                        status = panic("failed to strtol string object");
+                    break;
+                case 4:
+                    produce->produce->skill_level = strtol(string->string, &last, 10);
+                    if(*last)
+                        status = panic("failed to strtol string object");
+                    break;
+                default:
+                    if(!produce->material) {
+                        produce->material = store_calloc(&produce->store, sizeof(*produce->material));
+                        if(!produce->material) {
+                            status = panic("failed to calloc store object");
+                        } else {
+                            produce->material->id = strtol(string->string, &last, 10);
+                            if(*last)
+                                status = panic("failed to strtol string object");
+                        }
+                    } else {
+                        produce->material->amount = strtol(string->string, &last, 10);
+                        if(*last) {
+                            status = panic("failed to strtol string object");
+                        } else {
+                            produce->material->next = produce->produce->material;
+                            produce->produce->material = produce->material;
+                        }
+                        produce->material = NULL;
+                    }
+                    break;
+            }
+            produce->index++;
             break;
     }
 
@@ -667,7 +764,7 @@ int constant_parse(enum parser_event event, int mark, struct string * string, vo
             if(event == start) {
                 constant->constant = store_calloc(&constant->store, sizeof(*constant->constant));
                 if(!constant->constant)
-                    status = panic("failed to object store object");
+                    status = panic("failed to calloc store object");
             } else if(event == end) {
                 if(!constant->constant->identifier) {
                     status = panic("invalid string object");
@@ -695,7 +792,7 @@ int constant_parse(enum parser_event event, int mark, struct string * string, vo
             if(event == start) {
                 constant->range = store_calloc(&constant->store, sizeof(*constant->range));
                 if(!constant->range)
-                    status = panic("failed to object store object");
+                    status = panic("failed to calloc store object");
             } else if(event == end) {
                 constant->range->next = constant->constant->range;
                 constant->constant->range = constant->range;
@@ -750,7 +847,7 @@ int argument_parse(enum parser_event event, int mark, struct string * string, vo
             if(event == start) {
                 argument->argument = store_calloc(&argument->store, sizeof(*argument->argument));
                 if(!argument->argument)
-                    status = panic("failed to object store object");
+                    status = panic("failed to calloc store object");
             } else if(event == end) {
                 if(!argument->argument->identifier) {
                     status = panic("invalid string object");
@@ -785,7 +882,7 @@ int argument_parse(enum parser_event event, int mark, struct string * string, vo
         case 5:
             data = store_malloc(&argument->store, sizeof(*data));
             if(!data) {
-                status = panic("failed to object store object");
+                status = panic("failed to malloc store object");
             } else {
                 data->string = store_strcpy(&argument->store, string->string, string->length);
                 if(!data->string) {
@@ -800,7 +897,7 @@ int argument_parse(enum parser_event event, int mark, struct string * string, vo
             if(event == start) {
                 argument->range = store_calloc(&argument->store, sizeof(*argument->range));
                 if(!argument->range)
-                    status = panic("failed to object store object");
+                    status = panic("failed to calloc store object");
             } else if(event == end) {
                 argument->range->next = argument->argument->range;
                 argument->argument->range = argument->range;
@@ -846,6 +943,9 @@ int table_create(struct table * table, size_t size, struct heap * heap) {
     } else if(mercenary_create(&table->mercenary, size, heap)) {
         status = panic("failed to create mercenary object");
         goto mercenary_fail;
+    } else if(produce_create(&table->produce, size, heap)) {
+        status = panic("failed to create produce object");
+        goto produce_fail;
     } else if(constant_create(&table->constant, size, heap)) {
         status = panic("failed to create constant object");
         goto constant_fail;
@@ -859,6 +959,8 @@ int table_create(struct table * table, size_t size, struct heap * heap) {
 argument_fail:
     constant_destroy(&table->constant);
 constant_fail:
+    produce_destroy(&table->produce);
+produce_fail:
     mercenary_destroy(&table->mercenary);
 mercenary_fail:
     mob_destroy(&table->mob);
@@ -877,6 +979,7 @@ parser_fail:
 void table_destroy(struct table * table) {
     argument_destroy(&table->argument);
     constant_destroy(&table->constant);
+    produce_destroy(&table->produce);
     mercenary_destroy(&table->mercenary);
     mob_destroy(&table->mob);
     skill_destroy(&table->skill);
@@ -927,6 +1030,18 @@ int table_mercenary_parse(struct table * table, char * path) {
     if(schema_load(&table->schema, csv_markup)) {
         status = panic("failed to load schema object");
     } else if(parser_parse(&table->parser, &table->schema, mercenary_parse, &table->mercenary, path)) {
+        status = panic("failed to parse parser object");
+    }
+
+    return status;
+}
+
+int table_produce_parse(struct table * table, char * path) {
+    int status = 0;
+
+    if(schema_load(&table->schema, csv_markup)) {
+        status = panic("failed to load schema object");
+    } else if(parser_parse(&table->parser, &table->schema, produce_parse, &table->produce, path)) {
         status = panic("failed to parse parser object");
     }
 
