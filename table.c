@@ -494,6 +494,85 @@ int skill_parse(enum parser_event event, int mark, struct string * string, void 
     return status;
 }
 
+int mob_create(struct mob * mob, size_t size, struct heap * heap) {
+    int status = 0;
+
+    if(store_create(&mob->store, size)) {
+        status = panic("failed to create store object");
+    } else {
+        if(map_create(&mob->id, long_compare, heap->map_pool)) {
+            status = panic("failed to create map object");
+        } else {
+            if(map_create(&mob->sprite, (map_compare_cb) strcmp, heap->map_pool))
+                status = panic("failed to create map object");
+            if(status)
+                map_destroy(&mob->id);
+        }
+        if(status)
+            store_destroy(&mob->store);
+    }
+
+    return status;
+}
+
+void mob_destroy(struct mob * mob) {
+    map_destroy(&mob->sprite);
+    map_destroy(&mob->id);
+    store_destroy(&mob->store);
+}
+
+int mob_parse(enum parser_event event, int mark, struct string * string, void * context) {
+    int status = 0;
+
+    char * last;
+    struct mob * mob = context;
+
+    switch(mark) {
+        case 1:
+            if(event == start) {
+                mob->mob = store_calloc(&mob->store, sizeof(*mob->mob));
+                if(!mob->mob) {
+                    status = panic("failed to object store object");
+                } else {
+                    mob->index = 0;
+                }
+            } else if(event == end) {
+                if(mob->index != 57) {
+                    status = panic("invalid index");
+                } else if(!mob->mob->sprite) {
+                    status = panic("invalid sprite");
+                } else if(map_insert(&mob->id, &mob->mob->id, mob->mob)) {
+                    status = panic("failed to insert map object");
+                } else if(map_insert(&mob->sprite, mob->mob->sprite, mob->mob)) {
+                    status = panic("failed to insert map object");
+                }
+            }
+            break;
+        case 2:
+            switch(mob->index) {
+                case 0:
+                    mob->mob->id = strtol(string->string, &last, 10);
+                    if(*last)
+                        status = panic("failed to strtol string object");
+                    break;
+                case 1:
+                    mob->mob->sprite = store_strcpy(&mob->store, string->string, string->length);
+                    if(!mob->mob->sprite)
+                        status = panic("failed to char store object");
+                    break;
+                case 2:
+                    mob->mob->kro = store_strcpy(&mob->store, string->string, string->length);
+                    if(!mob->mob->kro)
+                        status = panic("failed to char store object");
+                    break;
+            }
+            mob->index++;
+            break;
+    }
+
+    return status;
+}
+
 int mercenary_create(struct mercenary * mercenary, size_t size, struct heap * heap) {
     int status = 0;
 
@@ -761,6 +840,9 @@ int table_create(struct table * table, size_t size, struct heap * heap) {
     } else if(skill_create(&table->skill, size, heap)) {
         status = panic("failed to create skill object");
         goto skill_fail;
+    } else if(mob_create(&table->mob, size, heap)) {
+        status = panic("failed to create mob object");
+        goto mob_fail;
     } else if(mercenary_create(&table->mercenary, size, heap)) {
         status = panic("failed to create mercenary object");
         goto mercenary_fail;
@@ -779,6 +861,8 @@ argument_fail:
 constant_fail:
     mercenary_destroy(&table->mercenary);
 mercenary_fail:
+    mob_destroy(&table->mob);
+mob_fail:
     skill_destroy(&table->skill);
 skill_fail:
     item_destroy(&table->item);
@@ -794,6 +878,7 @@ void table_destroy(struct table * table) {
     argument_destroy(&table->argument);
     constant_destroy(&table->constant);
     mercenary_destroy(&table->mercenary);
+    mob_destroy(&table->mob);
     skill_destroy(&table->skill);
     item_destroy(&table->item);
     parser_destroy(&table->parser);
@@ -818,6 +903,18 @@ int table_skill_parse(struct table * table, char * path) {
     if(schema_load(&table->schema, skill_markup)) {
         status = panic("failed to load schema object");
     } else if(parser_parse(&table->parser, &table->schema, skill_parse, &table->skill, path)) {
+        status = panic("failed to parse parser object");
+    }
+
+    return status;
+}
+
+int table_mob_parse(struct table * table, char * path) {
+    int status = 0;
+
+    if(schema_load(&table->schema, csv_markup)) {
+        status = panic("failed to load schema object");
+    } else if(parser_parse(&table->parser, &table->schema, mob_parse, &table->mob, path)) {
         status = panic("failed to parse parser object");
     }
 
@@ -882,6 +979,14 @@ struct skill_node * skill_id(struct table * table, long id) {
 
 struct skill_node * skill_name(struct table * table, char * name) {
     return map_search(&table->skill.name, name);
+}
+
+struct mob_node * mob_id(struct table * table, long id) {
+    return map_search(&table->mob.id, &id);
+}
+
+struct mob_node * mob_sprite(struct table * table, char * sprite) {
+    return map_search(&table->mob.sprite, sprite);
 }
 
 struct mercenary_node * mercenary_id(struct table * table, long id) {
