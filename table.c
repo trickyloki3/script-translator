@@ -494,6 +494,69 @@ int skill_parse(enum parser_event event, int mark, struct string * string, void 
     return status;
 }
 
+int mercenary_create(struct mercenary * mercenary, size_t size, struct heap * heap) {
+    int status = 0;
+
+    if(store_create(&mercenary->store, size)) {
+        status = panic("failed to create store object");
+    } else {
+        if(map_create(&mercenary->id, long_compare, heap->map_pool))
+            status = panic("failed to create map object");
+        if(status)
+            store_destroy(&mercenary->store);
+    }
+
+    return status;
+}
+
+void mercenary_destroy(struct mercenary * mercenary) {
+    map_destroy(&mercenary->id);
+    store_destroy(&mercenary->store);
+}
+
+int mercenary_parse(enum parser_event event, int mark, struct string * string, void * context) {
+    int status = 0;
+
+    char * last;
+    struct mercenary * mercenary = context;
+
+    switch(mark) {
+        case 1:
+            if(event == start) {
+                mercenary->mercenary = store_calloc(&mercenary->store, sizeof(*mercenary->mercenary));
+                if(!mercenary->mercenary) {
+                    status = panic("failed to object store object");
+                } else {
+                    mercenary->index = 0;
+                }
+            } else if(event == end) {
+                if(mercenary->index != 26) {
+                    status = panic("invalid index");
+                } else if(map_insert(&mercenary->id, &mercenary->mercenary->id, mercenary->mercenary)) {
+                    status = panic("failed to insert map object");
+                }
+            }
+            break;
+        case 2:
+            switch(mercenary->index) {
+                case 0:
+                    mercenary->mercenary->id = strtol(string->string, &last, 10);
+                    if(*last)
+                        status = panic("failed to strtol string object");
+                    break;
+                case 2:
+                    mercenary->mercenary->name = store_strcpy(&mercenary->store, string->string, string->length);
+                    if(!mercenary->mercenary->name)
+                        status = panic("failed to char store object");
+                    break;
+            }
+            mercenary->index++;
+            break;
+    }
+
+    return status;
+}
+
 int constant_create(struct constant * constant, size_t size, struct heap * heap) {
     int status = 0;
 
@@ -698,6 +761,9 @@ int table_create(struct table * table, size_t size, struct heap * heap) {
     } else if(skill_create(&table->skill, size, heap)) {
         status = panic("failed to create skill object");
         goto skill_fail;
+    } else if(mercenary_create(&table->mercenary, size, heap)) {
+        status = panic("failed to create mercenary object");
+        goto mercenary_fail;
     } else if(constant_create(&table->constant, size, heap)) {
         status = panic("failed to create constant object");
         goto constant_fail;
@@ -711,6 +777,8 @@ int table_create(struct table * table, size_t size, struct heap * heap) {
 argument_fail:
     constant_destroy(&table->constant);
 constant_fail:
+    mercenary_destroy(&table->mercenary);
+mercenary_fail:
     skill_destroy(&table->skill);
 skill_fail:
     item_destroy(&table->item);
@@ -725,6 +793,7 @@ parser_fail:
 void table_destroy(struct table * table) {
     argument_destroy(&table->argument);
     constant_destroy(&table->constant);
+    mercenary_destroy(&table->mercenary);
     skill_destroy(&table->skill);
     item_destroy(&table->item);
     parser_destroy(&table->parser);
@@ -749,6 +818,18 @@ int table_skill_parse(struct table * table, char * path) {
     if(schema_load(&table->schema, skill_markup)) {
         status = panic("failed to load schema object");
     } else if(parser_parse(&table->parser, &table->schema, skill_parse, &table->skill, path)) {
+        status = panic("failed to parse parser object");
+    }
+
+    return status;
+}
+
+int table_mercenary_parse(struct table * table, char * path) {
+    int status = 0;
+
+    if(schema_load(&table->schema, csv_markup)) {
+        status = panic("failed to load schema object");
+    } else if(parser_parse(&table->parser, &table->schema, mercenary_parse, &table->mercenary, path)) {
         status = panic("failed to parse parser object");
     }
 
@@ -801,6 +882,10 @@ struct skill_node * skill_id(struct table * table, long id) {
 
 struct skill_node * skill_name(struct table * table, char * name) {
     return map_search(&table->skill.name, name);
+}
+
+struct mercenary_node * mercenary_id(struct table * table, long id) {
+    return map_search(&table->mercenary.id, &id);
 }
 
 struct constant_node * constant_identifier(struct table * table, char * identifier) {

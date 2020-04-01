@@ -41,6 +41,22 @@ int skill_create(struct skill *, size_t, struct heap *);
 void skill_destroy(struct skill *);
 int skill_parse(enum parser_event, int, struct string *, void *);
 
+struct mercenary_node {
+    long id;
+    char * name;
+};
+
+struct mercenary {
+    struct store store;
+    struct map id;
+    struct mercenary_node * mercenary;
+    size_t index;
+};
+
+int mercenary_create(struct mercenary *, size_t, struct heap *);
+void mercenary_destroy(struct mercenary *);
+int mercenary_parse(enum parser_event, int, struct string *, void *);
+
 struct constant_node {
     char * identifier;
     long value;
@@ -88,6 +104,7 @@ struct table {
     struct parser parser;
     struct item item;
     struct skill skill;
+    struct mercenary mercenary;
     struct constant constant;
     struct argument argument;
 };
@@ -96,6 +113,7 @@ int table_create(struct table *, size_t, struct heap *);
 void table_destroy(struct table *);
 int table_item_parse(struct table *, char *);
 int table_skill_parse(struct table *, char *);
+int table_mercenary_parse(struct table *, char *);
 int table_constant_parse(struct table *, char *);
 int table_argument_parse(struct table *, char *);
 
@@ -106,6 +124,8 @@ struct item_node * item_name(struct table *, char *);
 
 struct skill_node * skill_id(struct table *, long);
 struct skill_node * skill_name(struct table *, char *);
+
+struct mercenary_node * mercenary_id(struct table *, long);
 
 struct constant_node * constant_identifier(struct table *, char *);
 struct argument_node * argument_identifier(struct table *, char *);
