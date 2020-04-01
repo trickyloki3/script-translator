@@ -83,6 +83,7 @@ int argument_millisecond(struct script *, struct script_array *, struct argument
 
 int argument_item(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
 int argument_skill(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
+int argument_mob(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
 int argument_mercenary(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
 
 typedef int (*argument_cb) (struct script *, struct script_array *, struct argument_node *, struct strbuf *);
@@ -101,6 +102,7 @@ struct argument_entry {
     { "millisecond", argument_millisecond },
     { "item", argument_item },
     { "skill", argument_skill },
+    { "mob", argument_mob },
     { "mercenary", argument_mercenary },
     { NULL, NULL }
 };
@@ -2128,6 +2130,56 @@ int argument_skill(struct script * script, struct script_array * array, struct a
                                     status = panic("failed to printf strbuf object");
                             } else {
                                 if(strbuf_printf(strbuf, ", %s", skill->description))
+                                    status = panic("failed to printf strbuf object");
+                            }
+                        }
+                    }
+                    node = node->next;
+                }
+            }
+        }
+    }
+
+    return status;
+}
+
+int argument_mob(struct script * script, struct script_array * array, struct argument_node * argument, struct strbuf * strbuf) {
+    int status = 0;
+
+    size_t i;
+    struct script_range * range;
+
+    long j;
+    struct range_node * node;
+    struct mob_node * mob;
+
+    for(i = 0; i < array->count && !status; i++) {
+        range = script_array_get(array, i);
+        if(!range) {
+            status = panic("failed to get script array object");
+        } else {
+            mob = mob_sprite(script->table, range->string);
+            if(mob) {
+                if(!i) {
+                    if(strbuf_printf(strbuf, "%s", mob->kro))
+                        status = panic("failed to printf strbuf object");
+                } else {
+                    if(strbuf_printf(strbuf, ", %s", mob->kro))
+                        status = panic("failed to printf strbuf object");
+                }
+            } else {
+                node = range->range->root;
+                while(node && !status) {
+                    for(j = node->min; j <= node->max && !status; j++) {
+                        mob = mob_id(script->table, j);
+                        if(!mob) {
+                            status = panic("invalid mob id - %ld", j);
+                        } else {
+                            if(!i && j == node->min) {
+                                if(strbuf_printf(strbuf, "%s", mob->kro))
+                                    status = panic("failed to printf strbuf object");
+                            } else {
+                                if(strbuf_printf(strbuf, ", %s", mob->kro))
                                     status = panic("failed to printf strbuf object");
                             }
                         }
