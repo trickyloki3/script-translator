@@ -75,6 +75,7 @@ int argument_write(struct script *, struct script_array *, struct strbuf *, char
 int argument_list(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
 int argument_sign(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
 int argument_zero(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
+int argument_type(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
 int argument_string(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
 int argument_integer(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
 int argument_percent(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
@@ -95,6 +96,7 @@ struct argument_entry {
     { "list", argument_list },
     { "sign", argument_sign },
     { "zero", argument_zero },
+    { "type", argument_type },
     { "string", argument_string },
     { "integer", argument_integer },
     { "percent", argument_percent },
@@ -1884,6 +1886,45 @@ int argument_zero(struct script * script, struct script_array * array, struct ar
                 status = panic("failed to write argument object");
             } else if(argument->newline && strbuf_putcn(strbuf, '\n', argument->newline)) {
                 status = panic("failed to putcn strbuf object");
+            }
+        }
+    }
+
+    return status;
+}
+
+int argument_type(struct script * script, struct script_array * array, struct argument_node * argument, struct strbuf * strbuf) {
+    int status = 0;
+
+    size_t i;
+    struct script_range * range;
+
+    long j;
+    struct range_node * node;
+    char * string;
+
+    for(i = 0; i < array->count && !status; i++) {
+        range = script_array_get(array, i);
+        if(!range) {
+            status = panic("failed to get script array object");
+        } else {
+            node = range->range->root;
+            while(node && !status) {
+                for(j = node->min; j <= node->max && !status; j++) {
+                    string = map_search(argument->array, &j);
+                    if(!string) {
+                        status = panic("invalid index - %ld", j);
+                    } else {
+                        if(!i && j == node->min) {
+                            if(strbuf_printf(strbuf, "%s", string))
+                                status = panic("failed to printf strbuf object");
+                        } else {
+                            if(strbuf_printf(strbuf, ", %s", string))
+                                status = panic("failed to printf strbuf object");
+                        }
+                    }
+                }
+                node = node->next;
             }
         }
     }

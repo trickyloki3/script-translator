@@ -964,7 +964,7 @@ int argument_parse(enum parser_event event, int mark, struct string * string, vo
                 if(!argument->array)
                     status = panic("failed to calloc store object");
             } else if(event == end) {
-                if(map_insert(argument->argument->array, &argument->array->index, argument->array))
+                if(map_insert(argument->argument->array, &argument->array->index, argument->array->string))
                     status = panic("failed to insert map object");
             }
             break;
