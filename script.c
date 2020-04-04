@@ -68,6 +68,7 @@ struct function_entry {
     { "readparam", function_first },
     { "getequipid", function_first },
     { "vip_status", function_first },
+    { "checkoption", function_first },
     { NULL, NULL}
 };
 
