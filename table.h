@@ -125,19 +125,27 @@ struct print_node {
     struct print_node * next;
 };
 
+struct array_node {
+    long index;
+    char * string;
+};
+
 struct argument_node {
     char * identifier;
     char * handler;
     long newline;
     struct print_node * print;
     struct range_node * range;
+    struct map * array;
 };
 
 struct argument {
     struct store store;
     struct map identifier;
+    struct stack stack;
     struct argument_node * argument;
     struct range_node * range;
+    struct array_node * array;
 };
 
 int argument_create(struct argument *, size_t, struct heap *);

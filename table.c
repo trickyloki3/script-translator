@@ -292,6 +292,10 @@ struct schema_markup argument_markup[] = {
     {4, map, 8, NULL},
     {5, string, 9, "min"},
     {5, string, 10, "max"},
+    {3, list, 11, "array"},
+    {4, map, 12, NULL},
+    {5, string, 13, "index"},
+    {5, string, 14, "string"},
     {0, 0, 0},
 };
 
@@ -819,8 +823,14 @@ int argument_create(struct argument * argument, size_t size, struct heap * heap)
     if(store_create(&argument->store, size)) {
         status = panic("failed to create store object");
     } else {
-        if(map_create(&argument->identifier, (map_compare_cb) strcmp, heap->map_pool))
+        if(map_create(&argument->identifier, (map_compare_cb) strcmp, heap->map_pool)) {
             status = panic("failed to create map object");
+        } else {
+            if(stack_create(&argument->stack, heap->stack_pool))
+                status = panic("failed to create stack object");
+            if(status)
+                map_destroy(&argument->identifier);
+        }
         if(status)
             store_destroy(&argument->store);
     }
@@ -829,6 +839,15 @@ int argument_create(struct argument * argument, size_t size, struct heap * heap)
 }
 
 void argument_destroy(struct argument * argument) {
+    struct map * map;
+
+    map = stack_pop(&argument->stack);
+    while(map) {
+        map_destroy(map);
+        map = stack_pop(&argument->stack);
+    }
+
+    stack_destroy(&argument->stack);
     map_destroy(&argument->identifier);
     store_destroy(&argument->store);
 }
@@ -841,6 +860,7 @@ int argument_parse(enum parser_event event, int mark, struct string * string, vo
     char * last;
     struct print_node * root;
     struct print_node * node;
+    struct map * map;
 
     switch(mark) {
         case 1:
@@ -917,6 +937,46 @@ int argument_parse(enum parser_event event, int mark, struct string * string, vo
             argument->range->max = strtol(string->string, &last, 10);
             if(*last)
                 status = panic("failed to strtol string object");
+            break;
+        case 11:
+            if(event == start) {
+                map = store_malloc(&argument->store, sizeof(*map));
+                if(!map) {
+                    status = panic("failed to malloc store object");
+                } else {
+                    if(map_create(map, long_compare, argument->identifier.pool)) {
+                        status = panic("failed to create map object");
+                    } else {
+                        if(stack_push(&argument->stack, map)) {
+                            status = panic("failed to push stack object");
+                        } else {
+                            argument->argument->array = map;
+                        }
+                        if(status)
+                            map_destroy(map);
+                    }
+                }
+            }
+            break;
+        case 12:
+            if(event == start) {
+                argument->array = store_calloc(&argument->store, sizeof(*argument->array));
+                if(!argument->array)
+                    status = panic("failed to calloc store object");
+            } else if(event == end) {
+                if(map_insert(argument->argument->array, &argument->array->index, argument->array))
+                    status = panic("failed to insert map object");
+            }
+            break;
+        case 13:
+            argument->array->index = strtol(string->string, &last, 10);
+            if(*last)
+                status = panic("failed to strtol string object");
+            break;
+        case 14:
+            argument->array->string = store_strcpy(&argument->store, string->string, string->length);
+            if(!argument->array->string)
+                status = panic("failed to char store object");
             break;
     }
 
