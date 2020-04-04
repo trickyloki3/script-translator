@@ -1571,13 +1571,13 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
 
 struct script_range * script_execute(struct script * script, struct script_array * array, struct argument_node * argument) {
     int status = 0;
-    argument_cb callback;
+    argument_cb handler;
     struct strbuf * strbuf;
     struct script_range * range;
 
-    callback = map_search(&script->argument, argument->argument);
-    if(!callback) {
-        status = panic("invalid argument - %s", argument->argument);
+    handler = map_search(&script->argument, argument->handler);
+    if(!handler) {
+        status = panic("invalid argument - %s", argument->handler);
     } else {
         range = script_range_argument(script, argument);
         if(!range) {
@@ -1587,7 +1587,7 @@ struct script_range * script_execute(struct script * script, struct script_array
             if(!strbuf) {
                 status = panic("failed to get script buffer object");
             } else {
-                if(callback(script, array, argument, strbuf)) {
+                if(handler(script, array, argument, strbuf)) {
                     status = panic("failed to execute argument object");
                 } else {
                     range->string = script_store_strbuf(script, strbuf);
@@ -1750,7 +1750,7 @@ int argument_write(struct script * script, struct script_array * array, struct s
     struct script_range * range;
     struct script_array * subset;
     struct argument_node * argument;
-    argument_cb callback;
+    argument_cb handler;
 
     anchor = string;
     while(*string && !status) {
@@ -1791,8 +1791,8 @@ int argument_write(struct script * script, struct script_array * array, struct s
                         if(!anchor) {
                             status = panic("failed to strcpy store object");
                         } else {
-                            callback = map_search(&script->argument, anchor);
-                            if(!callback) {
+                            handler = map_search(&script->argument, anchor);
+                            if(!handler) {
                                 argument = argument_identifier(script->table, anchor);
                                 if(argument) {
                                     range = script_execute(script, subset, argument);
@@ -1802,7 +1802,7 @@ int argument_write(struct script * script, struct script_array * array, struct s
                                         status = panic("failed to printf strbuf object");
                                     }
                                 }
-                            } else if(callback(script, subset, argument, strbuf)) {
+                            } else if(handler(script, subset, argument, strbuf)) {
                                 status = panic("failed to execute argument object");
                             }
                             anchor = ++string;

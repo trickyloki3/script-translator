@@ -284,7 +284,7 @@ struct schema_markup argument_markup[] = {
     {1, list, 0, NULL},
     {2, map, 1, NULL},
     {3, string, 2, "identifier"},
-    {3, string, 3, "argument"},
+    {3, string, 3, "handler"},
     {3, list, 4, "data"},
     {4, string, 5, NULL},
     {3, list, 6, "range"},
@@ -862,8 +862,8 @@ int argument_parse(enum parser_event event, int mark, struct string * string, vo
                 status = panic("failed to char store object");
             break;
         case 3:
-            argument->argument->argument = store_strcpy(&argument->store, string->string, string->length);
-            if(!argument->argument->argument)
+            argument->argument->handler = store_strcpy(&argument->store, string->string, string->length);
+            if(!argument->argument->handler)
                 status = panic("failed to char store object");
             break;
         case 4:

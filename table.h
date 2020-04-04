@@ -127,7 +127,7 @@ struct data_node {
 
 struct argument_node {
     char * identifier;
-    char * argument;
+    char * handler;
     struct data_node * data;
     struct range_node * range;
     long newline;
