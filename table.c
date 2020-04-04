@@ -285,13 +285,13 @@ struct schema_markup argument_markup[] = {
     {2, map, 1, NULL},
     {3, string, 2, "identifier"},
     {3, string, 3, "handler"},
-    {3, list, 4, "data"},
-    {4, string, 5, NULL},
-    {3, list, 6, "range"},
-    {4, map, 7, NULL},
-    {5, string, 8, "min"},
-    {5, string, 9, "max"},
-    {3, string, 10, "newline"},
+    {3, string, 4, "newline"},
+    {3, list, 5, "print"},
+    {4, string, 6, NULL},
+    {3, list, 7, "range"},
+    {4, map, 8, NULL},
+    {5, string, 9, "min"},
+    {5, string, 10, "max"},
     {0, 0, 0},
 };
 
@@ -867,6 +867,11 @@ int argument_parse(enum parser_event event, int mark, struct string * string, vo
                 status = panic("failed to char store object");
             break;
         case 4:
+            argument->argument->newline = strtol(string->string, &last, 10);
+            if(*last)
+                status = panic("failed to strtol string object");
+            break;
+        case 5:
             if(event == end) {
                 root = NULL;
                 while(argument->argument->print) {
@@ -879,7 +884,7 @@ int argument_parse(enum parser_event event, int mark, struct string * string, vo
                 argument->argument->print = root;
             }
             break;
-        case 5:
+        case 6:
             node = store_malloc(&argument->store, sizeof(*node));
             if(!node) {
                 status = panic("failed to malloc store object");
@@ -893,7 +898,7 @@ int argument_parse(enum parser_event event, int mark, struct string * string, vo
                 }
             }
             break;
-        case 7:
+        case 8:
             if(event == start) {
                 argument->range = store_calloc(&argument->store, sizeof(*argument->range));
                 if(!argument->range)
@@ -903,18 +908,13 @@ int argument_parse(enum parser_event event, int mark, struct string * string, vo
                 argument->argument->range = argument->range;
             }
             break;
-        case 8:
+        case 9:
             argument->range->min = strtol(string->string, &last, 10);
             if(*last)
                 status = panic("failed to strtol string object");
             break;
-        case 9:
-            argument->range->max = strtol(string->string, &last, 10);
-            if(*last)
-                status = panic("failed to strtol string object");
-            break;
         case 10:
-            argument->argument->newline = strtol(string->string, &last, 10);
+            argument->range->max = strtol(string->string, &last, 10);
             if(*last)
                 status = panic("failed to strtol string object");
             break;
