@@ -839,8 +839,8 @@ int argument_parse(enum parser_event event, int mark, struct string * string, vo
     struct argument * argument = context;
 
     char * last;
-    struct data_node * root;
-    struct data_node * data;
+    struct print_node * root;
+    struct print_node * node;
 
     switch(mark) {
         case 1:
@@ -869,27 +869,27 @@ int argument_parse(enum parser_event event, int mark, struct string * string, vo
         case 4:
             if(event == end) {
                 root = NULL;
-                while(argument->argument->data) {
-                    data = argument->argument->data;
-                    argument->argument->data = argument->argument->data->next;
-                    data->next = root;
-                    root = data;
+                while(argument->argument->print) {
+                    node = argument->argument->print;
+                    argument->argument->print = argument->argument->print->next;
+                    node->next = root;
+                    root = node;
                 }
 
-                argument->argument->data = root;
+                argument->argument->print = root;
             }
             break;
         case 5:
-            data = store_malloc(&argument->store, sizeof(*data));
-            if(!data) {
+            node = store_malloc(&argument->store, sizeof(*node));
+            if(!node) {
                 status = panic("failed to malloc store object");
             } else {
-                data->string = store_strcpy(&argument->store, string->string, string->length);
-                if(!data->string) {
+                node->string = store_strcpy(&argument->store, string->string, string->length);
+                if(!node->string) {
                     status = panic("failed to char store object");
                 } else {
-                    data->next = argument->argument->data;
-                    argument->argument->data = data;
+                    node->next = argument->argument->print;
+                    argument->argument->print = node;
                 }
             }
             break;

@@ -120,15 +120,15 @@ int constant_create(struct constant *, size_t, struct heap *);
 void constant_destroy(struct constant *);
 int constant_parse(enum parser_event, int, struct string *, void *);
 
-struct data_node {
+struct print_node {
     char * string;
-    struct data_node * next;
+    struct print_node * next;
 };
 
 struct argument_node {
     char * identifier;
     char * handler;
-    struct data_node * data;
+    struct print_node * print;
     struct range_node * range;
     long newline;
 };

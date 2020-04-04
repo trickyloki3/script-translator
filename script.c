@@ -1824,16 +1824,16 @@ int argument_write(struct script * script, struct script_array * array, struct s
 
 int argument_list(struct script * script, struct script_array * array, struct argument_node * argument, struct strbuf * strbuf) {
     int status = 0;
-    struct data_node * data;
+    struct print_node * print;
 
-    data = argument->data;
-    while(data && !status) {
-        if(argument_write(script, array, strbuf, data->string)) {
+    print = argument->print;
+    while(print && !status) {
+        if(argument_write(script, array, strbuf, print->string)) {
             status = panic("failed to parse argument object");
         } else if(argument->newline && strbuf_putcn(strbuf, '\n', argument->newline)) {
             status = panic("failed to putcn strbuf object");
         } else {
-            data = data->next;
+            print = print->next;
         }
     }
 
@@ -1842,23 +1842,23 @@ int argument_list(struct script * script, struct script_array * array, struct ar
 
 int argument_sign(struct script * script, struct script_array * array, struct argument_node * argument, struct strbuf * strbuf) {
     int status = 0;
-    struct data_node * data;
+    struct print_node * print;
     struct script_range * range;
 
     range = script_array_get(array, 0);
     if(!range) {
         status = panic("failed to get script array object");
     } else {
-        if(!argument->data) {
-            status = panic("invalid data");
+        if(!argument->print) {
+            status = panic("invalid print");
         } else {
-            data = argument->data;
+            print = argument->print;
             if(range->range->max < 0)
-                data = data->next;
+                print = print->next;
 
-            if(!data) {
-                status = panic("invalid data");
-            } else if(argument_write(script, array, strbuf, data->string)) {
+            if(!print) {
+                status = panic("invalid print");
+            } else if(argument_write(script, array, strbuf, print->string)) {
                 status = panic("failed to write argument object");
             } else if(argument->newline && strbuf_putcn(strbuf, '\n', argument->newline)) {
                 status = panic("failed to putcn strbuf object");
@@ -1873,14 +1873,14 @@ int argument_zero(struct script * script, struct script_array * array, struct ar
     int status = 0;
     struct script_range * range;
 
-    if(!argument->data) {
-        status = panic("invalid data");
+    if(!argument->print) {
+        status = panic("invalid print");
     } else {
         range = script_array_get(array, 0);
         if(!range) {
             status = panic("failed to get script array object");
         } else if(range->range->min && range->range->max) {
-            if(argument_write(script, array, strbuf, argument->data->string)) {
+            if(argument_write(script, array, strbuf, argument->print->string)) {
                 status = panic("failed to write argument object");
             } else if(argument->newline && strbuf_putcn(strbuf, '\n', argument->newline)) {
                 status = panic("failed to putcn strbuf object");
@@ -1951,7 +1951,7 @@ int argument_second(struct script * script, struct script_array * array, struct 
 
     long min;
     long max;
-    struct data_node * data;
+    struct print_node * print;
 
     range = script_array_get(array, 0);
     if(!range) {
@@ -1959,31 +1959,31 @@ int argument_second(struct script * script, struct script_array * array, struct 
     } else {
         min = range->range->min;
         max = range->range->max;
-        data = argument->data;
+        print = argument->print;
         if(min / 86400 > 0) {
             min /= 86400;
             max /= 86400;
         } else {
-            data = data->next;
+            print = print->next;
             if(min / 3600 > 0) {
                 min /= 3600;
                 max /= 3600;
             } else {
-                data = data->next;
+                print = print->next;
                 if(min / 60 > 0) {
                     min /= 60;
                     max /= 60;
                 } else {
-                    data = data->next;
+                    print = print->next;
                 }
             }
         }
 
         if(min == max) {
-            if(strbuf_printf(strbuf, "%ld %s", min, data->string))
+            if(strbuf_printf(strbuf, "%ld %s", min, print->string))
                 status = panic("failed to printf strbuf object");
         } else {
-            if(strbuf_printf(strbuf, "%ld ~ %ld %s", min, max, data->string))
+            if(strbuf_printf(strbuf, "%ld ~ %ld %s", min, max, print->string))
                 status = panic("failed to printf strbuf object");
         }
     }
@@ -1997,7 +1997,7 @@ int argument_millisecond(struct script * script, struct script_array * array, st
 
     long min;
     long max;
-    struct data_node * data;
+    struct print_node * print;
 
     range = script_array_get(array, 0);
     if(!range) {
@@ -2005,37 +2005,37 @@ int argument_millisecond(struct script * script, struct script_array * array, st
     } else {
         min = range->range->min;
         max = range->range->max;
-        data = argument->data;
+        print = argument->print;
         if(min / 86400000 > 0) {
             min /= 86400000;
             max /= 86400000;
         } else {
-            data = data->next;
+            print = print->next;
             if(min / 3600000 > 0) {
                 min /= 3600000;
                 max /= 3600000;
             } else {
-                data = data->next;
+                print = print->next;
                 if(min / 60000 > 0) {
                     min /= 60000;
                     max /= 60000;
                 } else {
-                    data = data->next;
+                    print = print->next;
                     if(min / 1000 > 0) {
                         min /= 1000;
                         max /= 1000;
                     } else {
-                        data = data->next;
+                        print = print->next;
                     }
                 }
             }
         }
 
         if(min == max) {
-            if(strbuf_printf(strbuf, "%ld %s", min, data->string))
+            if(strbuf_printf(strbuf, "%ld %s", min, print->string))
                 status = panic("failed to printf strbuf object");
         } else {
-            if(strbuf_printf(strbuf, "%ld ~ %ld %s", min, max, data->string))
+            if(strbuf_printf(strbuf, "%ld ~ %ld %s", min, max, print->string))
                 status = panic("failed to printf strbuf object");
         }
     }
