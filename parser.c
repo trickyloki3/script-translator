@@ -260,7 +260,7 @@ int parser_start(struct parser * parser, struct schema_node * node, enum event_t
     } else if(type == scalar) {
         if(node->type & string) {
             if(parser->callback(next, node->mark, value, parser->context))
-                status = panic("failed to process start event");
+                status = panic("failed to process next event");
         } else {
             status = panic("unexpected string");
         }
@@ -315,7 +315,7 @@ int parser_event(enum event_type type, struct string * value, void * context) {
                 status = panic("invalid type - %d", type);
             }
         } else {
-            status = panic("invalid node type - %d", node->type);
+            status = panic("invalid node state - %d", node->type);
         }
     }
 
