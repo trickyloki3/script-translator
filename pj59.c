@@ -25,8 +25,6 @@ int main(int argc, char ** argv) {
                 status = panic("failed to mob parse table object");
             } else if (table_mercenary_parse(&table, "mercenary_db.txt")) {
                 status = panic("failed to mercenary parse table object");
-            } else if (table_produce_parse(&table, "produce_db.txt")) {
-                status = panic("failed to produce parse table object");
             } else if (table_constant_parse(&table, "constant.yml")) {
                 status = panic("failed to constant parse table object");
             } else if (table_argument_parse(&table, "argument.yml")) {

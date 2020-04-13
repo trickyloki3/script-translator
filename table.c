@@ -640,103 +640,6 @@ int mercenary_parse(enum parser_event event, int mark, struct string * string, v
     return status;
 }
 
-int produce_create(struct produce * produce, size_t size, struct heap * heap) {
-    int status = 0;
-
-    if(store_create(&produce->store, size)) {
-        status = panic("failed to create store object");
-    } else {
-        if(map_create(&produce->id, long_compare, heap->map_pool))
-            status = panic("failed to create map object");
-        if(status)
-            store_destroy(&produce->store);
-    }
-
-    return status;
-}
-
-void produce_destroy(struct produce * produce) {
-    map_destroy(&produce->id);
-    store_destroy(&produce->store);
-}
-
-int produce_parse(enum parser_event event, int mark, struct string * string, void * context) {
-    int status = 0;
-
-    char * last;
-    struct produce * produce = context;
-
-    switch(mark) {
-        case 1:
-            if(event == start) {
-                produce->produce = store_calloc(&produce->store, sizeof(*produce->produce));
-                if(!produce->produce) {
-                    status = panic("failed to calloc store object");
-                } else {
-                    produce->material = NULL;
-                    produce->index = 0;
-                }
-            } else if(event == end) {
-                if(map_insert(&produce->id, &produce->produce->id, produce->produce))
-                    status = panic("failed to insert map object");
-            }
-            break;
-        case 2:
-            switch(produce->index) {
-                case 0:
-                    produce->produce->id = strtol(string->string, &last, 10);
-                    if(*last)
-                        status = panic("failed to strtol string object");
-                    break;
-                case 1:
-                    produce->produce->item_id = strtol(string->string, &last, 10);
-                    if(*last)
-                        status = panic("failed to strtol string object");
-                    break;
-                case 2:
-                    produce->produce->item_level = strtol(string->string, &last, 10);
-                    if(*last)
-                        status = panic("failed to strtol string object");
-                    break;
-                case 3:
-                    produce->produce->skill_id = strtol(string->string, &last, 10);
-                    if(*last)
-                        status = panic("failed to strtol string object");
-                    break;
-                case 4:
-                    produce->produce->skill_level = strtol(string->string, &last, 10);
-                    if(*last)
-                        status = panic("failed to strtol string object");
-                    break;
-                default:
-                    if(!produce->material) {
-                        produce->material = store_calloc(&produce->store, sizeof(*produce->material));
-                        if(!produce->material) {
-                            status = panic("failed to calloc store object");
-                        } else {
-                            produce->material->id = strtol(string->string, &last, 10);
-                            if(*last)
-                                status = panic("failed to strtol string object");
-                        }
-                    } else {
-                        produce->material->amount = strtol(string->string, &last, 10);
-                        if(*last) {
-                            status = panic("failed to strtol string object");
-                        } else {
-                            produce->material->next = produce->produce->material;
-                            produce->produce->material = produce->material;
-                        }
-                        produce->material = NULL;
-                    }
-                    break;
-            }
-            produce->index++;
-            break;
-    }
-
-    return status;
-}
-
 int constant_create(struct constant * constant, size_t size, struct heap * heap) {
     int status = 0;
 
@@ -1003,9 +906,6 @@ int table_create(struct table * table, size_t size, struct heap * heap) {
     } else if(mercenary_create(&table->mercenary, size, heap)) {
         status = panic("failed to create mercenary object");
         goto mercenary_fail;
-    } else if(produce_create(&table->produce, size, heap)) {
-        status = panic("failed to create produce object");
-        goto produce_fail;
     } else if(constant_create(&table->constant, size, heap)) {
         status = panic("failed to create constant object");
         goto constant_fail;
@@ -1019,8 +919,6 @@ int table_create(struct table * table, size_t size, struct heap * heap) {
 argument_fail:
     constant_destroy(&table->constant);
 constant_fail:
-    produce_destroy(&table->produce);
-produce_fail:
     mercenary_destroy(&table->mercenary);
 mercenary_fail:
     mob_destroy(&table->mob);
@@ -1039,7 +937,6 @@ parser_fail:
 void table_destroy(struct table * table) {
     argument_destroy(&table->argument);
     constant_destroy(&table->constant);
-    produce_destroy(&table->produce);
     mercenary_destroy(&table->mercenary);
     mob_destroy(&table->mob);
     skill_destroy(&table->skill);
@@ -1074,10 +971,6 @@ int table_mob_parse(struct table * table, char * path) {
 
 int table_mercenary_parse(struct table * table, char * path) {
     return table_parse(table, csv_markup, mercenary_parse, &table->mercenary, path);
-}
-
-int table_produce_parse(struct table * table, char * path) {
-    return table_parse(table, csv_markup, produce_parse, &table->produce, path);
 }
 
 int table_constant_parse(struct table * table, char * path) {
