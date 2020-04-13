@@ -166,6 +166,7 @@ struct table {
 
 int table_create(struct table *, size_t, struct heap *);
 void table_destroy(struct table *);
+int table_parse(struct table *, struct schema_markup *, parser_cb, void *, char *);
 int table_item_parse(struct table *, char *);
 int table_skill_parse(struct table *, char *);
 int table_mob_parse(struct table *, char *);

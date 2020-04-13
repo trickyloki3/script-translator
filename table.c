@@ -1048,88 +1048,44 @@ void table_destroy(struct table * table) {
     schema_destroy(&table->schema);
 }
 
-int table_item_parse(struct table * table, char * path) {
+int table_parse(struct table * table, struct schema_markup * markup, parser_cb callback, void * context, char * path) {
     int status = 0;
 
-    if(schema_load(&table->schema, csv_markup)) {
+    if(schema_load(&table->schema, markup)) {
         status = panic("failed to load schema object");
-    } else if(parser_parse(&table->parser, &table->schema, item_parse, &table->item, path)) {
+    } else if(parser_parse(&table->parser, &table->schema, callback, context, path)) {
         status = panic("failed to parse parser object");
     }
 
     return status;
+}
+
+int table_item_parse(struct table * table, char * path) {
+    return table_parse(table, csv_markup, item_parse, &table->item, path);
 }
 
 int table_skill_parse(struct table * table, char * path) {
-    int status = 0;
-
-    if(schema_load(&table->schema, skill_markup)) {
-        status = panic("failed to load schema object");
-    } else if(parser_parse(&table->parser, &table->schema, skill_parse, &table->skill, path)) {
-        status = panic("failed to parse parser object");
-    }
-
-    return status;
+    return table_parse(table, skill_markup, skill_parse, &table->skill, path);
 }
 
 int table_mob_parse(struct table * table, char * path) {
-    int status = 0;
-
-    if(schema_load(&table->schema, csv_markup)) {
-        status = panic("failed to load schema object");
-    } else if(parser_parse(&table->parser, &table->schema, mob_parse, &table->mob, path)) {
-        status = panic("failed to parse parser object");
-    }
-
-    return status;
+    return table_parse(table, csv_markup, mob_parse, &table->mob, path);
 }
 
 int table_mercenary_parse(struct table * table, char * path) {
-    int status = 0;
-
-    if(schema_load(&table->schema, csv_markup)) {
-        status = panic("failed to load schema object");
-    } else if(parser_parse(&table->parser, &table->schema, mercenary_parse, &table->mercenary, path)) {
-        status = panic("failed to parse parser object");
-    }
-
-    return status;
+    return table_parse(table, csv_markup, mercenary_parse, &table->mercenary, path);
 }
 
 int table_produce_parse(struct table * table, char * path) {
-    int status = 0;
-
-    if(schema_load(&table->schema, csv_markup)) {
-        status = panic("failed to load schema object");
-    } else if(parser_parse(&table->parser, &table->schema, produce_parse, &table->produce, path)) {
-        status = panic("failed to parse parser object");
-    }
-
-    return status;
+    return table_parse(table, csv_markup, produce_parse, &table->produce, path);
 }
 
 int table_constant_parse(struct table * table, char * path) {
-    int status = 0;
-
-    if(schema_load(&table->schema, constant_markup)) {
-        status = panic("failed to load schema object");
-    } else if(parser_parse(&table->parser, &table->schema, constant_parse, &table->constant, path)) {
-        status = panic("failed to parse parser object");
-    }
-
-    return status;
+    return table_parse(table, constant_markup, constant_parse, &table->constant, path);
 }
 
 int table_argument_parse(struct table * table, char * path) {
-    int status = 0;
-
-    if(schema_load(&table->schema, argument_markup)) {
-        status = panic("failed to load schema object");
-    } else if(parser_parse(&table->parser, &table->schema, argument_parse, &table->argument, path)) {
-        status = panic("failed to parse parser object");
-    }
-
-    return status;
+    return table_parse(table, argument_markup, argument_parse, &table->argument, path);
 }
 
 struct item_node * item_start(struct table * table) {
