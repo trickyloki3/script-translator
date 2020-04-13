@@ -1,6 +1,8 @@
 #include "table.h"
 
 int long_compare(void *, void *);
+int string_long(struct string *, long *);
+int string_store(struct string *, struct store *, char **);
 
 struct schema_markup csv_markup[] = {
     {1, list, 0, NULL},
@@ -305,6 +307,20 @@ int long_compare(void * x, void * y) {
     return l < r ? -1 : l > r ? 1 : 0;
 }
 
+int string_long(struct string * string, long * result) {
+    char * last;
+
+    *result = strtol(string->string, &last, 0);
+
+    return *last ? panic("failed to parse long") : 0;
+}
+
+int string_store(struct string * string, struct store * store, char ** result) {
+    *result = store_strcpy(store, string->string, string->length);
+
+    return *result ? 0 : panic("failed to strcpy store object");
+}
+
 int item_create(struct item * item, size_t size, struct heap * heap) {
     int status = 0;
 
@@ -334,8 +350,6 @@ void item_destroy(struct item * item) {
 
 int item_parse(enum parser_event event, int mark, struct string * string, void * context) {
     int status = 0;
-
-    char * last;
     struct item * item = context;
 
     switch(mark) {
@@ -361,16 +375,8 @@ int item_parse(enum parser_event event, int mark, struct string * string, void *
             break;
         case 2:
             switch(item->index) {
-                case 0:
-                    item->item->id = strtol(string->string, &last, 10);
-                    if(*last)
-                        status = panic("failed to strtol string object");
-                    break;
-                case 2:
-                    item->item->name = store_strcpy(&item->store, string->string, string->length);
-                    if(!item->item->name)
-                        status = panic("failed to char store object");
-                    break;
+                case 0: status = string_long(string, &item->item->id); break;
+                case 2: status = string_store(string, &item->store, &item->item->name); break;
                 case 19:
                     if(item_script_parse(item, string->string))
                         status = panic("failed to script parse item object");
@@ -458,8 +464,6 @@ void skill_destroy(struct skill * skill) {
 
 int skill_parse(enum parser_event event, int mark, struct string * string, void * context) {
     int status = 0;
-
-    char * last;
     struct skill * skill = context;
 
     switch(mark) {
@@ -478,21 +482,9 @@ int skill_parse(enum parser_event event, int mark, struct string * string, void 
                 }
             }
             break;
-        case 110:
-            skill->skill->id = strtol(string->string, &last, 10);
-            if(*last)
-                status = panic("failed to strtol string object");
-            break;
-        case 116:
-            skill->skill->name = store_strcpy(&skill->store, string->string, string->length);
-            if(!skill->skill->name)
-                status = panic("failed to char store object");
-            break;
-        case 47:
-            skill->skill->description = store_strcpy(&skill->store, string->string, string->length);
-            if(!skill->skill->description)
-                status = panic("failed to char store object");
-            break;
+        case 110: status = string_long(string, &skill->skill->id); break;
+        case 116: status = string_store(string, &skill->store, &skill->skill->name); break;
+        case 47:  status = string_store(string, &skill->store, &skill->skill->description); break;
     }
 
     return status;
@@ -527,8 +519,6 @@ void mob_destroy(struct mob * mob) {
 
 int mob_parse(enum parser_event event, int mark, struct string * string, void * context) {
     int status = 0;
-
-    char * last;
     struct mob * mob = context;
 
     switch(mark) {
@@ -554,21 +544,9 @@ int mob_parse(enum parser_event event, int mark, struct string * string, void * 
             break;
         case 2:
             switch(mob->index) {
-                case 0:
-                    mob->mob->id = strtol(string->string, &last, 10);
-                    if(*last)
-                        status = panic("failed to strtol string object");
-                    break;
-                case 1:
-                    mob->mob->sprite = store_strcpy(&mob->store, string->string, string->length);
-                    if(!mob->mob->sprite)
-                        status = panic("failed to char store object");
-                    break;
-                case 2:
-                    mob->mob->kro = store_strcpy(&mob->store, string->string, string->length);
-                    if(!mob->mob->kro)
-                        status = panic("failed to char store object");
-                    break;
+                case 0: status = string_long(string, &mob->mob->id); break;
+                case 1: status = string_store(string, &mob->store, &mob->mob->sprite); break;
+                case 2: status = string_store(string, &mob->store, &mob->mob->kro); break;
             }
             mob->index++;
             break;
@@ -599,8 +577,6 @@ void mercenary_destroy(struct mercenary * mercenary) {
 
 int mercenary_parse(enum parser_event event, int mark, struct string * string, void * context) {
     int status = 0;
-
-    char * last;
     struct mercenary * mercenary = context;
 
     switch(mark) {
@@ -622,16 +598,8 @@ int mercenary_parse(enum parser_event event, int mark, struct string * string, v
             break;
         case 2:
             switch(mercenary->index) {
-                case 0:
-                    mercenary->mercenary->id = strtol(string->string, &last, 10);
-                    if(*last)
-                        status = panic("failed to strtol string object");
-                    break;
-                case 2:
-                    mercenary->mercenary->name = store_strcpy(&mercenary->store, string->string, string->length);
-                    if(!mercenary->mercenary->name)
-                        status = panic("failed to char store object");
-                    break;
+                case 0: status = string_long(string, &mercenary->mercenary->id); break;
+                case 2: status = string_store(string, &mercenary->store, &mercenary->mercenary->name); break;
             }
             mercenary->index++;
             break;
@@ -662,8 +630,6 @@ void constant_destroy(struct constant * constant) {
 
 int constant_parse(enum parser_event event, int mark, struct string * string, void * context) {
     int status = 0;
-
-    char * last;
     struct constant * constant = context;
 
     switch(mark) {
@@ -680,21 +646,9 @@ int constant_parse(enum parser_event event, int mark, struct string * string, vo
                 }
             }
             break;
-        case 2:
-            constant->constant->identifier = store_strcpy(&constant->store, string->string, string->length);
-            if(!constant->constant->identifier)
-                status = panic("failed to char store object");
-            break;
-        case 3:
-            constant->constant->value = strtol(string->string, &last, 10);
-            if(*last)
-                status = panic("failed to strtol string object");
-            break;
-        case 4:
-            constant->constant->tag = store_strcpy(&constant->store, string->string, string->length);
-            if(!constant->constant->tag)
-                status = panic("failed to char store object");
-            break;
+        case 2: status = string_store(string, &constant->store, &constant->constant->identifier); break;
+        case 3: status = string_long(string, &constant->constant->value); break;
+        case 4: status = string_store(string, &constant->store, &constant->constant->tag); break;
         case 6:
             if(event == start) {
                 constant->range = store_calloc(&constant->store, sizeof(*constant->range));
@@ -705,16 +659,8 @@ int constant_parse(enum parser_event event, int mark, struct string * string, vo
                 constant->constant->range = constant->range;
             }
             break;
-        case 7:
-            constant->range->min = strtol(string->string, &last, 10);
-            if(*last)
-                status = panic("failed to strtol string object");
-            break;
-        case 8:
-            constant->range->max = strtol(string->string, &last, 10);
-            if(*last)
-                status = panic("failed to strtol string object");
-            break;
+        case 7: status = string_long(string, &constant->range->min); break;
+        case 8: status = string_long(string, &constant->range->max); break;
     }
 
     return status;
@@ -757,10 +703,8 @@ void argument_destroy(struct argument * argument) {
 
 int argument_parse(enum parser_event event, int mark, struct string * string, void * context) {
     int status = 0;
-
     struct argument * argument = context;
 
-    char * last;
     struct print_node * root;
     struct print_node * node;
     struct map * map;
@@ -779,21 +723,9 @@ int argument_parse(enum parser_event event, int mark, struct string * string, vo
                 }
             }
             break;
-        case 2:
-            argument->argument->identifier = store_strcpy(&argument->store, string->string, string->length);
-            if(!argument->argument->identifier)
-                status = panic("failed to char store object");
-            break;
-        case 3:
-            argument->argument->handler = store_strcpy(&argument->store, string->string, string->length);
-            if(!argument->argument->handler)
-                status = panic("failed to char store object");
-            break;
-        case 4:
-            argument->argument->newline = strtol(string->string, &last, 10);
-            if(*last)
-                status = panic("failed to strtol string object");
-            break;
+        case 2: status = string_store(string, &argument->store, &argument->argument->identifier); break;
+        case 3: status = string_store(string, &argument->store, &argument->argument->handler); break;
+        case 4: status = string_long(string, &argument->argument->newline); break;
         case 5:
             if(event == end) {
                 root = NULL;
@@ -831,16 +763,8 @@ int argument_parse(enum parser_event event, int mark, struct string * string, vo
                 argument->argument->range = argument->range;
             }
             break;
-        case 9:
-            argument->range->min = strtol(string->string, &last, 10);
-            if(*last)
-                status = panic("failed to strtol string object");
-            break;
-        case 10:
-            argument->range->max = strtol(string->string, &last, 10);
-            if(*last)
-                status = panic("failed to strtol string object");
-            break;
+        case 9:  status = string_long(string, &argument->range->min); break;
+        case 10: status = string_long(string, &argument->range->max); break;
         case 11:
             if(event == start) {
                 map = store_malloc(&argument->store, sizeof(*map));
@@ -871,16 +795,8 @@ int argument_parse(enum parser_event event, int mark, struct string * string, vo
                     status = panic("failed to insert map object");
             }
             break;
-        case 13:
-            argument->array->index = strtol(string->string, &last, 10);
-            if(*last)
-                status = panic("failed to strtol string object");
-            break;
-        case 14:
-            argument->array->string = store_strcpy(&argument->store, string->string, string->length);
-            if(!argument->array->string)
-                status = panic("failed to char store object");
-            break;
+        case 13: status = string_long(string, &argument->array->index); break;
+        case 14: status = string_store(string, &argument->store, &argument->array->string); break;
     }
 
     return status;
