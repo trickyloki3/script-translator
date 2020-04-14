@@ -701,6 +701,24 @@ void argument_destroy(struct argument * argument) {
     store_destroy(&argument->store);
 }
 
+int argument_print(struct argument * argument, struct string * string, struct print_node ** result) {
+    int status = 0;
+    struct print_node * print;
+
+    print = store_malloc(&argument->store, sizeof(*print));
+    if(!print) {
+        status = panic("failed to malloc store object");
+    } else {
+        if(string_store(string, &argument->store, &print->string)) {
+            status = panic("failed to store string object");
+        } else {
+            *result = print;
+        }
+    }
+
+    return status;
+}
+
 int argument_map(struct argument * argument, struct map ** result) {
     int status = 0;
     struct map * map;
@@ -729,9 +747,6 @@ int argument_parse(enum parser_event event, int mark, struct string * string, vo
     int status = 0;
     struct argument * argument = context;
 
-    struct print_node * root;
-    struct print_node * node;
-
     switch(mark) {
         case 1:
             if(event == start) {
@@ -750,29 +765,21 @@ int argument_parse(enum parser_event event, int mark, struct string * string, vo
         case 3: status = string_store(string, &argument->store, &argument->argument->handler); break;
         case 4: status = string_long(string, &argument->argument->newline); break;
         case 5:
-            if(event == end) {
-                root = NULL;
-                while(argument->argument->print) {
-                    node = argument->argument->print;
-                    argument->argument->print = argument->argument->print->next;
-                    node->next = root;
-                    root = node;
-                }
-
-                argument->argument->print = root;
-            }
+            if(event == start)
+                argument->print = NULL;
             break;
         case 6:
-            node = store_malloc(&argument->store, sizeof(*node));
-            if(!node) {
-                status = panic("failed to malloc store object");
-            } else {
-                node->string = store_strcpy(&argument->store, string->string, string->length);
-                if(!node->string) {
-                    status = panic("failed to char store object");
+            if(argument->print) {
+                if(argument_print(argument, string, &argument->print->next)) {
+                    status = panic("failed to print argument object");
                 } else {
-                    node->next = argument->argument->print;
-                    argument->argument->print = node;
+                    argument->print = argument->print->next;
+                }
+            } else {
+                if(argument_print(argument, string, &argument->argument->print)) {
+                    status = panic("failed to print argument object");
+                } else {
+                    argument->print = argument->argument->print;
                 }
             }
             break;
