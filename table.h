@@ -75,12 +75,6 @@ int mercenary_create(struct mercenary *, size_t, struct heap *);
 void mercenary_destroy(struct mercenary *);
 int mercenary_parse(enum parser_event, int, struct string *, void *);
 
-struct material_node {
-    long id;
-    long amount;
-    struct material_node * next;
-};
-
 struct constant_node {
     char * identifier;
     long value;
@@ -99,14 +93,14 @@ int constant_create(struct constant *, size_t, struct heap *);
 void constant_destroy(struct constant *);
 int constant_parse(enum parser_event, int, struct string *, void *);
 
-struct print_node {
-    char * string;
-    struct print_node * next;
-};
-
 struct array_node {
     long index;
     char * string;
+};
+
+struct print_node {
+    char * string;
+    struct print_node * next;
 };
 
 struct argument_node {
