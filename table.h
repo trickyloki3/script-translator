@@ -129,6 +129,7 @@ struct argument {
 
 int argument_create(struct argument *, size_t, struct heap *);
 void argument_destroy(struct argument *);
+int argument_map(struct argument *, struct map **);
 int argument_parse(enum parser_event, int, struct string *, void *);
 
 struct table {

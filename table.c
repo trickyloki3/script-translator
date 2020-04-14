@@ -701,13 +701,36 @@ void argument_destroy(struct argument * argument) {
     store_destroy(&argument->store);
 }
 
+int argument_map(struct argument * argument, struct map ** result) {
+    int status = 0;
+    struct map * map;
+
+    map = store_malloc(&argument->store, sizeof(*map));
+    if(!map) {
+        status = panic("failed to malloc store object");
+    } else {
+        if(map_create(map, long_compare, argument->identifier.pool)) {
+            status = panic("failed to create map object");
+        } else {
+            if(stack_push(&argument->stack, map)) {
+                status = panic("failed to push stack object");
+            } else {
+                *result = map;
+            }
+            if(status)
+                map_destroy(map);
+        }
+    }
+
+    return status;
+}
+
 int argument_parse(enum parser_event event, int mark, struct string * string, void * context) {
     int status = 0;
     struct argument * argument = context;
 
     struct print_node * root;
     struct print_node * node;
-    struct map * map;
 
     switch(mark) {
         case 1:
@@ -766,24 +789,9 @@ int argument_parse(enum parser_event event, int mark, struct string * string, vo
         case 9:  status = string_long(string, &argument->range->min); break;
         case 10: status = string_long(string, &argument->range->max); break;
         case 11:
-            if(event == start) {
-                map = store_malloc(&argument->store, sizeof(*map));
-                if(!map) {
-                    status = panic("failed to malloc store object");
-                } else {
-                    if(map_create(map, long_compare, argument->identifier.pool)) {
-                        status = panic("failed to create map object");
-                    } else {
-                        if(stack_push(&argument->stack, map)) {
-                            status = panic("failed to push stack object");
-                        } else {
-                            argument->argument->array = map;
-                        }
-                        if(status)
-                            map_destroy(map);
-                    }
-                }
-            }
+            if(event == start)
+                if(argument_map(argument, &argument->argument->array))
+                    status = panic("failed to map argument object");
             break;
         case 12:
             if(event == start) {
