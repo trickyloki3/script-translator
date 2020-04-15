@@ -122,6 +122,7 @@ struct argument_node {
     struct range_node * range;
     struct map * array;
     struct spec_node * spec;
+    long index;
 };
 
 struct argument {

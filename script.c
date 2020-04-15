@@ -51,7 +51,6 @@ struct script_range * function_min(struct script *, struct script_array *);
 struct script_range * function_max(struct script *, struct script_array *);
 struct script_range * function_pow(struct script *, struct script_array *);
 struct script_range * function_rand(struct script *, struct script_array *);
-struct script_range * function_first(struct script *, struct script_array *);
 
 typedef struct script_range * (*function_cb) (struct script *, struct script_array *);
 
@@ -64,11 +63,6 @@ struct function_entry {
     { "max", function_max },
     { "pow", function_pow },
     { "rand", function_rand },
-    { "gettime", function_first },
-    { "readparam", function_first },
-    { "getequipid", function_first },
-    { "vip_status", function_first },
-    { "checkoption", function_first },
     { NULL, NULL}
 };
 
@@ -1576,26 +1570,32 @@ struct script_range * script_execute(struct script * script, struct script_array
     struct strbuf * strbuf;
     struct script_range * range;
 
-    handler = map_search(&script->argument, argument->handler);
-    if(!handler) {
-        status = panic("invalid argument - %s", argument->handler);
+    if(!argument->handler) {
+        range = script_array_get(array, argument->index);
+        if(!range)
+            status = panic("failed to get script array object");
     } else {
-        range = script_range_argument(script, argument);
-        if(!range) {
-            status = panic("failed to range argument script object");
+        handler = map_search(&script->argument, argument->handler);
+        if(!handler) {
+            status = panic("invalid argument - %s", argument->handler);
         } else {
-            strbuf = script_buffer_get(&script->buffer);
-            if(!strbuf) {
-                status = panic("failed to get script buffer object");
+            range = script_range_argument(script, argument);
+            if(!range) {
+                status = panic("failed to range argument script object");
             } else {
-                if(handler(script, array, argument, strbuf)) {
-                    status = panic("failed to execute argument object");
+                strbuf = script_buffer_get(&script->buffer);
+                if(!strbuf) {
+                    status = panic("failed to get script buffer object");
                 } else {
-                    range->string = script_store_strbuf(script, strbuf);
-                    if(!range->string)
-                        status = panic("failed to range string script object");
+                    if(handler(script, array, argument, strbuf)) {
+                        status = panic("failed to execute argument object");
+                    } else {
+                        range->string = script_store_strbuf(script, strbuf);
+                        if(!range->string)
+                            status = panic("failed to range string script object");
+                    }
+                    script_buffer_put(&script->buffer, strbuf);
                 }
-                script_buffer_put(&script->buffer, strbuf);
             }
         }
     }
@@ -1738,10 +1738,6 @@ struct script_range * function_rand(struct script * script, struct script_array 
     }
 
     return status ? NULL : range;
-}
-
-struct script_range * function_first(struct script * script, struct script_array * array) {
-    return script_array_get(array, 0);
 }
 
 int argument_write(struct script * script, struct script_array * array, struct strbuf * strbuf, char * string) {
