@@ -298,6 +298,11 @@ struct schema_markup argument_markup[] = {
     {4, map, 12, NULL},
     {5, string, 13, "index"},
     {5, string, 14, "string"},
+    {3, map, 15, "spec"},
+    {4, string, 16, "sign"},
+    {4, string, 17, "string"},
+    {4, string, 18, "percent"},
+    {4, string, 19, "divide"},
     {0, 0, 0},
 };
 
@@ -812,6 +817,28 @@ int argument_parse(enum parser_event event, int mark, struct string * string, vo
             break;
         case 13: status = string_long(string, &argument->array->index); break;
         case 14: status = string_store(string, &argument->store, &argument->array->string); break;
+        case 15:
+            if(event == start) {
+                argument->spec = store_calloc(&argument->store, sizeof(*argument->spec));
+                if(!argument->spec)
+                    status = panic("failed to calloc store object");
+            } else if(event == end) {
+                argument->argument->spec = argument->spec;
+            }
+            break;
+        case 16:
+            if(!strcmp("true", string->string))
+                argument->spec->flag |= spec_sign;
+            break;
+        case 17:
+            if(!strcmp("true", string->string))
+                argument->spec->flag |= spec_string;
+            break;
+        case 18:
+            if(!strcmp("true", string->string))
+                argument->spec->flag |= spec_percent;
+            break;
+        case 19: status = string_long(string, &argument->spec->divide); break;
     }
 
     return status;

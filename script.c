@@ -77,9 +77,8 @@ int argument_list(struct script *, struct script_array *, struct argument_node *
 int argument_sign(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
 int argument_zero(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
 int argument_type(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
+int argument_spec(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
 int argument_string(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
-int argument_integer(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
-int argument_percent(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
 int argument_second(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
 int argument_millisecond(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
 
@@ -98,9 +97,8 @@ struct argument_entry {
     { "sign", argument_sign },
     { "zero", argument_zero },
     { "type", argument_type },
+    { "spec", argument_spec },
     { "string", argument_string },
-    { "integer", argument_integer },
-    { "percent", argument_percent },
     { "second", argument_second },
     { "millisecond", argument_millisecond },
     { "item", argument_item },
@@ -1933,6 +1931,72 @@ int argument_type(struct script * script, struct script_array * array, struct ar
     return status;
 }
 
+int argument_spec(struct script * script, struct script_array * array, struct argument_node * argument, struct strbuf * strbuf) {
+    int status = 0;
+
+    long min;
+    long max;
+
+    long flag;
+    long divide;
+
+    struct script_range * range;
+
+    range = script_array_get(array, 0);
+    if(!range) {
+        status = panic("failed to get script array object");
+    } else {
+        if(argument->spec) {
+            flag = argument->spec->flag;
+            divide = argument->spec->divide;
+        } else {
+            flag = 0;
+            divide = 0;
+        }
+
+        if(divide) {
+            min = range->range->min / divide;
+            max = range->range->max / divide;
+        } else {
+            min = range->range->min;
+            max = range->range->max;
+        }
+
+        if(flag & spec_sign)
+            if(min < 0 ? strbuf_putc(strbuf, '-') : strbuf_putc(strbuf, '+'))
+                status = panic("failed to putc strbuf object");
+
+        if(strbuf_printf(strbuf, "%ld", min))
+            status = panic("failed to printf strbuf object");
+
+        if(flag & spec_percent)
+            if(strbuf_putc(strbuf, '%'))
+                status = panic("failed to putc strbuf object");
+
+        if(min != max) {
+            if(strbuf_printf(strbuf, " ~ "))
+                status = panic("failed to printf strbuf object");
+
+            if(flag & spec_sign)
+                if(max < 0 ? strbuf_putc(strbuf, '-') : strbuf_putc(strbuf, '+'))
+                    status = panic("failed to putc strbuf object");
+
+            if(strbuf_printf(strbuf, "%ld", max))
+                status = panic("failed to printf strbuf object");
+
+            if(flag & spec_percent)
+                if(strbuf_putc(strbuf, '%'))
+                    status = panic("failed to putc strbuf object");
+
+            if(flag & spec_string)
+                if(strbuf_printf(strbuf, "(%s)", range->string))
+                    status = panic("failed to printf strbuf object");
+        }
+    }
+
+    return status;
+}
+
 int argument_string(struct script * script, struct script_array * array, struct argument_node * argument, struct strbuf * strbuf) {
     int status = 0;
     struct script_range * range;
@@ -1942,46 +2006,6 @@ int argument_string(struct script * script, struct script_array * array, struct 
         status = panic("failed to get script array object");
     } else if(strbuf_printf(strbuf, "%s", range->string)) {
         status = panic("failed to printf strbuf object");
-    }
-
-    return status;
-}
-
-int argument_integer(struct script * script, struct script_array * array, struct argument_node * argument, struct strbuf * strbuf) {
-    int status = 0;
-    struct script_range * range;
-
-    range = script_array_get(array, 0);
-    if(!range) {
-        status = panic("failed to get script array object");
-    } else {
-        if(range->range->min == range->range->max) {
-            if(strbuf_printf(strbuf, "%ld", range->range->min))
-                status = panic("failed to printf strbuf object");
-        } else {
-            if(strbuf_printf(strbuf, "%ld ~ %ld", range->range->min, range->range->max))
-                status = panic("failed to printf strbuf object");
-        }
-    }
-
-    return status;
-}
-
-int argument_percent(struct script * script, struct script_array * array, struct argument_node * argument, struct strbuf * strbuf) {
-    int status = 0;
-    struct script_range * range;
-
-    range = script_array_get(array, 0);
-    if(!range) {
-        status = panic("failed to get script array object");
-    } else {
-        if(range->range->min == range->range->max) {
-            if(strbuf_printf(strbuf, "%ld%%", range->range->min))
-                status = panic("failed to printf strbuf object");
-        } else {
-            if(strbuf_printf(strbuf, "%ld%% ~ %ld%%", range->range->min, range->range->max))
-                status = panic("failed to printf strbuf object");
-        }
     }
 
     return status;
