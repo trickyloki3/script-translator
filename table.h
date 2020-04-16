@@ -127,8 +127,8 @@ struct argument_node {
 
 struct argument {
     struct store store;
-    struct map identifier;
     struct stack stack;
+    struct map identifier;
     struct argument_node * argument;
     struct print_node * print;
     struct range_node * range;

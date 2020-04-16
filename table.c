@@ -678,13 +678,13 @@ int argument_create(struct argument * argument, size_t size, struct heap * heap)
     if(store_create(&argument->store, size)) {
         status = panic("failed to create store object");
     } else {
-        if(map_create(&argument->identifier, (map_compare_cb) strcmp, heap->map_pool)) {
-            status = panic("failed to create map object");
+        if(stack_create(&argument->stack, heap->stack_pool)) {
+            status = panic("failed to create stack object");
         } else {
-            if(stack_create(&argument->stack, heap->stack_pool))
-                status = panic("failed to create stack object");
+            if(map_create(&argument->identifier, (map_compare_cb) strcmp, heap->map_pool))
+                status = panic("failed to create map object");
             if(status)
-                map_destroy(&argument->identifier);
+                stack_destroy(&argument->stack);
         }
         if(status)
             store_destroy(&argument->store);
@@ -702,8 +702,8 @@ void argument_destroy(struct argument * argument) {
         map = stack_pop(&argument->stack);
     }
 
-    stack_destroy(&argument->stack);
     map_destroy(&argument->identifier);
+    stack_destroy(&argument->stack);
     store_destroy(&argument->store);
 }
 
