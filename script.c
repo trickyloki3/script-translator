@@ -1846,20 +1846,14 @@ int argument_sign(struct script * script, struct script_array * array, struct ar
     if(!range) {
         status = panic("failed to get script array object");
     } else {
-        if(!argument->print) {
-            status = panic("invalid print");
-        } else {
-            print = argument->print;
-            if(range->range->max < 0)
-                print = print->next;
+        print = argument->print;
+        if(range->range->max < 0)
+            print = print->next;
 
-            if(!print) {
-                status = panic("invalid print");
-            } else if(argument_write(script, array, strbuf, print->string)) {
-                status = panic("failed to write argument object");
-            } else if(argument->newline && strbuf_putcn(strbuf, '\n', argument->newline)) {
-                status = panic("failed to putcn strbuf object");
-            }
+        if(argument_write(script, array, strbuf, print->string)) {
+            status = panic("failed to write argument object");
+        } else if(argument->newline && strbuf_putcn(strbuf, '\n', argument->newline)) {
+            status = panic("failed to putcn strbuf object");
         }
     }
 
@@ -1870,18 +1864,14 @@ int argument_zero(struct script * script, struct script_array * array, struct ar
     int status = 0;
     struct script_range * range;
 
-    if(!argument->print) {
-        status = panic("invalid print");
-    } else {
-        range = script_array_get(array, 0);
-        if(!range) {
-            status = panic("failed to get script array object");
-        } else if(range->range->min && range->range->max) {
-            if(argument_write(script, array, strbuf, argument->print->string)) {
-                status = panic("failed to write argument object");
-            } else if(argument->newline && strbuf_putcn(strbuf, '\n', argument->newline)) {
-                status = panic("failed to putcn strbuf object");
-            }
+    range = script_array_get(array, 0);
+    if(!range) {
+        status = panic("failed to get script array object");
+    } else if(range->range->min && range->range->max) {
+        if(argument_write(script, array, strbuf, argument->print->string)) {
+            status = panic("failed to write argument object");
+        } else if(argument->newline && strbuf_putcn(strbuf, '\n', argument->newline)) {
+            status = panic("failed to putcn strbuf object");
         }
     }
 
