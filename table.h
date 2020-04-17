@@ -96,7 +96,8 @@ int constant_parse(enum parser_event, int, struct string *, void *);
 enum spec_flag {
     spec_sign = 1 << 0,
     spec_string = 1 << 1,
-    spec_percent = 1 << 2
+    spec_percent = 1 << 2,
+    spec_absolute = 1 << 3
 };
 
 struct spec_node {

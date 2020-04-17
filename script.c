@@ -1948,6 +1948,11 @@ int argument_spec(struct script * script, struct script_array * array, struct ar
             max = range->range->max;
         }
 
+        if(flag & spec_absolute) {
+            min = labs(min);
+            max = labs(max);
+        }
+
         if(flag & spec_sign)
             if(min < 0 ? strbuf_putc(strbuf, '-') : strbuf_putc(strbuf, '+'))
                 status = panic("failed to putc strbuf object");

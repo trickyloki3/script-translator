@@ -302,8 +302,9 @@ struct schema_markup argument_markup[] = {
     {4, string, 16, "sign"},
     {4, string, 17, "string"},
     {4, string, 18, "percent"},
-    {4, string, 19, "divide"},
-    {3, string, 20, "index"},
+    {4, string, 19, "absolute"},
+    {4, string, 20, "divide"},
+    {3, string, 21, "index"},
     {0, 0, 0},
 };
 
@@ -839,8 +840,12 @@ int argument_parse(enum parser_event event, int mark, struct string * string, vo
             if(!strcmp("true", string->string))
                 argument->spec->flag |= spec_percent;
             break;
-        case 19: status = string_long(string, &argument->spec->divide); break;
-        case 20: status = string_long(string, &argument->argument->index); break;
+        case 19:
+            if(!strcmp("true", string->string))
+                argument->spec->flag |= spec_absolute;
+            break;
+        case 20: status = string_long(string, &argument->spec->divide); break;
+        case 21: status = string_long(string, &argument->argument->index); break;
     }
 
     return status;
