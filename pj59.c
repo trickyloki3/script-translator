@@ -29,6 +29,8 @@ int main(int argc, char ** argv) {
                 status = panic("failed to constant parse table object");
             } else if (table_argument_parse(&table, "argument.yml")) {
                 status = panic("failed to argument parse table object");
+            } else if (table_bonus_parse(&table, "bonus.yml")) {
+                status = panic("failed to bonus parse table object");
             } else {
                 if(script_create(&script, 4096, &heap, &table)) {
                     status = panic("failed to create script object");
