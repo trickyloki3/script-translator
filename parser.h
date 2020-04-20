@@ -15,9 +15,9 @@ struct schema_node {
     enum schema_type type;
     enum schema_type state;
     int mark;
+    struct map * map;
     struct schema_node * list;
     struct schema_node * next;
-    struct map map;
 };
 
 struct schema_markup {
@@ -30,15 +30,12 @@ struct schema_markup {
 
 struct schema {
     struct pool * pool;
+    struct store store;
     struct schema_node * root;
 };
 
-int schema_create(struct schema *, struct heap *);
+int schema_create(struct schema *, size_t, struct heap *);
 void schema_destroy(struct schema *);
-void schema_clear(struct schema *);
-int schema_push(struct schema *, enum schema_type, int, char *);
-void schema_pop(struct schema *);
-struct schema_node * schema_top(struct schema *);
 int schema_load(struct schema *, struct schema_markup *);
 void schema_print(struct schema *);
 

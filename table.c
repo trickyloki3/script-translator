@@ -854,7 +854,7 @@ int argument_parse(enum parser_event event, int mark, struct string * string, vo
 int table_create(struct table * table, size_t size, struct heap * heap) {
     int status = 0;
 
-    if(schema_create(&table->schema, heap)) {
+    if(schema_create(&table->schema, size, heap)) {
         status = panic("failed to create schema object");
     } else if(parser_create(&table->parser, size, heap)) {
         status = panic("failed to create parser object");
