@@ -712,9 +712,9 @@ int argument_print(struct argument * argument, struct string * string, struct pr
     int status = 0;
     struct print_node * print;
 
-    print = store_malloc(&argument->store, sizeof(*print));
+    print = store_calloc(&argument->store, sizeof(*print));
     if(!print) {
-        status = panic("failed to malloc store object");
+        status = panic("failed to calloc store object");
     } else {
         if(string_store(string, &argument->store, &print->string)) {
             status = panic("failed to store string object");
