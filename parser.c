@@ -4,7 +4,8 @@ struct schema_node * schema_node_create(struct schema *, enum schema_type, int);
 void schema_node_destroy(struct schema *, struct schema_node *);
 void schema_node_print(struct schema_node *, int, char *);
 
-static inline void schema_clear(struct schema *);
+void schema_clear(struct schema *);
+int schema_reset(struct schema *);
 static inline void schema_push(struct schema *, struct schema_node *);
 static inline void schema_pop(struct schema *);
 static inline struct schema_node * schema_top(struct schema *);
@@ -116,7 +117,7 @@ void schema_destroy(struct schema * schema) {
     store_destroy(&schema->store);
 }
 
-static inline void schema_clear(struct schema * schema) {
+void schema_clear(struct schema * schema) {
     struct schema_node * node;
 
     if(schema->root) {
@@ -130,6 +131,21 @@ static inline void schema_clear(struct schema * schema) {
     }
 
     store_clear(&schema->store);
+}
+
+int schema_reset(struct schema * schema) {
+    int status = 0;
+
+    schema_clear(schema);
+
+    schema->root = schema_node_create(schema, list, 0);
+    if(!schema->root) {
+        status = panic("failed to create schema node object");
+    } else {
+        schema->root->state = list;
+    }
+
+    return status;
 }
 
 static inline void schema_push(struct schema * schema, struct schema_node * node) {
@@ -147,43 +163,45 @@ static inline struct schema_node * schema_top(struct schema * schema) {
 
 int schema_load(struct schema * schema, struct schema_markup * markup) {
     int status = 0;
-    struct schema_markup * root = NULL;
+    struct schema_markup * scope = NULL;
+
     struct schema_node * node;
+    struct schema_node * root;
 
-    schema_clear(schema);
-
-    schema->root = schema_node_create(schema, list, 0);
-    if(!schema->root) {
-        status = panic("failed to create schema node object");
+    if(schema_reset(schema)) {
+        status = panic("failed to reset schema object");
     } else {
-        schema->root->state = list;
-
         while(markup->level && !status) {
-            while(root && root->level >= markup->level) {
+            while(scope && scope->level >= markup->level) {
                 schema_pop(schema);
-                root = root->next;
+                scope = scope->next;
             }
 
             node = schema_node_create(schema, markup->type, markup->mark);
             if(!node) {
                 status = panic("failed to create schema node object");
             } else {
-                if(markup->key) {
-                    if(schema->root->type & map) {
-                        if(map_insert(schema->root->map, markup->key, node))
-                            status = panic("failed to insert map object");
-                    } else {
-                        status = panic("expected map");
-                    }
+                root = schema_top(schema);
+                if(!root) {
+                    status = panic("invalid root");
                 } else {
-                    if(schema->root->type & list) {
-                        if(schema->root->list) {
-                            status = panic("invalid list");
+                    if(markup->key) {
+                        if(root->type & map) {
+                            if(map_insert(root->map, markup->key, node))
+                                status = panic("failed to insert map object");
                         } else {
-                            schema->root->list = node;
+                            status = panic("expected map");
                         }
                     } else {
-                        status = panic("expected list");
+                        if(root->type & list) {
+                            if(root->list) {
+                                status = panic("invalid list");
+                            } else {
+                                root->list = node;
+                            }
+                        } else {
+                            status = panic("expected list");
+                        }
                     }
                 }
 
@@ -191,17 +209,17 @@ int schema_load(struct schema * schema, struct schema_markup * markup) {
                     schema_node_destroy(schema, node);
                 } else if(node->type & list || node->type & map) {
                     schema_push(schema, node);
-                    markup->next = root;
-                    root = markup;
+                    markup->next = scope;
+                    scope = markup;
                 }
             }
 
             markup++;
         }
 
-        while(root) {
+        while(scope) {
             schema_pop(schema);
-            root = root->next;
+            scope = scope->next;
         }
     }
 
