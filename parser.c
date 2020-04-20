@@ -233,7 +233,7 @@ void parser_destroy(struct parser * parser) {
 int parser_start(struct parser * parser, struct schema_node * node, enum event_type type, struct string * value) {
     int status = 0;
 
-    if(type == list_begin) {
+    if(type == event_list_start) {
         if(node->type & list) {
             if(parser->callback(start, node->mark, NULL, parser->context)) {
                 status = panic("failed to process start event");
@@ -245,7 +245,7 @@ int parser_start(struct parser * parser, struct schema_node * node, enum event_t
         } else {
             status = panic("unexpected list");
         }
-    } else if(type == map_begin) {
+    } else if(type == event_map_start) {
         if(node->type & map) {
             if(parser->callback(start, node->mark, NULL, parser->context)) {
                 status = panic("failed to process start event");
@@ -257,7 +257,7 @@ int parser_start(struct parser * parser, struct schema_node * node, enum event_t
         } else {
             status = panic("unexpected map");
         }
-    } else if(type == scalar) {
+    } else if(type == event_scalar) {
         if(node->type & string) {
             if(parser->callback(next, node->mark, value, parser->context))
                 status = panic("failed to process next event");
@@ -289,7 +289,7 @@ int parser_event(enum event_type type, struct string * value, void * context) {
         if(!node) {
             status = panic("invalid node");
         } else if(node->state == list) {
-            if(type == list_end) {
+            if(type == event_list_end) {
                 if(parser->callback(end, node->mark, NULL, parser->context)) {
                     status = panic("failed to process end event");
                 } else {
@@ -300,14 +300,14 @@ int parser_event(enum event_type type, struct string * value, void * context) {
                 status = panic("failed to start parser object");
             }
         } else if(node->state == map) {
-            if(type == map_end) {
+            if(type == event_map_end) {
                 if(parser->callback(end, node->mark, NULL, parser->context)) {
                     status = panic("failed to process end event");
                 } else {
                     parser->root->state = 0;
                     parser->root = parser->root->next;
                 }
-            } else if(type == scalar) {
+            } else if(type == event_scalar) {
                 parser->data = map_search(&node->map, value->string);
                 if(!parser->data)
                     status = panic("invalid key - %s", value->string);

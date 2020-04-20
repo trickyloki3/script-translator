@@ -310,13 +310,13 @@ static inline int yaml_start(struct yaml * yaml, struct yaml_node * node) {
     int status = 0;
 
     if(node->type == yaml_c_sequence_entry) {
-        if(yaml->callback(list_begin, NULL, yaml->context)) {
+        if(yaml->callback(event_list_start, NULL, yaml->context)) {
             status = panic("failed to process list start event");
         } else if(yaml_next(yaml, node)) {
             status = panic("failed to next yaml object");
         }
     } else if(node->type == yaml_c_mapping_value) {
-        if(yaml->callback(map_begin, NULL, yaml->context)) {
+        if(yaml->callback(event_map_start, NULL, yaml->context)) {
             status = panic("failed to process map start event");
         } else if(yaml_next(yaml, node)) {
             status = panic("failed to next yaml object");
@@ -329,9 +329,9 @@ static inline int yaml_start(struct yaml * yaml, struct yaml_node * node) {
 static inline int yaml_next(struct yaml * yaml, struct yaml_node * node) {
     int status = 0;
 
-    if(node->key && yaml->callback(scalar, node->key, yaml->context)) {
+    if(node->key && yaml->callback(event_scalar, node->key, yaml->context)) {
         status = panic("failed to process string event");
-    } else if(node->value && yaml->callback(scalar, node->value, yaml->context)) {
+    } else if(node->value && yaml->callback(event_scalar, node->value, yaml->context)) {
         status = panic("failed to process string event");
     }
 
@@ -343,16 +343,16 @@ static inline int yaml_end(struct yaml * yaml, struct yaml_node * node) {
     struct string * string;
 
     if(node->type == yaml_c_sequence_entry) {
-        if(yaml->callback(list_end, NULL, yaml->context))
+        if(yaml->callback(event_list_end, NULL, yaml->context))
             status = panic("failed to process list end event");
     } else if(node->type == yaml_c_mapping_value) {
-        if(yaml->callback(map_end, NULL, yaml->context))
+        if(yaml->callback(event_map_end, NULL, yaml->context))
             status = panic("failed to process map end event");
     } else if(node->type == yaml_c_literal || node->type == yaml_c_folded) {
         string = strbuf_string(&yaml->scalar);
         if(!string) {
             status = panic("failed to string strbuf object");
-        } else if(yaml->callback(scalar, string, yaml->context)) {
+        } else if(yaml->callback(event_scalar, string, yaml->context)) {
             status = panic("failed to process string object");
         }
         yaml->space = 0;

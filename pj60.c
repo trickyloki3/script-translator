@@ -220,7 +220,7 @@ int data_parse(enum event_type type, struct string * string, void * data) {
             if(node->state != map) {
                 status = panic("expected map");
             } else {
-                if(type == list_begin) {
+                if(type == event_list_start) {
                     value = map_search(node->map, key);
                     if(value) {
                         value->type |= list;
@@ -242,7 +242,7 @@ int data_parse(enum event_type type, struct string * string, void * data) {
                                 node_destroy(value);
                         }
                     }
-                } else if(type == map_begin) {
+                } else if(type == event_map_start) {
                     value = map_search(node->map, key);
                     if(value) {
                         value->type |= map;
@@ -264,7 +264,7 @@ int data_parse(enum event_type type, struct string * string, void * data) {
                                 node_destroy(value);
                         }
                     }
-                } else if(type == scalar) {
+                } else if(type == event_scalar) {
                     value = map_search(node->map, key);
                     if(value) {
                         value->type |= str;
@@ -289,9 +289,9 @@ int data_parse(enum event_type type, struct string * string, void * data) {
             }
             data_key_pop(data);
         } else if(node->state == list) {
-            if(type == list_end) {
+            if(type == event_list_end) {
                 data_node_pop(data);
-            } else if(type == list_begin) {
+            } else if(type == event_list_start) {
                 if(node->list) {
                     node->list->type |= list;
                     data_node_push(data, node->list, list);
@@ -303,7 +303,7 @@ int data_parse(enum event_type type, struct string * string, void * data) {
                         data_node_push(data, node->list, list);
                     }
                 }
-            } else if(type == map_begin) {
+            } else if(type == event_map_start) {
                 if(node->list) {
                     node->list->type |= map;
                     data_node_push(data, node->list, map);
@@ -315,7 +315,7 @@ int data_parse(enum event_type type, struct string * string, void * data) {
                         data_node_push(data, node->list, map);
                     }
                 }
-            } else if(type == scalar) {
+            } else if(type == event_scalar) {
                 if(node->list) {
                     node->list->type |= str;
                 } else {
@@ -327,9 +327,9 @@ int data_parse(enum event_type type, struct string * string, void * data) {
                 status = panic("invalid type - %d", type);
             }
         } else if(node->state == map) {
-            if(type == map_end) {
+            if(type == event_map_end) {
                 data_node_pop(data);
-            } else if(type == scalar) {
+            } else if(type == event_scalar) {
                 if(data_key_push(data, string))
                     status = panic("failed to key push data object");
             } else {
