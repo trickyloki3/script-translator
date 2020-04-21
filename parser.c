@@ -4,8 +4,11 @@ struct schema_node * schema_node_create(struct schema *, enum schema_type, int);
 void schema_node_destroy(struct schema *, struct schema_node *);
 void schema_node_print(struct schema_node *, int, char *);
 
-int parser_start(struct parser *, struct schema_node *, enum event_type, struct string *);
-int parser_event(enum event_type, struct string *, void *);
+int parser_state_push(struct parser_state *, struct schema_node *, enum schema_type);
+void parser_state_pop(struct parser_state *);
+void parser_state_clear(struct parser_state *);
+int parser_state_start(struct parser_state *, struct schema_node *, enum event_type, struct string *);
+int parser_state_event(enum event_type, struct string *, void *);
 
 struct schema_node * schema_node_create(struct schema * schema, enum schema_type type, int mark) {
     int status = 0;
@@ -122,10 +125,6 @@ void schema_clear(struct schema * schema) {
     if(schema->root) {
         node = schema->root;
         schema->root = NULL;
-
-        while(node->next)
-            node = node->next;
-
         schema_node_destroy(schema, node);
     }
 
@@ -151,8 +150,6 @@ int schema_load(struct schema * schema, struct schema_markup * array) {
     if(!schema->root) {
         status = panic("failed to create schema node object");
     } else {
-        schema->root->state = list;
-
         scope = store_calloc(&schema->store, sizeof(*scope));
         if(!scope) {
             status = panic("failed to calloc store object");
@@ -223,8 +220,18 @@ int parser_create(struct parser * parser, size_t size, struct heap * heap) {
         if(json_create(&parser->json, parser->size)) {
             status = panic("failed to create json object");
         } else {
-            if(yaml_create(&parser->yaml, parser->size, heap))
+            if(yaml_create(&parser->yaml, parser->size, heap)) {
                 status = panic("failed to create yaml object");
+            } else {
+                if(pool_create(&parser->pool, sizeof(struct parser_node), size / sizeof(struct parser_node))) {
+                    status = panic("failed to create pool object");
+                } else {
+                    if(status)
+                        pool_destroy(&parser->pool);
+                }
+                if(status)
+                    yaml_destroy(&parser->yaml);
+            }
             if(status)
                 json_destroy(&parser->json);
         }
@@ -236,41 +243,73 @@ int parser_create(struct parser * parser, size_t size, struct heap * heap) {
 }
 
 void parser_destroy(struct parser * parser) {
+    pool_destroy(&parser->pool);
     yaml_destroy(&parser->yaml);
     json_destroy(&parser->json);
     csv_destroy(&parser->csv);
 }
 
-int parser_start(struct parser * parser, struct schema_node * node, enum event_type type, struct string * value) {
+int parser_state_push(struct parser_state * state, struct schema_node * data, enum schema_type type) {
+    int status = 0;
+    struct parser_node * node;
+
+    node = pool_get(state->pool);
+    if(!node) {
+        status = panic("out of memory");
+    } else {
+        node->type = type;
+        node->data = data;
+        node->next = state->root;
+        state->root = node;
+    }
+
+    return status;
+}
+
+void parser_state_pop(struct parser_state * state) {
+    struct parser_node * node;
+
+    node = state->root;
+    state->root = state->root->next;
+    pool_put(state->pool, node);
+}
+
+void parser_state_clear(struct parser_state * state) {
+    struct parser_node * node;
+
+    while(state->root) {
+        node = state->root;
+        state->root = state->root->next;
+        pool_put(state->pool, node);
+    }
+}
+
+int parser_state_start(struct parser_state * state, struct schema_node * node, enum event_type type, struct string * value) {
     int status = 0;
 
     if(type == event_list_start) {
         if(node->type & list) {
-            if(parser->callback(start, node->mark, NULL, parser->context)) {
+            if(state->callback(start, node->mark, NULL, state->context)) {
                 status = panic("failed to process start event");
-            } else {
-                node->state = list;
-                node->next = parser->root;
-                parser->root = node;
+            } else if(parser_state_push(state, node, list)) {
+                status = panic("failed to push parser state object");
             }
         } else {
             status = panic("unexpected list");
         }
     } else if(type == event_map_start) {
         if(node->type & map) {
-            if(parser->callback(start, node->mark, NULL, parser->context)) {
+            if(state->callback(start, node->mark, NULL, state->context)) {
                 status = panic("failed to process start event");
-            } else {
-                node->state = map;
-                node->next = parser->root;
-                parser->root = node;
+            } else if(parser_state_push(state, node, map)) {
+                status = panic("failed to push parser state object");
             }
         } else {
             status = panic("unexpected map");
         }
     } else if(type == event_scalar) {
         if(node->type & string) {
-            if(parser->callback(next, node->mark, value, parser->context))
+            if(state->callback(next, node->mark, value, state->context))
                 status = panic("failed to process next event");
         } else {
             status = panic("unexpected string");
@@ -282,45 +321,57 @@ int parser_start(struct parser * parser, struct schema_node * node, enum event_t
     return status;
 }
 
-int parser_event(enum event_type type, struct string * value, void * context) {
-    int status = 0;
-    struct parser * parser;
-    struct schema_node * node;
+/*
+ * parser_state_event grammar
+ *
+ *  node : string
+ *       | start list end
+ *       | start map end
+ *
+ *  list : node
+ *       | list node
+ *
+ *  map  : string node
+ *       | map string node
+ */
 
-    parser = context;
-    node = parser->data;
-    if(node) {
-        if(parser_start(parser, node, type, value)) {
-            status = panic("failed to start parser object");
+int parser_state_event(enum event_type type, struct string * value, void * context) {
+    int status = 0;
+    struct parser_state * state;
+    struct parser_node * node;
+
+    state = context;
+
+    if(state->data) {
+        if(parser_state_start(state, state->data, type, value)) {
+            status = panic("failed to start parser state object");
         } else {
-            parser->data = NULL;
+            state->data = NULL;
         }
     } else {
-        node = parser->root;
+        node = state->root;
         if(!node) {
             status = panic("invalid node");
-        } else if(node->state == list) {
+        } else if(node->type == list) {
             if(type == event_list_end) {
-                if(parser->callback(end, node->mark, NULL, parser->context)) {
+                if(state->callback(end, node->data->mark, NULL, state->context)) {
                     status = panic("failed to process end event");
                 } else {
-                    parser->root->state = 0;
-                    parser->root = parser->root->next;
+                    parser_state_pop(state);
                 }
-            } else if(parser_start(parser, node->list, type, value)) {
-                status = panic("failed to start parser object");
+            } else if(parser_state_start(state, node->data->list, type, value)) {
+                status = panic("failed to start parser state object");
             }
-        } else if(node->state == map) {
+        } else if(node->type == map) {
             if(type == event_map_end) {
-                if(parser->callback(end, node->mark, NULL, parser->context)) {
+                if(state->callback(end, node->data->mark, NULL, state->context)) {
                     status = panic("failed to process end event");
                 } else {
-                    parser->root->state = 0;
-                    parser->root = parser->root->next;
+                    parser_state_pop(state);
                 }
             } else if(type == event_scalar) {
-                parser->data = map_search(node->map, value->string);
-                if(!parser->data)
+                state->data = map_search(node->data->map, value->string);
+                if(!state->data)
                     status = panic("invalid key - %s", value->string);
             } else {
                 status = panic("invalid type - %d", type);
@@ -335,30 +386,36 @@ int parser_event(enum event_type type, struct string * value, void * context) {
 
 int parser_parse(struct parser * parser, struct schema * schema, parser_cb callback, void * context, const char * path) {
     int status = 0;
+
+    struct parser_state state;
     char * ext;
 
-    parser->root = schema->root;
-    parser->data = NULL;
-    parser->callback = callback;
-    parser->context = context;
+    state.pool = &parser->pool;
+    state.root = NULL;
+    state.data = NULL;
+    state.callback = callback;
+    state.context = context;
 
-    ext = strrchr(path, '.');
-    if(!ext) {
-        status = panic("failed to get file extension - %s", path);
+    if(parser_state_push(&state, schema->root, list)) {
+        status = panic("failed to push parser state object");
     } else {
-        if(!strcmp(ext, ".txt")) {
-            if(csv_parse(&parser->csv, path, parser->size, parser_event, parser))
-                status = panic("failed to parse csv object");
-        } else if(!strcmp(ext, ".json")) {
-            if(json_parse(&parser->json, path, parser->size, parser_event, parser))
-                status = panic("failed to parse json object");
-        } else if(!strcmp(ext, ".yaml") || !strcmp(ext, ".yml")) {
-            if(yaml_parse(&parser->yaml, path, parser->size, parser_event, parser))
-                status = panic("failed to parse yaml object");
+        ext = strrchr(path, '.');
+        if(!ext) {
+            status = panic("failed to get file extension - %s", path);
+        } else {
+            if(!strcmp(ext, ".txt")) {
+                if(csv_parse(&parser->csv, path, parser->size, parser_state_event, &state))
+                    status = panic("failed to parse csv object");
+            } else if(!strcmp(ext, ".json")) {
+                if(json_parse(&parser->json, path, parser->size, parser_state_event, &state))
+                    status = panic("failed to parse json object");
+            } else if(!strcmp(ext, ".yaml") || !strcmp(ext, ".yml")) {
+                if(yaml_parse(&parser->yaml, path, parser->size, parser_state_event, &state))
+                    status = panic("failed to parse yaml object");
+            }
         }
 
-        if(parser->root != schema->root)
-            status = panic("failed to parse %s", path);
+        parser_state_clear(&state);
     }
 
     return status;
