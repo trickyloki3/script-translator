@@ -48,20 +48,6 @@ enum parser_event {
 
 typedef int (* parser_cb) (enum parser_event, int, struct string *, void *);
 
-struct parser_state {
-    struct pool * pool;
-    struct parser_node * root;
-    struct schema_node * data;
-    parser_cb callback;
-    void * context;
-};
-
-struct parser_node {
-    enum schema_type type;
-    struct schema_node * data;
-    struct parser_node * next;
-};
-
 struct parser {
     size_t size;
     struct csv csv;
