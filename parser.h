@@ -54,10 +54,12 @@ struct parser {
     struct csv csv;
     struct json json;
     struct yaml yaml;
+    struct strbuf strbuf;
 };
 
 int parser_create(struct parser *, size_t, struct heap *);
 void parser_destroy(struct parser *);
+int parser_scan(struct parser *, struct schema *, const char *);
 int parser_parse(struct parser *, struct schema *, parser_cb, void *, const char *);
 
 #endif
