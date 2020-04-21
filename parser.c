@@ -230,6 +230,71 @@ int schema_load(struct schema * schema, struct schema_markup * array) {
     return status;
 }
 
+int schema_mark(struct schema * schema, struct schema_markup * array) {
+    int status = 0;
+    struct schema_markup first;
+    struct schema_markup * scope = NULL;
+
+    struct schema_node * node;
+
+    memset(&first, 0, sizeof(first));
+    scope = &first;
+    scope->node = schema->root;
+
+    while(array->level > 0 && !status) {
+        while(scope->level >= array->level)
+            scope = scope->next;
+
+        if(array->key) {
+            if(scope->node->type & map) {
+                node = map_search(scope->node->map, array->key);
+                if(!node) {
+                    status = panic("invalid key - %s", array->key);
+                } else {
+                    if(node->type & array->type) {
+                        node->mark = array->mark;
+
+                        if(node->type & (list | map)) {
+                            array->node = node;
+                            array->next = scope;
+                            scope = array;
+                        }
+                    } else {
+                        status = panic("expected %d", array->type);
+                    }
+                }
+            } else {
+                status = panic("expected map");
+            }
+        } else {
+            if(scope->node->type & list) {
+                node = scope->node->list;
+                if(!node) {
+                    status = panic("invalid node");
+                } else {
+                    if(node->type & array->type) {
+                        node->mark = array->mark;
+
+                        if(node->type & (list | map)) {
+                            array->node = node;
+                            array->next = scope;
+                            scope = array;
+                        }
+                    } else {
+                        status = panic("expected %d", array->type);
+                    }
+                }
+            } else {
+                status = panic("expected list");
+            }
+        }
+
+        array++;
+    }
+
+    return status;
+}
+
 int parser_state_push(struct parser_state * state, struct schema_node * data, enum schema_type type) {
     int status = 0;
     struct parser_state_node * node;
