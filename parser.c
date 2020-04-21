@@ -248,6 +248,7 @@ int schema_reload(struct schema * schema, struct schema_markup * array) {
 int schema_update_loop(struct schema * schema, struct schema_markup * array, struct schema_markup * scope) {
     int status = 0;
     struct schema_node * node;
+    enum schema_type type;
 
     while(array->level > 0 && !status) {
         while(scope->level >= array->level)
@@ -259,10 +260,11 @@ int schema_update_loop(struct schema * schema, struct schema_markup * array, str
                 if(!node) {
                     status = panic("invalid key - %s", array->key);
                 } else {
-                    if(node->type & array->type) {
+                    type = node->type & array->type;
+                    if(type) {
                         node->mark = array->mark;
 
-                        if(node->type & (list | map)) {
+                        if(type & (list | map)) {
                             array->node = node;
                             array->next = scope;
                             scope = array;
@@ -280,10 +282,11 @@ int schema_update_loop(struct schema * schema, struct schema_markup * array, str
                 if(!node) {
                     status = panic("invalid node");
                 } else {
-                    if(node->type & array->type) {
+                    type = node->type & array->type;
+                    if(type) {
                         node->mark = array->mark;
 
-                        if(node->type & (list | map)) {
+                        if(type & (list | map)) {
                             array->node = node;
                             array->next = scope;
                             scope = array;
