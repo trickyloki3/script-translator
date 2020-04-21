@@ -29,15 +29,15 @@ struct schema_markup {
 };
 
 struct schema {
-    struct pool * pool;
+    struct pool pool;
     struct store store;
     struct schema_node * root;
 };
 
-int schema_create(struct schema *, size_t, struct heap *);
+int schema_create(struct schema *, size_t);
 void schema_destroy(struct schema *);
-int schema_load(struct schema *, struct schema_markup *);
 void schema_print(struct schema *);
+int schema_load(struct schema *, struct schema_markup *);
 
 /*
  * parser_event and parser_node

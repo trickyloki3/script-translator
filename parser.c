@@ -26,7 +26,7 @@ struct schema_node * schema_node_create(struct schema * schema, enum schema_type
         node->map = store_malloc(&schema->store, sizeof(*node->map));
         if(!node->map) {
             status = panic("failed to malloc store object");
-        } else if(map_create(node->map, (map_compare_cb) strcmp, schema->pool)) {
+        } else if(map_create(node->map, (map_compare_cb) strcmp, &schema->pool)) {
             status = panic("failed to create map object");
         }
     }
@@ -61,16 +61,16 @@ void schema_node_print(struct schema_node * node, int indent, char * key) {
 
     switch(node->type) {
         case list | map | string:
-            fprintf(stdout, "[list, map, string][%d]\n", node->mark);
+            fprintf(stdout, "[list | map | string][%d]\n", node->mark);
             break;
         case list | map:
-            fprintf(stdout, "[list, map][%d]\n", node->mark);
+            fprintf(stdout, "[list | map][%d]\n", node->mark);
             break;
         case list | string:
-            fprintf(stdout, "[list, string][%d]\n", node->mark);
+            fprintf(stdout, "[list | string][%d]\n", node->mark);
             break;
         case map | string:
-            fprintf(stdout, "[map, string][%d]\n", node->mark);
+            fprintf(stdout, "[map | string][%d]\n", node->mark);
             break;
         case list:
             fprintf(stdout, "[list][%d]\n", node->mark);
@@ -95,18 +95,22 @@ void schema_node_print(struct schema_node * node, int indent, char * key) {
     }
 }
 
-int schema_create(struct schema * schema, size_t size, struct heap * heap) {
+int schema_create(struct schema * schema, size_t size) {
     int status = 0;
 
-    schema->pool = heap->map_pool;
-    if(!schema->pool) {
-        status = panic("invalid pool");
+    if(pool_create(&schema->pool, sizeof(struct map_node), size / sizeof(struct map_node))) {
+        status = panic("failed to create pool object");
     } else {
         if(store_create(&schema->store, size)) {
             status = panic("failed to create store object");
         } else {
             schema->root = NULL;
+
+            if(status)
+                store_destroy(&schema->store);
         }
+        if(status)
+            pool_destroy(&schema->pool);
     }
 
     return status;
@@ -115,6 +119,7 @@ int schema_create(struct schema * schema, size_t size, struct heap * heap) {
 void schema_destroy(struct schema * schema) {
     schema_clear(schema);
     store_destroy(&schema->store);
+    pool_destroy(&schema->pool);
 }
 
 void schema_clear(struct schema * schema) {
@@ -159,6 +164,14 @@ static inline void schema_pop(struct schema * schema) {
 
 static inline struct schema_node * schema_top(struct schema * schema) {
     return schema->root;
+}
+
+void schema_print(struct schema * schema) {
+    struct schema_node * node;
+
+    node = schema_top(schema);
+    if(node)
+        schema_node_print(node, 0, NULL);
 }
 
 int schema_load(struct schema * schema, struct schema_markup * markup) {
@@ -224,14 +237,6 @@ int schema_load(struct schema * schema, struct schema_markup * markup) {
     }
 
     return status;
-}
-
-void schema_print(struct schema * schema) {
-    struct schema_node * node;
-
-    node = schema_top(schema);
-    if(node)
-        schema_node_print(node, 0, NULL);
 }
 
 int parser_create(struct parser * parser, size_t size, struct heap * heap) {
