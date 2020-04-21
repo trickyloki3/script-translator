@@ -225,46 +225,6 @@ int schema_load(struct schema * schema, struct schema_markup * array) {
     return status;
 }
 
-int parser_create(struct parser * parser, size_t size, struct heap * heap) {
-    int status = 0;
-
-    parser->size = size;
-
-    if(csv_create(&parser->csv, parser->size, heap)) {
-        status = panic("failed to create csv object");
-    } else {
-        if(json_create(&parser->json, parser->size)) {
-            status = panic("failed to create json object");
-        } else {
-            if(yaml_create(&parser->yaml, parser->size, heap)) {
-                status = panic("failed to create yaml object");
-            } else {
-                if(pool_create(&parser->pool, sizeof(struct parser_state_node), size / sizeof(struct parser_state_node))) {
-                    status = panic("failed to create pool object");
-                } else {
-                    if(status)
-                        pool_destroy(&parser->pool);
-                }
-                if(status)
-                    yaml_destroy(&parser->yaml);
-            }
-            if(status)
-                json_destroy(&parser->json);
-        }
-        if(status)
-            csv_destroy(&parser->csv);
-    }
-
-    return status;
-}
-
-void parser_destroy(struct parser * parser) {
-    pool_destroy(&parser->pool);
-    yaml_destroy(&parser->yaml);
-    json_destroy(&parser->json);
-    csv_destroy(&parser->csv);
-}
-
 int parser_state_push(struct parser_state * state, struct schema_node * data, enum schema_type type) {
     int status = 0;
     struct parser_state_node * node;
@@ -400,12 +360,51 @@ int parser_state_event(enum event_type type, struct string * value, void * conte
     return status;
 }
 
+int parser_create(struct parser * parser, size_t size, struct heap * heap) {
+    int status = 0;
+
+    parser->size = size;
+
+    parser->pool = heap_pool(heap, sizeof(struct parser_state_node));
+    if(!parser->pool) {
+        status = panic("failed to pool heap object");
+    } else {
+        if(csv_create(&parser->csv, parser->size, heap)) {
+            status = panic("failed to create csv object");
+        } else {
+            if(json_create(&parser->json, parser->size)) {
+                status = panic("failed to create json object");
+            } else {
+                if(yaml_create(&parser->yaml, parser->size, heap)) {
+                    status = panic("failed to create yaml object");
+                } else {
+
+                    if(status)
+                        yaml_destroy(&parser->yaml);
+                }
+                if(status)
+                    json_destroy(&parser->json);
+            }
+            if(status)
+                csv_destroy(&parser->csv);
+        }
+    }
+
+    return status;
+}
+
+void parser_destroy(struct parser * parser) {
+    yaml_destroy(&parser->yaml);
+    json_destroy(&parser->json);
+    csv_destroy(&parser->csv);
+}
+
 int parser_parse(struct parser * parser, struct schema * schema, parser_cb callback, void * context, const char * path) {
     int status = 0;
 
     struct parser_state state;
 
-    state.pool = &parser->pool;
+    state.pool = parser->pool;
     state.root = NULL;
     state.data = NULL;
     state.callback = callback;
