@@ -67,7 +67,7 @@ void schema_node_print(struct schema_node * node, int indent, char * key) {
     struct map_kv kv;
 
     for(i = 0; i < indent; i++)
-        fputs("    ", stdout);
+        fputs("  ", stdout);
 
     if(key)
         fprintf(stdout, "[%s]", key);
