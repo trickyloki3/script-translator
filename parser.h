@@ -38,8 +38,8 @@ struct schema_markup {
     struct schema_markup * next;
 };
 
-int schema_load(struct schema *, struct schema_markup *);
-int schema_mark(struct schema *, struct schema_markup *);
+int schema_reload(struct schema *, struct schema_markup *);
+int schema_update(struct schema *, struct schema_markup *);
 
 enum parser_event {
     start,
