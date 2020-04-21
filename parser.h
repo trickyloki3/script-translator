@@ -28,6 +28,7 @@ struct schema {
 
 int schema_create(struct schema *, size_t);
 void schema_destroy(struct schema *);
+void schema_clear(struct schema *);
 void schema_print(struct schema *);
 
 struct schema_markup {
@@ -35,6 +36,7 @@ struct schema_markup {
     enum schema_type type;
     int mark;
     char * key;
+    struct schema_node * node;
     struct schema_markup * next;
 };
 
