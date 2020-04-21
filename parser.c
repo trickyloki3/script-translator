@@ -271,77 +271,83 @@ int parser_state_schema(enum event_type type, struct string * value, void * cont
     struct parser_state * state;
     struct parser_state_node * node;
     struct schema_node * data;
+
+    struct schema_node * val;
     char * key;
 
     state = context;
+
     node = state->root;
     if(!node) {
         status = panic("invalid node");
     } else {
-        if(state->key) {
+        data = node->data;
+        if(!data) {
+            status = panic("invalid data");
+        }  else if(state->key) {
             if(type == event_list_start) {
-                data = map_search(node->data->map, state->key);
-                if(data) {
-                    data->type |= list;
-                    if(parser_state_push(state, data, list))
+                val = map_search(data->map, state->key);
+                if(val) {
+                    val->type |= list;
+                    if(parser_state_push(state, val, list))
                         status = panic("failed to push parser state object");
                 } else {
-                    data = schema_node_create(state->schema, list, 0);
-                    if(!data) {
+                    val = schema_node_create(state->schema, list, 0);
+                    if(!val) {
                         status = panic("failed to create schema node object");
                     } else {
                         key = store_printf(&state->schema->store, "%s", state->key);
                         if(!key) {
                             status = panic("failed to strcpy store object");
-                        } else if(map_insert(node->data->map, key, data)) {
+                        } else if(map_insert(data->map, key, val)) {
                             status = panic("failed to insert map object");
-                        } else if(parser_state_push(state, data, list)) {
+                        } else if(parser_state_push(state, val, list)) {
                             status = panic("failed to push parser state object");
                         }
                         if(status)
-                            schema_node_destroy(state->schema, data);
+                            schema_node_destroy(state->schema, val);
                     }
                 }
             } else if(type == event_map_start) {
-                data = map_search(node->data->map, state->key);
-                if(data) {
-                    data->type |= map;
-                    if(parser_state_push(state, data, map))
+                val = map_search(data->map, state->key);
+                if(val) {
+                    val->type |= map;
+                    if(parser_state_push(state, val, map))
                         status = panic("failed to push parser state object");
                 } else {
-                    data = schema_node_create(state->schema, map, 0);
-                    if(!data) {
+                    val = schema_node_create(state->schema, map, 0);
+                    if(!val) {
                         status = panic("failed to create schema node object");
                     } else {
                         key = store_printf(&state->schema->store, "%s", state->key);
                         if(!key) {
                             status = panic("failed to strcpy store object");
-                        } else if(map_insert(node->data->map, key, data)) {
+                        } else if(map_insert(data->map, key, val)) {
                             status = panic("failed to insert map object");
-                        } else if(parser_state_push(state, data, map)) {
+                        } else if(parser_state_push(state, val, map)) {
                             status = panic("failed to push parser state object");
                         }
                         if(status)
-                            schema_node_destroy(state->schema, data);
+                            schema_node_destroy(state->schema, val);
                     }
                 }
             } else if(type == event_scalar) {
-                data = map_search(node->data->map, state->key);
-                if(data) {
-                    data->type |= string;
+                val = map_search(data->map, state->key);
+                if(val) {
+                    val->type |= string;
                 } else {
-                    data = schema_node_create(state->schema, string, 0);
-                    if(!data) {
+                    val = schema_node_create(state->schema, string, 0);
+                    if(!val) {
                         status = panic("failed to create schema node object");
                     } else {
                         key = store_printf(&state->schema->store, "%s", state->key);
                         if(!key) {
                             status = panic("failed to strcpy store object");
-                        } else if(map_insert(node->data->map, key, data)) {
+                        } else if(map_insert(data->map, key, val)) {
                             status = panic("failed to insert map object");
                         }
                         if(status)
-                            schema_node_destroy(state->schema, data);
+                            schema_node_destroy(state->schema, val);
                     }
                 }
             } else {
@@ -353,37 +359,37 @@ int parser_state_schema(enum event_type type, struct string * value, void * cont
             if(type == event_list_end) {
                 parser_state_pop(state);
             } else if(type == event_list_start) {
-                if(node->data->list) {
-                    node->data->list->type |= list;
-                    if(parser_state_push(state, node->data->list, list))
+                if(data->list) {
+                    data->list->type |= list;
+                    if(parser_state_push(state, data->list, list))
                         status = panic("failed to push parser state object");
                 } else {
-                    node->data->list = schema_node_create(state->schema, list, 0);
-                    if(!node->data->list) {
+                    data->list = schema_node_create(state->schema, list, 0);
+                    if(!data->list) {
                         status = panic("failed to create schema node object");
-                    } else if(parser_state_push(state, node->data->list, list)) {
+                    } else if(parser_state_push(state, data->list, list)) {
                         status = panic("failed to push parser state object");
                     }
                 }
             } else if(type == event_map_start) {
-                if(node->data->list) {
-                    node->data->list->type |= map;
-                    if(parser_state_push(state, node->data->list, map))
+                if(data->list) {
+                    data->list->type |= map;
+                    if(parser_state_push(state, data->list, map))
                         status = panic("failed to push parser state object");
                 } else {
-                    node->data->list = schema_node_create(state->schema, map, 0);
-                    if(!node->data->list) {
+                    data->list = schema_node_create(state->schema, map, 0);
+                    if(!data->list) {
                         status = panic("failed to create schema node object");
-                    } else if(parser_state_push(state, node->data->list, map)) {
+                    } else if(parser_state_push(state, data->list, map)) {
                         status = panic("failed to push parser state object");
                     }
                 }
             } else if(type == event_scalar) {
-                if(node->data->list) {
-                    node->data->list->type |= string;
+                if(data->list) {
+                    data->list->type |= string;
                 } else {
-                    node->data->list = schema_node_create(state->schema, string, 0);
-                    if(!node->data->list)
+                    data->list = schema_node_create(state->schema, string, 0);
+                    if(!data->list)
                         status = panic("failed to create schema node object");
                 }
             } else {
@@ -466,6 +472,7 @@ int parser_state_event(enum event_type type, struct string * value, void * conte
     int status = 0;
     struct parser_state * state;
     struct parser_state_node * node;
+    struct schema_node * data;
 
     state = context;
 
@@ -479,32 +486,37 @@ int parser_state_event(enum event_type type, struct string * value, void * conte
         node = state->root;
         if(!node) {
             status = panic("invalid node");
-        } else if(node->type == list) {
-            if(type == event_list_end) {
-                if(state->callback(end, node->data->mark, NULL, state->context)) {
-                    status = panic("failed to process end event");
-                } else {
-                    parser_state_pop(state);
-                }
-            } else if(parser_state_start(state, node->data->list, type, value)) {
-                status = panic("failed to start parser state object");
-            }
-        } else if(node->type == map) {
-            if(type == event_map_end) {
-                if(state->callback(end, node->data->mark, NULL, state->context)) {
-                    status = panic("failed to process end event");
-                } else {
-                    parser_state_pop(state);
-                }
-            } else if(type == event_scalar) {
-                state->data = map_search(node->data->map, value->string);
-                if(!state->data)
-                    status = panic("invalid key - %s", value->string);
-            } else {
-                status = panic("invalid type - %d", type);
-            }
         } else {
-            status = panic("invalid node state - %d", node->type);
+            data = node->data;
+            if(!data) {
+                status = panic("invalid data");
+            } else if(node->type == list) {
+                if(type == event_list_end) {
+                    if(state->callback(end, data->mark, NULL, state->context)) {
+                        status = panic("failed to process end event");
+                    } else {
+                        parser_state_pop(state);
+                    }
+                } else if(parser_state_start(state, data->list, type, value)) {
+                    status = panic("failed to start parser state object");
+                }
+            } else if(node->type == map) {
+                if(type == event_map_end) {
+                    if(state->callback(end, data->mark, NULL, state->context)) {
+                        status = panic("failed to process end event");
+                    } else {
+                        parser_state_pop(state);
+                    }
+                } else if(type == event_scalar) {
+                    state->data = map_search(data->map, value->string);
+                    if(!state->data)
+                        status = panic("invalid key - %s", value->string);
+                } else {
+                    status = panic("invalid type - %d", type);
+                }
+            } else {
+                status = panic("invalid node type - %d", node->type);
+            }
         }
     }
 
@@ -578,7 +590,7 @@ int parser_schema(struct parser * parser, struct schema * schema, const char * p
             status = panic("failed to push parser state object");
         } else {
             if(parser_schema_path(parser, &state, path))
-                status = panic("failed to parse path parser object");
+                status = panic("failed to schema path parser object");
 
             parser_state_clear(&state);
         }
