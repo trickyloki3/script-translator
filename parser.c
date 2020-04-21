@@ -37,9 +37,9 @@ struct schema_node * schema_node_create(struct schema * schema, enum schema_type
     int status = 0;
     struct schema_node * node;
 
-    node = store_calloc(&schema->store, sizeof(*node));
+    node = store_malloc(&schema->store, sizeof(*node));
     if(!node) {
-        status = panic("failed to calloc store object");
+        status = panic("failed to malloc store object");
     } else {
         node->type = type;
         node->mark = mark;
@@ -48,6 +48,8 @@ struct schema_node * schema_node_create(struct schema * schema, enum schema_type
             status = panic("failed to malloc store object");
         } else if(map_create(node->map, (map_compare_cb) strcmp, &schema->pool)) {
             status = panic("failed to create map object");
+        } else {
+            node->list = NULL;
         }
     }
 
@@ -57,14 +59,14 @@ struct schema_node * schema_node_create(struct schema * schema, enum schema_type
 void schema_node_destroy(struct schema * schema, struct schema_node * node) {
     struct map_kv kv;
 
+    if(node->list)
+        schema_node_destroy(schema, node->list);
+
     kv = map_start(node->map);
     while(kv.key) {
         schema_node_destroy(schema, kv.value);
         kv = map_next(node->map);
     }
-
-    if(node->list)
-        schema_node_destroy(schema, node->list);
 
     map_destroy(node->map);
 }
@@ -81,30 +83,29 @@ void schema_node_print(struct schema_node * node, int indent, char * key) {
 
     switch(node->type) {
         case list | map | string:
-            fprintf(stdout, "[list | map | string][%d]\n", node->mark);
+            fprintf(stdout, "[list | map | string]");
             break;
         case list | map:
-            fprintf(stdout, "[list | map][%d]\n", node->mark);
+            fprintf(stdout, "[list | map]");
             break;
         case list | string:
-            fprintf(stdout, "[list | string][%d]\n", node->mark);
+            fprintf(stdout, "[list | string]");
             break;
         case map | string:
-            fprintf(stdout, "[map | string][%d]\n", node->mark);
+            fprintf(stdout, "[map | string]");
             break;
         case list:
-            fprintf(stdout, "[list][%d]\n", node->mark);
+            fprintf(stdout, "[list]");
             break;
         case map:
-            fprintf(stdout, "[map][%d]\n", node->mark);
+            fprintf(stdout, "[map]");
             break;
         case string:
-            fprintf(stdout, "[string][%d]\n", node->mark);
+            fprintf(stdout, "[string]");
             break;
     }
 
-    if(node->type & list)
-        schema_node_print(node->list, indent + 1, NULL);
+    fprintf(stdout, "[%d]\n", node->mark);
 
     if(node->type & map) {
         kv = map_start(node->map);
@@ -113,6 +114,9 @@ void schema_node_print(struct schema_node * node, int indent, char * key) {
             kv = map_next(node->map);
         }
     }
+
+    if(node->type & list)
+        schema_node_print(node->list, indent + 1, NULL);
 }
 
 int schema_create(struct schema * schema, size_t size) {
