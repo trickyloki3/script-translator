@@ -1,12 +1,12 @@
 source: |
   utility.h   ; header
   pool.h      ; memory
+  store.h     ; memory
   array.h     ; memory
   stack.h     ; container ; singly linked list
   map.h       ; container ; red black tree
   range.h     ; container
   logic.h     ; container ; disjunctive normal form
-  store.h     ; container
   heap.h      ; memory
   csv.h       ; parser
   json.h      ; parser
@@ -28,7 +28,7 @@ layout: |
           map.h
           range.h
           logic.h
-          store.h
             pool.h
+            store.h
             array.h
               utility.h

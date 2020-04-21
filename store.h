@@ -1,7 +1,7 @@
 #ifndef store_h
 #define store_h
 
-#include "pool.h"
+#include "utility.h"
 
 struct store_node {
     char * pos;
