@@ -178,6 +178,7 @@ int schema_load(struct schema * schema, struct schema_markup * markup) {
     int status = 0;
     struct schema_markup * scope = NULL;
 
+    char * key;
     struct schema_node * node;
     struct schema_node * root;
 
@@ -200,8 +201,12 @@ int schema_load(struct schema * schema, struct schema_markup * markup) {
                 } else {
                     if(markup->key) {
                         if(root->type & map) {
-                            if(map_insert(root->map, markup->key, node))
+                            key = store_printf(&schema->store, "%s", markup->key);
+                            if(!key) {
+                                status = panic("failed to strcpy store object");
+                            } else if(map_insert(root->map, key, node)) {
                                 status = panic("failed to insert map object");
+                            }
                         } else {
                             status = panic("expected map");
                         }
