@@ -17,7 +17,7 @@ int main(int argc, char ** argv) {
             if(parser_create(&parser, 4096, &heap)) {
                 status = panic("failed to create parser object");
             } else {
-                if(parser_scan(&parser, &schema, argv[1])) {
+                if(parser_schema(&parser, &schema, argv[1])) {
                     status = panic("failed to scan parser object");
                 } else {
                     schema_print(&schema);

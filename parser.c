@@ -14,7 +14,7 @@ struct parser_state {
     struct pool * pool;
     struct parser_state_node * root;
     struct schema_node * data;
-    /* parser_state_scan */
+    /* parser_state_schema */
     struct strbuf * strbuf;
     char * key;
     struct schema * schema;
@@ -26,11 +26,11 @@ struct parser_state {
 int parser_state_push(struct parser_state *, struct schema_node *, enum schema_type);
 void parser_state_pop(struct parser_state *);
 void parser_state_clear(struct parser_state *);
-int parser_state_scan(enum event_type, struct string *, void *);
+int parser_state_schema(enum event_type, struct string *, void *);
 int parser_state_start(struct parser_state *, struct schema_node *, enum event_type, struct string *);
 int parser_state_event(enum event_type, struct string *, void *);
 
-int parser_scan_path(struct parser *, struct parser_state *, const char *);
+int parser_schema_path(struct parser *, struct parser_state *, const char *);
 int parser_parse_path(struct parser *, struct parser_state *, const char *);
 
 struct schema_node * schema_node_create(struct schema * schema, enum schema_type type, int mark) {
@@ -267,7 +267,7 @@ void parser_state_clear(struct parser_state * state) {
     }
 }
 
-int parser_state_scan(enum event_type type, struct string * value, void * context) {
+int parser_state_schema(enum event_type type, struct string * value, void * context) {
     int status = 0;
 
     struct parser_state * state;
@@ -558,7 +558,7 @@ void parser_destroy(struct parser * parser) {
     csv_destroy(&parser->csv);
 }
 
-int parser_scan(struct parser * parser, struct schema * schema, const char * path) {
+int parser_schema(struct parser * parser, struct schema * schema, const char * path) {
     int status = 0;
 
     struct parser_state state;
@@ -579,7 +579,7 @@ int parser_scan(struct parser * parser, struct schema * schema, const char * pat
         if(parser_state_push(&state, schema->root, list)) {
             status = panic("failed to push parser state object");
         } else {
-            if(parser_scan_path(parser, &state, path))
+            if(parser_schema_path(parser, &state, path))
                 status = panic("failed to parse path parser object");
 
             parser_state_clear(&state);
@@ -589,7 +589,7 @@ int parser_scan(struct parser * parser, struct schema * schema, const char * pat
     return status;
 }
 
-int parser_scan_path(struct parser * parser, struct parser_state * state, const char * path) {
+int parser_schema_path(struct parser * parser, struct parser_state * state, const char * path) {
     int status = 0;
 
     char * ext;
@@ -599,7 +599,7 @@ int parser_scan_path(struct parser * parser, struct parser_state * state, const 
         status = panic("failed to get file extension - %s", path);
     } else {
         if(!strcmp(ext, ".yaml") || !strcmp(ext, ".yml")) {
-            if(yaml_parse(&parser->yaml, path, parser->size, parser_state_scan, state))
+            if(yaml_parse(&parser->yaml, path, parser->size, parser_state_schema, state))
                 status = panic("failed to parse yaml object");
         } else {
             status = panic("unsupported extension - %s", ext);
