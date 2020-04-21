@@ -20,14 +20,6 @@ struct schema_node {
     struct schema_node * next;
 };
 
-struct schema_markup {
-    int level;
-    enum schema_type type;
-    int mark;
-    char * key;
-    struct schema_markup * next;
-};
-
 struct schema {
     struct pool pool;
     struct store store;
@@ -37,6 +29,15 @@ struct schema {
 int schema_create(struct schema *, size_t);
 void schema_destroy(struct schema *);
 void schema_print(struct schema *);
+
+struct schema_markup {
+    int level;
+    enum schema_type type;
+    int mark;
+    char * key;
+    struct schema_markup * next;
+};
+
 int schema_load(struct schema *, struct schema_markup *);
 
 /*

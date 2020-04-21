@@ -225,7 +225,7 @@ int schema_load(struct schema * schema, struct schema_markup * markup) {
 
                 if(status) {
                     schema_node_destroy(schema, node);
-                } else if(node->type & list || node->type & map) {
+                } else if(node->type & (list | map)) {
                     schema_push(schema, node);
                     markup->next = scope;
                     scope = markup;
