@@ -18,7 +18,7 @@ struct parser_state {
     struct strbuf * strbuf;
     char * key;
     struct schema * schema;
-    /* parser_state_event */
+    /* parser_state_data */
     parser_cb callback;
     void * context;
 };
@@ -27,11 +27,11 @@ int parser_state_push(struct parser_state *, struct schema_node *, enum schema_t
 void parser_state_pop(struct parser_state *);
 void parser_state_clear(struct parser_state *);
 int parser_state_schema(enum event_type, struct string *, void *);
-int parser_state_start(struct parser_state *, struct schema_node *, enum event_type, struct string *);
-int parser_state_event(enum event_type, struct string *, void *);
+int parser_state_data_next(struct parser_state *, struct schema_node *, enum event_type, struct string *);
+int parser_state_data(enum event_type, struct string *, void *);
 
 int parser_schema_path(struct parser *, struct parser_state *, const char *);
-int parser_parse_path(struct parser *, struct parser_state *, const char *);
+int parser_data_path(struct parser *, struct parser_state *, const char *);
 
 struct schema_node * schema_node_create(struct schema * schema, enum schema_type type, int mark) {
     int status = 0;
@@ -482,7 +482,7 @@ int parser_state_schema(enum event_type type, struct string * value, void * cont
     return status;
 }
 
-int parser_state_start(struct parser_state * state, struct schema_node * node, enum event_type type, struct string * value) {
+int parser_state_data_next(struct parser_state * state, struct schema_node * node, enum event_type type, struct string * value) {
     int status = 0;
 
     if(type == event_list_start) {
@@ -520,7 +520,7 @@ int parser_state_start(struct parser_state * state, struct schema_node * node, e
 }
 
 /*
- * parser_state_event grammar
+ * parser_state_data grammar
  *
  *  node : string
  *       | start list end
@@ -533,7 +533,7 @@ int parser_state_start(struct parser_state * state, struct schema_node * node, e
  *       | map string node
  */
 
-int parser_state_event(enum event_type type, struct string * value, void * context) {
+int parser_state_data(enum event_type type, struct string * value, void * context) {
     int status = 0;
     struct parser_state * state;
     struct parser_state_node * node;
@@ -542,7 +542,7 @@ int parser_state_event(enum event_type type, struct string * value, void * conte
     state = context;
 
     if(state->data) {
-        if(parser_state_start(state, state->data, type, value)) {
+        if(parser_state_data_next(state, state->data, type, value)) {
             status = panic("failed to start parser state object");
         } else {
             state->data = NULL;
@@ -562,7 +562,7 @@ int parser_state_event(enum event_type type, struct string * value, void * conte
                     } else {
                         parser_state_pop(state);
                     }
-                } else if(parser_state_start(state, data->list, type, value)) {
+                } else if(parser_state_data_next(state, data->list, type, value)) {
                     status = panic("failed to start parser state object");
                 }
             } else if(node->type == map) {
@@ -685,7 +685,7 @@ int parser_schema_path(struct parser * parser, struct parser_state * state, cons
 }
 
 
-int parser_parse(struct parser * parser, struct schema * schema, parser_cb callback, void * context, const char * path) {
+int parser_data(struct parser * parser, struct schema * schema, parser_cb callback, void * context, const char * path) {
     int status = 0;
 
     struct parser_state state;
@@ -699,7 +699,7 @@ int parser_parse(struct parser * parser, struct schema * schema, parser_cb callb
     if(parser_state_push(&state, schema->root, list)) {
         status = panic("failed to push parser state object");
     } else {
-        if(parser_parse_path(parser, &state, path))
+        if(parser_data_path(parser, &state, path))
             status = panic("failed to parse path parser object");
 
         parser_state_clear(&state);
@@ -708,7 +708,7 @@ int parser_parse(struct parser * parser, struct schema * schema, parser_cb callb
     return status;
 }
 
-int parser_parse_path(struct parser * parser, struct parser_state * state, const char * path) {
+int parser_data_path(struct parser * parser, struct parser_state * state, const char * path) {
     int status = 0;
 
     char * ext;
@@ -718,13 +718,13 @@ int parser_parse_path(struct parser * parser, struct parser_state * state, const
         status = panic("failed to get file extension - %s", path);
     } else {
         if(!strcmp(ext, ".txt")) {
-            if(csv_parse(&parser->csv, path, parser->size, parser_state_event, state))
+            if(csv_parse(&parser->csv, path, parser->size, parser_state_data, state))
                 status = panic("failed to parse csv object");
         } else if(!strcmp(ext, ".json")) {
-            if(json_parse(&parser->json, path, parser->size, parser_state_event, state))
+            if(json_parse(&parser->json, path, parser->size, parser_state_data, state))
                 status = panic("failed to parse json object");
         } else if(!strcmp(ext, ".yaml") || !strcmp(ext, ".yml")) {
-            if(yaml_parse(&parser->yaml, path, parser->size, parser_state_event, state))
+            if(yaml_parse(&parser->yaml, path, parser->size, parser_state_data, state))
                 status = panic("failed to parse yaml object");
         } else {
             status = panic("unsupported extension - %s", ext);

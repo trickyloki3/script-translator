@@ -673,7 +673,7 @@ int table_parse(struct table * table, struct schema_markup * markup, parser_cb c
 
     if(schema_load(&table->schema, markup)) {
         status = panic("failed to load schema object");
-    } else if(parser_parse(&table->parser, &table->schema, callback, context, path)) {
+    } else if(parser_data(&table->parser, &table->schema, callback, context, path)) {
         status = panic("failed to parse parser object");
     }
 
@@ -691,7 +691,7 @@ int table_skill_parse(struct table * table, char * path) {
         status = panic("failed to schema parser object");
     } else if(schema_mark(&table->schema, skill_markup)) {
         status = panic("failed to mark schema object");
-    } else if(parser_parse(&table->parser, &table->schema, skill_parse, &table->skill, path)) {
+    } else if(parser_data(&table->parser, &table->schema, skill_parse, &table->skill, path)) {
         status = panic("failed to parse parser object");
     }
 

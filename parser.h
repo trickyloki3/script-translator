@@ -61,6 +61,6 @@ struct parser {
 int parser_create(struct parser *, size_t, struct heap *);
 void parser_destroy(struct parser *);
 int parser_schema(struct parser *, struct schema *, const char *);
-int parser_parse(struct parser *, struct schema *, parser_cb, void *, const char *);
+int parser_data(struct parser *, struct schema *, parser_cb, void *, const char *);
 
 #endif
