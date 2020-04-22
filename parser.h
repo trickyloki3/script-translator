@@ -51,7 +51,6 @@ typedef int (* parser_cb) (enum parser_event, int, struct string *, void *);
 
 struct parser {
     size_t size;
-    struct pool * pool;
     struct csv csv;
     struct json json;
     struct yaml yaml;
