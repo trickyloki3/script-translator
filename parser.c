@@ -4,8 +4,8 @@ struct schema_node * schema_node_create(struct schema *, enum schema_type, int);
 void schema_node_destroy(struct schema *, struct schema_node *);
 void schema_node_print(struct schema_node *, int, char *);
 
-int schema_reload_loop(struct schema *, struct schema_markup *, struct schema_markup *);
-int schema_update_loop(struct schema *, struct schema_markup *, struct schema_markup *);
+int schema_reload_loop(struct schema *, struct schema_markup *, struct schema_node *);
+int schema_update_loop(struct schema *, struct schema_markup *, struct schema_node *);
 
 struct parser_state_node {
     enum schema_type type;
@@ -40,9 +40,9 @@ struct schema_node * schema_node_create(struct schema * schema, enum schema_type
     int status = 0;
     struct schema_node * node;
 
-    node = store_malloc(&schema->store, sizeof(*node));
+    node = store_calloc(&schema->store, sizeof(*node));
     if(!node) {
-        status = panic("failed to malloc store object");
+        status = panic("failed to calloc store object");
     } else {
         node->type = type;
         node->mark = mark;
@@ -166,55 +166,49 @@ void schema_print(struct schema * schema) {
         schema_node_print(schema->root, 0, NULL);
 }
 
-int schema_reload_loop(struct schema * schema, struct schema_markup * array, struct schema_markup * scope) {
+int schema_reload_loop(struct schema * schema, struct schema_markup * array, struct schema_node * root) {
     int status = 0;
 
     char * key;
     struct schema_node * node;
-    struct schema_node * root;
 
     while(array->level > 0 && !status) {
-        while(scope->level >= array->level)
-            scope = scope->next;
+        while(root->state >= array->level)
+            root = root->next;
 
         node = schema_node_create(schema, array->type, array->mark);
         if(!node) {
             status = panic("failed to create schema node object");
         } else {
-            root = scope->node;
-            if(!root) {
-                status = panic("invalid root");
-            } else {
-                if(array->key) {
-                    if(root->type & map) {
-                        key = store_printf(&schema->store, "%s", array->key);
-                        if(!key) {
-                            status = panic("failed to strcpy store object");
-                        } else if(map_insert(root->map, key, node)) {
-                            status = panic("failed to insert map object");
-                        }
-                    } else {
-                        status = panic("expected map");
+            if(array->key) {
+                if(root->type & map) {
+                    key = store_printf(&schema->store, "%s", array->key);
+                    if(!key) {
+                        status = panic("failed to strcpy store object");
+                    } else if(map_insert(root->map, key, node)) {
+                        status = panic("failed to insert map object");
                     }
                 } else {
-                    if(root->type & list) {
-                        if(root->list) {
-                            status = panic("invalid list");
-                        } else {
-                            root->list = node;
-                        }
+                    status = panic("expected map");
+                }
+            } else {
+                if(root->type & list) {
+                    if(root->list) {
+                        status = panic("invalid list");
                     } else {
-                        status = panic("expected list");
+                        root->list = node;
                     }
+                } else {
+                    status = panic("expected list");
                 }
             }
 
             if(status) {
                 schema_node_destroy(schema, node);
             } else if(node->type & (list | map)) {
-                array->node = node;
-                array->next = scope;
-                scope = array;
+                node->state = array->level;
+                node->next = root;
+                root = node;
             }
         }
 
@@ -226,37 +220,31 @@ int schema_reload_loop(struct schema * schema, struct schema_markup * array, str
 
 int schema_reload(struct schema * schema, struct schema_markup * array) {
     int status = 0;
-    struct schema_markup scope;
 
     schema_clear(schema);
 
     schema->root = schema_node_create(schema, list, 0);
     if(!schema->root) {
         status = panic("failed to create schema node object");
-    } else {
-        scope.level = 0;
-        scope.node = schema->root;
-        scope.next = NULL;
-
-        if(schema_reload_loop(schema, array, &scope))
-            status = panic("failed to load loop schema object");
+    } else if(schema_reload_loop(schema, array, schema->root)) {
+        status = panic("failed to reload loop schema object");
     }
 
     return status;
 }
 
-int schema_update_loop(struct schema * schema, struct schema_markup * array, struct schema_markup * scope) {
+int schema_update_loop(struct schema * schema, struct schema_markup * array, struct schema_node * root) {
     int status = 0;
     struct schema_node * node;
     enum schema_type type;
 
     while(array->level > 0 && !status) {
-        while(scope->level >= array->level)
-            scope = scope->next;
+        while(root->state >= array->level)
+            root = root->next;
 
         if(array->key) {
-            if(scope->node->type & map) {
-                node = map_search(scope->node->map, array->key);
+            if(root->type & map) {
+                node = map_search(root->map, array->key);
                 if(!node) {
                     status = panic("invalid key - %s", array->key);
                 } else {
@@ -265,9 +253,9 @@ int schema_update_loop(struct schema * schema, struct schema_markup * array, str
                         node->mark = array->mark;
 
                         if(type & (list | map)) {
-                            array->node = node;
-                            array->next = scope;
-                            scope = array;
+                            node->state = array->level;
+                            node->next = root;
+                            root = node;
                         }
                     } else {
                         status = panic("expected %d", array->type);
@@ -277,8 +265,8 @@ int schema_update_loop(struct schema * schema, struct schema_markup * array, str
                 status = panic("expected map");
             }
         } else {
-            if(scope->node->type & list) {
-                node = scope->node->list;
+            if(root->type & list) {
+                node = root->list;
                 if(!node) {
                     status = panic("invalid node");
                 } else {
@@ -287,9 +275,9 @@ int schema_update_loop(struct schema * schema, struct schema_markup * array, str
                         node->mark = array->mark;
 
                         if(type & (list | map)) {
-                            array->node = node;
-                            array->next = scope;
-                            scope = array;
+                            node->state = array->level;
+                            node->next = root;
+                            root = node;
                         }
                     } else {
                         status = panic("expected %d", array->type);
@@ -308,13 +296,8 @@ int schema_update_loop(struct schema * schema, struct schema_markup * array, str
 
 int schema_update(struct schema * schema, struct schema_markup * array) {
     int status = 0;
-    struct schema_markup scope;
 
-    scope.level = 0;
-    scope.node = schema->root;
-    scope.next = NULL;
-
-    if(schema_update_loop(schema, array, &scope))
+    if(schema_update_loop(schema, array, schema->root))
         status = panic("failed to mark loop schema object");
 
     return status;

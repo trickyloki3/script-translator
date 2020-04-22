@@ -12,10 +12,12 @@ enum schema_type {
 };
 
 struct schema_node {
+    int state;
     enum schema_type type;
     int mark;
     struct map * map;
     struct schema_node * list;
+    struct schema_node * next;
 };
 
 struct schema {
@@ -34,8 +36,6 @@ struct schema_markup {
     enum schema_type type;
     int mark;
     char * key;
-    struct schema_node * node;
-    struct schema_markup * next;
 };
 
 int schema_reload(struct schema *, struct schema_markup *);
