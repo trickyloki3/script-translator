@@ -4,7 +4,7 @@
 #include "array.h"
 
 enum event_type {
-    event_list_start,
+    event_list_start = 1,
     event_list_end,
     event_map_start,
     event_map_end,
