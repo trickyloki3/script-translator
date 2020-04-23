@@ -331,8 +331,6 @@ int schema_state_parse(enum event_type type, struct string * value, void * conte
                 status = panic("failed to node schema state object");
             state->key = NULL;
             strbuf_clear(state->strbuf);
-        } else if(type == event_map_end) {
-            schema->root = schema->root->next;
         } else if(type == event_scalar) {
             if(strbuf_strcpy(state->strbuf, value->string, value->length)) {
                 status = panic("failed to strcpy strbuf object");
@@ -341,6 +339,8 @@ int schema_state_parse(enum event_type type, struct string * value, void * conte
                 if(!state->key)
                     status = panic("failed to char strbuf object");
             }
+        } else if(type == event_map_end) {
+            schema->root = schema->root->next;
         } else {
             status = panic("invalid type - %d", type);
         }
@@ -412,18 +412,18 @@ int data_state_parse(enum event_type type, struct string * value, void * context
             } else {
                 state->data = NULL;
             }
-        } else if(type == event_map_end) {
-            if(state->callback(end, schema->root->mark, NULL, state->context)) {
-                status = panic("failed to process end event");
-            } else {
-                schema->root = schema->root->next;
-            }
         } else if(type == event_scalar) {
             node = schema_get(state->schema, value->string);
             if(!node) {
                 status = panic("failed to get schema object");
             } else {
                 state->data = node;
+            }
+        } else if(type == event_map_end) {
+            if(state->callback(end, schema->root->mark, NULL, state->context)) {
+                status = panic("failed to process end event");
+            } else {
+                schema->root = schema->root->next;
             }
         } else {
             status = panic("invalid type - %d", type);
