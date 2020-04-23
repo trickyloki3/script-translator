@@ -38,8 +38,6 @@ struct schema_node * schema_node_create(struct schema * schema, enum schema_type
             status = panic("failed to malloc store object");
         } else if(map_create(node->map, (map_compare_cb) strcmp, &schema->pool)) {
             status = panic("failed to create map object");
-        } else {
-            node->list = NULL;
         }
     }
 
@@ -119,9 +117,6 @@ int schema_create(struct schema * schema, size_t size) {
             status = panic("failed to create store object");
         } else {
             schema->root = NULL;
-
-            if(status)
-                store_destroy(&schema->store);
         }
         if(status)
             pool_destroy(&schema->pool);
@@ -243,6 +238,7 @@ int schema_reload(struct schema * schema, struct schema_markup * array) {
         status = panic("failed to create schema node object");
     } else {
         schema->root->state = 0;
+
         while(array->level > 0 && !status) {
             while(schema->root->state >= array->level)
                 schema->root = schema->root->next;
@@ -270,6 +266,7 @@ int schema_update(struct schema * schema, struct schema_markup * array) {
     struct schema_node * node;
 
     schema->root->state = 0;
+
     while(array->level > 0 && !status) {
         while(schema->root->state >= array->level)
             schema->root = schema->root->next;
@@ -278,10 +275,10 @@ int schema_update(struct schema * schema, struct schema_markup * array) {
         if(!node) {
             status = panic("failed to get schema object");
         } else {
-            type = node->type & array->type;
-            if(type) {
+            if(node->type & array->type) {
                 node->mark = array->mark;
-                if(type & (list | map))
+
+                if(array->type & (list | map))
                     schema_push(schema, node, array->level);
             } else {
                 status = panic("expected %d", array->type);
@@ -317,6 +314,7 @@ int schema_state_parse(enum event_type type, struct string * value, void * conte
 
     state = context;
     schema = state->schema;
+
     if(schema->root->state == list) {
         if(type == event_list_end) {
             schema->root = schema->root->next;
@@ -387,6 +385,7 @@ int data_state_parse(enum event_type type, struct string * value, void * context
 
     state = context;
     schema = state->schema;
+
     if(schema->root->state == list) {
         if(type == event_list_end) {
             if(state->callback(end, schema->root->mark, NULL, state->context)) {
@@ -483,12 +482,8 @@ int parser_create(struct parser * parser, size_t size, struct heap * heap) {
             if(yaml_create(&parser->yaml, parser->size, heap)) {
                 status = panic("failed to create yaml object");
             } else {
-                if(strbuf_create(&parser->strbuf, size)) {
+                if(strbuf_create(&parser->strbuf, size))
                     status = panic("failed to create strbuf object");
-                } else {
-                    if(status)
-                        strbuf_destroy(&parser->strbuf);
-                }
                 if(status)
                     yaml_destroy(&parser->yaml);
             }
