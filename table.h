@@ -144,7 +144,6 @@ int argument_map(struct argument *, struct map **);
 int argument_parse(enum parser_event, int, struct string *, void *);
 
 struct table {
-    struct schema schema;
     struct parser parser;
     struct item item;
     struct skill skill;

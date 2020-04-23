@@ -606,11 +606,8 @@ int argument_parse(enum parser_event event, int mark, struct string * string, vo
 int table_create(struct table * table, size_t size, struct heap * heap) {
     int status = 0;
 
-    if(schema_create(&table->schema, size)) {
-        status = panic("failed to create schema object");
-    } else if(parser_create(&table->parser, size, heap)) {
+    if(parser_create(&table->parser, size, heap)) {
         status = panic("failed to create parser object");
-        goto parser_fail;
     } else if(item_create(&table->item, size, heap)) {
         status = panic("failed to create item object");
         goto item_fail;
@@ -650,8 +647,6 @@ skill_fail:
     item_destroy(&table->item);
 item_fail:
     parser_destroy(&table->parser);
-parser_fail:
-    schema_destroy(&table->schema);
 
     return status;
 }
@@ -665,7 +660,6 @@ void table_destroy(struct table * table) {
     skill_destroy(&table->skill);
     item_destroy(&table->item);
     parser_destroy(&table->parser);
-    schema_destroy(&table->schema);
 }
 
 int table_item_parse(struct table * table, char * path) {
