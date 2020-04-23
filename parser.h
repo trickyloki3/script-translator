@@ -59,12 +59,12 @@ struct parser {
     struct json json;
     struct yaml yaml;
     struct strbuf strbuf;
+    struct schema schema;
 };
 
 int parser_create(struct parser *, size_t, struct heap *);
 void parser_destroy(struct parser *);
-int parser_schema_parse(struct parser *, struct schema *, const char *);
-int parser_data_parse(struct parser *, struct schema *, parser_cb, void *, const char *);
-int parser_parse(struct parser *, const char *, event_cb, void *);
+int parser_file(struct parser *, struct schema_markup *, const char *, parser_cb, void *);
+int parser_file2(struct parser *, struct schema_markup *, const char *, parser_cb, void *);
 
 #endif

@@ -668,54 +668,32 @@ void table_destroy(struct table * table) {
     schema_destroy(&table->schema);
 }
 
-int table_parse(struct table * table, struct schema_markup * markup, parser_cb callback, void * context, char * path) {
-    int status = 0;
-
-    if(schema_reload(&table->schema, markup)) {
-        status = panic("failed to load schema object");
-    } else if(parser_data_parse(&table->parser, &table->schema, callback, context, path)) {
-        status = panic("failed to data parse parser object");
-    }
-
-    return status;
-}
-
 int table_item_parse(struct table * table, char * path) {
-    return table_parse(table, csv_markup, item_parse, &table->item, path);
+    return parser_file(&table->parser, csv_markup, path, item_parse, &table->item);
 }
 
 int table_skill_parse(struct table * table, char * path) {
-    int status = 0;
-
-    if(parser_schema_parse(&table->parser, &table->schema, path)) {
-        status = panic("failed to schema parse parser object");
-    } else if(schema_update(&table->schema, skill_markup)) {
-        status = panic("failed to mark schema object");
-    } else if(parser_data_parse(&table->parser, &table->schema, skill_parse, &table->skill, path)) {
-        status = panic("failed to data parse parser object");
-    }
-
-    return status;
+    return parser_file2(&table->parser, skill_markup, path, skill_parse, &table->skill);
 }
 
 int table_mob_parse(struct table * table, char * path) {
-    return table_parse(table, csv_markup, mob_parse, &table->mob, path);
+    return parser_file(&table->parser, csv_markup, path, mob_parse, &table->mob);
 }
 
 int table_mercenary_parse(struct table * table, char * path) {
-    return table_parse(table, csv_markup, mercenary_parse, &table->mercenary, path);
+    return parser_file(&table->parser, csv_markup, path, mercenary_parse, &table->mercenary);
 }
 
 int table_constant_parse(struct table * table, char * path) {
-    return table_parse(table, constant_markup, constant_parse, &table->constant, path);
+    return parser_file(&table->parser, constant_markup, path, constant_parse, &table->constant);
 }
 
 int table_argument_parse(struct table * table, char * path) {
-    return table_parse(table, argument_markup, argument_parse, &table->argument, path);
+    return parser_file(&table->parser, argument_markup, path, argument_parse, &table->argument);
 }
 
 int table_bonus_parse(struct table * table, char * path) {
-    return table_parse(table, argument_markup, argument_parse, &table->bonus, path);
+    return parser_file(&table->parser, argument_markup, path, argument_parse, &table->bonus);
 }
 
 struct item_node * item_start(struct table * table) {

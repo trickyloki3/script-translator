@@ -23,6 +23,10 @@ struct data_state {
 int data_state_parse(enum event_type, struct string *, void *);
 int data_state_node(struct data_state *, struct schema_node *, enum event_type, struct string *);
 
+int parser_schema_parse(struct parser *, struct schema *, const char *);
+int parser_data_parse(struct parser *, struct schema *, const char *, parser_cb, void *);
+int parser_parse(struct parser *, const char *, event_cb, void *);
+
 struct schema_node * schema_node_create(struct schema * schema, enum schema_type type, int mark) {
     int status = 0;
     struct schema_node * node;
@@ -482,8 +486,14 @@ int parser_create(struct parser * parser, size_t size, struct heap * heap) {
             if(yaml_create(&parser->yaml, parser->size, heap)) {
                 status = panic("failed to create yaml object");
             } else {
-                if(strbuf_create(&parser->strbuf, size))
+                if(strbuf_create(&parser->strbuf, size)) {
                     status = panic("failed to create strbuf object");
+                } else {
+                    if(schema_create(&parser->schema, size))
+                        status = panic("failed to create schema object");
+                    if(status)
+                        strbuf_destroy(&parser->strbuf);
+                }
                 if(status)
                     yaml_destroy(&parser->yaml);
             }
@@ -498,6 +508,7 @@ int parser_create(struct parser * parser, size_t size, struct heap * heap) {
 }
 
 void parser_destroy(struct parser * parser) {
+    schema_destroy(&parser->schema);
     strbuf_destroy(&parser->strbuf);
     yaml_destroy(&parser->yaml);
     json_destroy(&parser->json);
@@ -531,7 +542,7 @@ int parser_schema_parse(struct parser * parser, struct schema * schema, const ch
     return status;
 }
 
-int parser_data_parse(struct parser * parser, struct schema * schema, parser_cb callback, void * context, const char * path) {
+int parser_data_parse(struct parser * parser, struct schema * schema, const char * path, parser_cb callback, void * context) {
     int status = 0;
 
     struct data_state state;
@@ -573,6 +584,32 @@ int parser_parse(struct parser * parser, const char * path, event_cb callback, v
         } else {
             status = panic("unsupported extension - %s", ext);
         }
+    }
+
+    return status;
+}
+
+int parser_file(struct parser * parser, struct schema_markup * markup, const char * path, parser_cb callback, void * context) {
+    int status = 0;
+
+    if(schema_reload(&parser->schema, markup)) {
+        status = panic("failed to load schema object");
+    } else if(parser_data_parse(parser, &parser->schema, path, callback, context)) {
+        status = panic("failed to data parse parser object");
+    }
+
+    return status;
+}
+
+int parser_file2(struct parser * parser, struct schema_markup * markup, const char * path, parser_cb callback, void * context) {
+    int status = 0;
+
+    if(parser_schema_parse(parser, &parser->schema, path)) {
+        status = panic("failed to schema parse parser object");
+    } else if(schema_update(&parser->schema, markup)) {
+        status = panic("failed to mark schema object");
+    } else if(parser_data_parse(parser, &parser->schema, path, callback, context)) {
+        status = panic("failed to data parse parser object");
     }
 
     return status;
