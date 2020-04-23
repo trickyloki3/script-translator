@@ -479,30 +479,30 @@ int parser_create(struct parser * parser, size_t size, struct heap * heap) {
 
     if(csv_create(&parser->csv, parser->size, heap)) {
         status = panic("failed to create csv object");
-    } else {
-        if(json_create(&parser->json, parser->size)) {
-            status = panic("failed to create json object");
-        } else {
-            if(yaml_create(&parser->yaml, parser->size, heap)) {
-                status = panic("failed to create yaml object");
-            } else {
-                if(strbuf_create(&parser->strbuf, size)) {
-                    status = panic("failed to create strbuf object");
-                } else {
-                    if(schema_create(&parser->schema, size))
-                        status = panic("failed to create schema object");
-                    if(status)
-                        strbuf_destroy(&parser->strbuf);
-                }
-                if(status)
-                    yaml_destroy(&parser->yaml);
-            }
-            if(status)
-                json_destroy(&parser->json);
-        }
-        if(status)
-            csv_destroy(&parser->csv);
+    } else if(json_create(&parser->json, parser->size)) {
+        status = panic("failed to create json object");
+        goto json_fail;
+    } else if(yaml_create(&parser->yaml, parser->size, heap)) {
+        status = panic("failed to create yaml object");
+        goto yaml_fail;
+    } else if(strbuf_create(&parser->strbuf, size)) {
+        status = panic("failed to create strbuf object");
+        goto strbuf_fail;
+    } else if(schema_create(&parser->schema, size)) {
+        status = panic("failed to create schema object");
+        goto schema_fail;
     }
+
+    return status;
+
+schema_fail:
+    strbuf_destroy(&parser->strbuf);
+strbuf_fail:
+    yaml_destroy(&parser->yaml);
+yaml_fail:
+    json_destroy(&parser->json);
+json_fail:
+    csv_destroy(&parser->csv);
 
     return status;
 }
