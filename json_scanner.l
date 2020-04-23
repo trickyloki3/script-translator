@@ -89,7 +89,7 @@ UNICODE         {ESCAPE}\x75{HEXDIG}{HEXDIG}{HEXDIG}{HEXDIG}
 }
 
 {QUOTATIONMARK}{CHAR}*{QUOTATIONMARK} {
-    return json_token(yyextra, event_scalar, yytext, yyleng) ? -1 : JSON_STRING;
+    return json_token(yyextra, event_scalar, yytext + 1, yyleng - 2) ? -1 : JSON_STRING;
 }
 
 . {
