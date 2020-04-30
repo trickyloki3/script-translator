@@ -107,7 +107,7 @@ void schema_node_print(struct schema_node * node, int indent, char * key) {
         }
     }
 
-    if(node->type & list)
+    if(node->type & list && node->list)
         schema_node_print(node->list, indent + 1, NULL);
 }
 
@@ -475,11 +475,8 @@ int data_state_node(struct data_state * state, struct schema_node * node, enum e
 int parser_create(struct parser * parser, size_t size, struct heap * heap) {
     int status = 0;
 
-    if(json_create(&parser->json, size)) {
-        status = panic("failed to create json object");
-    } else if(yaml_create(&parser->yaml, size, heap)) {
+    if(yaml_create(&parser->yaml, size, heap)) {
         status = panic("failed to create yaml object");
-        goto yaml_fail;
     } else if(strbuf_create(&parser->strbuf, size)) {
         status = panic("failed to create strbuf object");
         goto strbuf_fail;
@@ -494,8 +491,6 @@ schema_fail:
     strbuf_destroy(&parser->strbuf);
 strbuf_fail:
     yaml_destroy(&parser->yaml);
-yaml_fail:
-    json_destroy(&parser->json);
 
     return status;
 }
@@ -504,7 +499,6 @@ void parser_destroy(struct parser * parser) {
     schema_destroy(&parser->schema);
     strbuf_destroy(&parser->strbuf);
     yaml_destroy(&parser->yaml);
-    json_destroy(&parser->json);
 }
 
 int parser_schema_parse(struct parser * parser, struct schema * schema, const char * path) {
@@ -565,7 +559,7 @@ int parser_parse(struct parser * parser, const char * path, event_cb callback, v
         status = panic("failed to get file extension - %s", path);
     } else {
         if(!strcmp(ext, ".json")) {
-            if(json_parse(&parser->json, path, callback, context))
+            if(json_parse(path, callback, context))
                 status = panic("failed to parse json object");
         } else if(!strcmp(ext, ".yaml") || !strcmp(ext, ".yml")) {
             if(yaml_parse(&parser->yaml, path, callback, context))

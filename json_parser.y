@@ -2,7 +2,6 @@
 %output "json_parser.c"
 %defines "json_parser.h"
 %verbose
-%locations
 
 %define api.prefix {json}
 %define api.token.prefix {JSON_}
@@ -10,12 +9,12 @@
 %define api.push-pull push
 
 %define lr.type lalr
-%define lr.default-reduction accepting
+%define lr.default-reduction most
 %define lr.keep-unreachable-state false
 
-%define parse.lac full
-%define parse.error verbose
-%define parse.trace true
+%define parse.lac none
+%define parse.error simple
+%define parse.trace false
 
 %token BEGINARRAY BEGINOBJECT ENDARRAY ENDOBJECT NAMESEPARATOR VALUESEPARATOR FALSE NULL TRUE NUMBER STRING
 %start json
@@ -26,11 +25,10 @@
 
 %code provides {
 #define YYSTYPE JSONSTYPE
-#define YYLTYPE JSONLTYPE
 }
 
 %code {
-void yyerror(JSONLTYPE *, char const *);
+void yyerror(char const *);
 }
 
 %%
@@ -61,6 +59,6 @@ value : FALSE
 
 %%
 
-void yyerror(JSONLTYPE * location, char const * message) {
-    panic("%s (line %d)", message, location->first_line);
+void yyerror(char const * message) {
+    panic("%s", message);
 }

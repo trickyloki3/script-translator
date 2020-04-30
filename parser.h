@@ -46,7 +46,6 @@ int schema_reload(struct schema *, struct schema_markup *);
 int schema_update(struct schema *, struct schema_markup *);
 
 struct parser {
-    struct json json;
     struct yaml yaml;
     struct strbuf strbuf;
     struct schema schema;

@@ -1,12 +1,11 @@
 %{
 #include "json.h"
 #include "json_parser.h"
-#define YY_USER_ACTION yylloc->first_line = yylineno;
 %}
 
 %option outfile="json_scanner.c" header-file="json_scanner.h"
 %option batch 8bit nodefault never-interactive yylineno noyywrap
-%option bison-bridge bison-locations reentrant pointer prefix="json"
+%option reentrant pointer prefix="json"
 %option align read full
 %option backup warn
 %option noinput nounput
@@ -46,27 +45,33 @@ UNICODE         {ESCAPE}\x75{HEXDIG}{HEXDIG}{HEXDIG}{HEXDIG}
 %%
 
 {BEGINARRAY} {
-    return json_token(yyextra, event_list_start, NULL, 0) ? -1 : JSON_BEGINARRAY;
+    if(json_next(yyextra, event_list_start, JSON_BEGINARRAY, NULL))
+        return panic("failed to next json object");
 }
 
 {BEGINOBJECT} {
-    return json_token(yyextra, event_map_start, NULL, 0) ? -1 : JSON_BEGINOBJECT;
+    if(json_next(yyextra, event_map_start, JSON_BEGINOBJECT, NULL))
+        return panic("failed to next json object");
 }
 
 {ENDARRAY} {
-    return json_token(yyextra, event_list_end, NULL, 0) ? -1 : JSON_ENDARRAY;
+    if(json_next(yyextra, event_list_end, JSON_ENDARRAY, NULL))
+        return panic("failed to next json object");
 }
 
 {ENDOBJECT} {
-    return json_token(yyextra, event_map_end, NULL, 0) ? -1 : JSON_ENDOBJECT;
+    if(json_next(yyextra, event_map_end, JSON_ENDOBJECT, NULL))
+        return panic("failed to next json object");
 }
 
 {NAMESEPARATOR} {
-    return JSON_NAMESEPARATOR;
+    if(YYPUSH_MORE != jsonpush_parse(yyextra->parser, JSON_NAMESEPARATOR, NULL))
+        return panic("failed to push parse json");
 }
 
 {VALUESEPARATOR} {
-    return JSON_VALUESEPARATOR;
+    if(YYPUSH_MORE != jsonpush_parse(yyextra->parser, JSON_VALUESEPARATOR, NULL))
+        return panic("failed to push parse json");
 }
 
 {WS}* {
@@ -74,26 +79,55 @@ UNICODE         {ESCAPE}\x75{HEXDIG}{HEXDIG}{HEXDIG}{HEXDIG}
 }
 
 {FALSE} {
-    return json_token(yyextra, event_scalar, yytext, yyleng) ? -1 : JSON_FALSE;
+    struct string string = { yyleng, yytext };
+
+    if(json_next(yyextra, event_scalar, JSON_FALSE, &string))
+        return panic("failed to next json object");
 }
 
 {NULL} {
-    return json_token(yyextra, event_scalar, yytext, yyleng) ? -1 : JSON_NULL;
+    struct string string = { yyleng, yytext };
+
+    if(json_next(yyextra, event_scalar, JSON_NULL, &string))
+        return panic("failed to next json object");
 }
 
 {TRUE} {
-    return json_token(yyextra, event_scalar, yytext, yyleng) ? -1 : JSON_TRUE;
+    struct string string = { yyleng, yytext };
+
+    if(json_next(yyextra, event_scalar, JSON_TRUE, &string))
+        return panic("failed to next json object");
 }
 
 {MINUS}?{INT}{FRAC}?{EXP}? {
-    return json_token(yyextra, event_scalar, yytext, yyleng) ? -1 : JSON_NUMBER;
+    struct string string = { yyleng, yytext };
+
+    if(json_next(yyextra, event_scalar, JSON_NUMBER, &string))
+        return panic("failed to next json object");
 }
 
 {QUOTATIONMARK}{CHAR}*{QUOTATIONMARK} {
-    return json_token(yyextra, event_scalar, yytext + 1, yyleng - 2) ? -1 : JSON_STRING;
+    struct string string = { yyleng - 2, yytext + 1 };
+
+    if(json_next(yyextra, event_scalar, JSON_STRING, &string))
+        return panic("failed to next json object");
 }
 
 . {
     panic("invalid character (line %d)", yylineno);
     return -1;
+}
+
+%%
+
+int json_next(struct json * json, enum event_type type, int token, struct string * string) {
+    int status = 0;
+
+    if(YYPUSH_MORE != jsonpush_parse(json->parser, token, NULL)) {
+        status = panic("failed to push parse json object");
+    } else if(json->callback(type, string, json->context)) {
+        status = panic("failed to process event");
+    }
+
+    return status;
 }
