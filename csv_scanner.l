@@ -8,6 +8,7 @@
 %option align read full
 %option backup warn
 %option noinput nounput
+%option extra-type="struct csv *"
 
 COMMA       \x2C
 NEWLINE     \xD|\xA|\xD\xA
@@ -20,19 +21,15 @@ TEXTDATA    [\x9\x20-\x21\x23-\x2B\x2D-\x7A\x7C\x7E]
 %%
 
 {COMMA} {
-    struct csv * csv = yyextra;
-
-    csv->index++;
+    yyextra->index++;
 }
 
 {NEWLINE} {
-    struct csv * csv = yyextra;
-
-    if(csv->index) {
-        if(csv->callback(end, 0, NULL, csv->context)) {
+    if(yyextra->index) {
+        if(yyextra->callback(end, 0, NULL, yyextra->context)) {
             return panic("failed to process list end event");
         } else {
-            csv->index = 0;
+            yyextra->index = 0;
         }
     }
 }
@@ -46,34 +43,32 @@ TEXTDATA    [\x9\x20-\x21\x23-\x2B\x2D-\x7A\x7C\x7E]
 }
 
 {CURLY}.*|{TEXTDATA}* {
-    struct csv * csv = yyextra;
     struct string string = { yyleng, yytext };
 
-    if(!csv->index) {
-        if(csv->callback(start, 0, NULL, csv->context)) {
+    if(!yyextra->index) {
+        if(yyextra->callback(start, 0, NULL, yyextra->context)) {
             return panic("failed to process list start event");
         } else {
-            csv->index = 1;
+            yyextra->index = 1;
         }
     }
 
-    if(csv->callback(next, csv->index, &string, csv->context))
+    if(yyextra->callback(next, yyextra->index, &string, yyextra->context))
         return panic("failed to process scalar event");
 }
 
 {QUOTE}({TEXTDATA}|{COMMA})*{QUOTE} {
-    struct csv * csv = yyextra;
     struct string string = { yyleng - 2, yytext + 1 };
 
-    if(!csv->index) {
-        if(csv->callback(start, 0, NULL, csv->context)) {
+    if(!yyextra->index) {
+        if(yyextra->callback(start, 0, NULL, yyextra->context)) {
             return panic("failed to process list start event");
         } else {
-            csv->index = 1;
+            yyextra->index = 1;
         }
     }
 
-    if(csv->callback(next, csv->index, &string, csv->context))
+    if(yyextra->callback(next, yyextra->index, &string, yyextra->context))
         return panic("failed to process scalar event");
 }
 
