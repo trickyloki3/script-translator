@@ -7,7 +7,6 @@ int csv_parse(const char * path, parser_cb callback, void * context) {
 
     FILE * file;
     yyscan_t scanner;
-    YY_BUFFER_STATE buffer;
     struct csv csv;
 
     file = fopen(path, "r");
@@ -17,21 +16,15 @@ int csv_parse(const char * path, parser_cb callback, void * context) {
         if(csvlex_init_extra(&csv, &scanner)) {
             status = panic("failed to create scanner object");
         } else {
-            buffer = csv_create_buffer(file, 4096, scanner);
-            if(!buffer) {
-                status = panic("failed to create buffer state object");
-            } else {
-                csvpush_buffer_state(buffer, scanner);
+            csvrestart(file, scanner);
 
-                csv.index = 0;
-                csv.callback = callback;
-                csv.context = context;
+            csv.index = 0;
+            csv.callback = callback;
+            csv.context = context;
 
-                if(csvlex(scanner))
-                    status = panic("failed to scan csv object");
+            if(csvlex(scanner))
+                status = panic("failed to scan csv object");
 
-                csvpop_buffer_state(scanner);
-            }
             csvlex_destroy(scanner);
         }
         fclose(file);
