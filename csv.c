@@ -23,7 +23,7 @@ int csv_parse(const char * path, parser_cb callback, void * context) {
             csv.context = context;
 
             if(csvlex(scanner))
-                status = panic("failed to scan csv object");
+                status = panic("failed to parse %s", path);
 
             csvlex_destroy(scanner);
         }
