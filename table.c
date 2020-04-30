@@ -5,9 +5,8 @@ int string_long(struct string *, long *);
 int string_store(struct string *, struct store *, char **);
 
 struct schema_markup csv_markup[] = {
-    {1, list, 0, NULL},
-    {2, list, 1, NULL},
-    {3, string, 2, NULL},
+    {1, list, 1, NULL},
+    {2, string, 2, NULL},
     {0, 0, 0},
 };
 
