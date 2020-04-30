@@ -28,7 +28,7 @@ struct yaml {
 
 int yaml_create(struct yaml *, size_t, struct heap *);
 void yaml_destroy(struct yaml *);
-int yaml_parse(struct yaml *, const char *, size_t, event_cb, void *);
+int yaml_parse(struct yaml *, const char *, event_cb, void *);
 int yaml_token(struct yaml *, int, size_t, struct string *, struct yaml_node **);
 int yaml_string(struct yaml *, int, size_t, char *, size_t, struct yaml_node **);
 int yaml_literal(struct yaml *, size_t);

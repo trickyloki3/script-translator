@@ -72,13 +72,12 @@ void yaml_destroy(struct yaml * yaml) {
     strbuf_destroy(&yaml->strbuf);
 }
 
-int yaml_parse(struct yaml * yaml, const char * path, size_t size, event_cb callback, void * context) {
+int yaml_parse(struct yaml * yaml, const char * path, event_cb callback, void * context) {
     int status = 0;
 
     FILE * file;
     yyscan_t scanner;
     yamlpstate * parser;
-    YY_BUFFER_STATE buffer;
 
     yaml->callback = callback;
     yaml->context = context;
@@ -94,15 +93,11 @@ int yaml_parse(struct yaml * yaml, const char * path, size_t size, event_cb call
             if(!parser) {
                 status = panic("failed to create parser object");
             } else {
-                buffer = yaml_create_buffer(file, size, scanner);
-                if(!buffer) {
-                    status = panic("faield to create buffer state object");
-                } else {
-                    yamlpush_buffer_state(buffer, scanner);
-                    if(yaml_parse_loop(yaml, scanner, parser))
-                        status = panic("failed to parse loop yaml object");
-                    yamlpop_buffer_state(scanner);
-                }
+                yamlrestart(file, scanner);
+
+                if(yaml_parse_loop(yaml, scanner, parser))
+                    status = panic("failed to parse loop yaml object");
+
                 yamlpstate_delete(parser);
             }
             yamllex_destroy(scanner);

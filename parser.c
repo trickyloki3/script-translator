@@ -475,11 +475,9 @@ int data_state_node(struct data_state * state, struct schema_node * node, enum e
 int parser_create(struct parser * parser, size_t size, struct heap * heap) {
     int status = 0;
 
-    parser->size = size;
-
-    if(json_create(&parser->json, parser->size)) {
+    if(json_create(&parser->json, size)) {
         status = panic("failed to create json object");
-    } else if(yaml_create(&parser->yaml, parser->size, heap)) {
+    } else if(yaml_create(&parser->yaml, size, heap)) {
         status = panic("failed to create yaml object");
         goto yaml_fail;
     } else if(strbuf_create(&parser->strbuf, size)) {
@@ -567,10 +565,10 @@ int parser_parse(struct parser * parser, const char * path, event_cb callback, v
         status = panic("failed to get file extension - %s", path);
     } else {
         if(!strcmp(ext, ".json")) {
-            if(json_parse(&parser->json, path, parser->size, callback, context))
+            if(json_parse(&parser->json, path, callback, context))
                 status = panic("failed to parse json object");
         } else if(!strcmp(ext, ".yaml") || !strcmp(ext, ".yml")) {
-            if(yaml_parse(&parser->yaml, path, parser->size, callback, context))
+            if(yaml_parse(&parser->yaml, path, callback, context))
                 status = panic("failed to parse yaml object");
         } else {
             status = panic("unsupported extension - %s", ext);

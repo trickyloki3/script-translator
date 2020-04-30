@@ -22,13 +22,12 @@ void json_destroy(struct json * json) {
     strbuf_destroy(&json->strbuf);
 }
 
-int json_parse(struct json * json, const char * path, size_t size, event_cb callback, void * context) {
+int json_parse(struct json * json, const char * path, event_cb callback, void * context) {
     int status = 0;
 
     FILE * file;
     yyscan_t scanner;
     jsonpstate * parser;
-    YY_BUFFER_STATE buffer;
 
     json->callback = callback;
     json->context = context;
@@ -44,15 +43,11 @@ int json_parse(struct json * json, const char * path, size_t size, event_cb call
             if(!parser) {
                 status = panic("failed to create parser object");
             } else {
-                buffer = json_create_buffer(file, size, scanner);
-                if(!buffer) {
-                    status = panic("failed to create buffer state object");
-                } else {
-                    jsonpush_buffer_state(buffer, scanner);
-                    if(json_parse_loop(json, scanner, parser))
-                        status = panic("failed to parse loop json object");
-                    jsonpop_buffer_state(scanner);
-                }
+                jsonrestart(file, scanner);
+
+                if(json_parse_loop(json, scanner, parser))
+                    status = panic("failed to parse loop json object");
+
                 jsonpstate_delete(parser);
             }
             jsonlex_destroy(scanner);
