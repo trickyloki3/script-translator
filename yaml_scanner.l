@@ -10,6 +10,7 @@
 %option align read full
 %option backup warn
 %option noinput nounput
+%option extra-type="struct yaml *"
 
 c-sequence-entry        \x2D
 c-mapping-key           \x3F

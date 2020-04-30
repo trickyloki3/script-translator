@@ -10,6 +10,7 @@
 %option align read full
 %option backup warn
 %option noinput nounput
+%option extra-type="struct json *"
 
 BEGINARRAY      \x5B
 BEGINOBJECT     \x7B
