@@ -29,10 +29,11 @@ TEXTDATA    [\x9\x20-\x21\x23-\x2B\x2D-\x7A\x7C\x7E]
     struct csv * csv = yyextra;
 
     if(csv->index) {
-        csv->index = 0;
-
-        if(csv->callback(end, csv->index, NULL, csv->context))
+        if(csv->callback(end, 0, NULL, csv->context)) {
             return panic("failed to process list end event");
+        } else {
+            csv->index = 0;
+        }
     }
 }
 
@@ -49,10 +50,10 @@ TEXTDATA    [\x9\x20-\x21\x23-\x2B\x2D-\x7A\x7C\x7E]
     struct string string = { yyleng, yytext };
 
     if(!csv->index) {
-        if(csv->callback(start, csv->index, NULL, csv->context)) {
+        if(csv->callback(start, 0, NULL, csv->context)) {
             return panic("failed to process list start event");
         } else {
-            csv->index++;
+            csv->index = 1;
         }
     }
 
@@ -65,10 +66,10 @@ TEXTDATA    [\x9\x20-\x21\x23-\x2B\x2D-\x7A\x7C\x7E]
     struct string string = { yyleng - 2, yytext + 1 };
 
     if(!csv->index) {
-        if(csv->callback(start, csv->index, NULL, csv->context)) {
+        if(csv->callback(start, 0, NULL, csv->context)) {
             return panic("failed to process list start event");
         } else {
-            csv->index++;
+            csv->index = 1;
         }
     }
 
