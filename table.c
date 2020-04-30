@@ -4,12 +4,6 @@ int long_compare(void *, void *);
 int string_long(struct string *, long *);
 int string_store(struct string *, struct store *, char **);
 
-struct schema_markup csv_markup[] = {
-    {1, list, 1, NULL},
-    {2, string, 2, NULL},
-    {0, 0, 0},
-};
-
 struct schema_markup skill_markup[] = {
     {1, map, 0, NULL},
     {2, list, 1, "Body"},
@@ -111,36 +105,24 @@ int item_parse(enum parser_event event, int mark, struct string * string, void *
     struct item * item = context;
 
     switch(mark) {
-        case 1:
+        case 0:
             if(event == start) {
                 item->item = store_calloc(&item->store, sizeof(*item->item));
-                if(!item->item) {
+                if(!item->item)
                     status = panic("failed to calloc store object");
-                } else {
-                    item->index = 0;
-                }
             } else if(event == end) {
-                if(item->index != 20) {
-                    status = panic("invalid index");
-                } else if(!item->item->name) {
-                    status = panic("invalid name");
-                } else if(map_insert(&item->id, &item->item->id, item->item)) {
+                if(map_insert(&item->id, &item->item->id, item->item)) {
                     status = panic("failed to insert map object");
                 } else if(map_insert(&item->name, item->item->name, item->item)) {
                     status = panic("failed to insert map object");
                 }
             }
             break;
-        case 2:
-            switch(item->index) {
-                case 0: status = string_long(string, &item->item->id); break;
-                case 2: status = string_store(string, &item->store, &item->item->name); break;
-                case 19:
-                    if(item_script_parse(item, string->string))
-                        status = panic("failed to script parse item object");
-                    break;
-            }
-            item->index++;
+        case 1: status = string_long(string, &item->item->id); break;
+        case 3: status = string_store(string, &item->store, &item->item->name); break;
+        case 20:
+            if(item_script_parse(item, string->string))
+                status = panic("failed to script parse item object");
             break;
     }
 
@@ -280,34 +262,22 @@ int mob_parse(enum parser_event event, int mark, struct string * string, void * 
     struct mob * mob = context;
 
     switch(mark) {
-        case 1:
+        case 0:
             if(event == start) {
                 mob->mob = store_calloc(&mob->store, sizeof(*mob->mob));
-                if(!mob->mob) {
+                if(!mob->mob)
                     status = panic("failed to calloc store object");
-                } else {
-                    mob->index = 0;
-                }
             } else if(event == end) {
-                if(mob->index != 57) {
-                    status = panic("invalid index");
-                } else if(!mob->mob->sprite) {
-                    status = panic("invalid sprite");
-                } else if(map_insert(&mob->id, &mob->mob->id, mob->mob)) {
+                if(map_insert(&mob->id, &mob->mob->id, mob->mob)) {
                     status = panic("failed to insert map object");
                 } else if(map_insert(&mob->sprite, mob->mob->sprite, mob->mob)) {
                     status = panic("failed to insert map object");
                 }
             }
             break;
-        case 2:
-            switch(mob->index) {
-                case 0: status = string_long(string, &mob->mob->id); break;
-                case 1: status = string_store(string, &mob->store, &mob->mob->sprite); break;
-                case 2: status = string_store(string, &mob->store, &mob->mob->kro); break;
-            }
-            mob->index++;
-            break;
+        case 1: status = string_long(string, &mob->mob->id); break;
+        case 2: status = string_store(string, &mob->store, &mob->mob->sprite); break;
+        case 3: status = string_store(string, &mob->store, &mob->mob->kro); break;
     }
 
     return status;
@@ -338,29 +308,18 @@ int mercenary_parse(enum parser_event event, int mark, struct string * string, v
     struct mercenary * mercenary = context;
 
     switch(mark) {
-        case 1:
+        case 0:
             if(event == start) {
                 mercenary->mercenary = store_calloc(&mercenary->store, sizeof(*mercenary->mercenary));
-                if(!mercenary->mercenary) {
+                if(!mercenary->mercenary)
                     status = panic("failed to calloc store object");
-                } else {
-                    mercenary->index = 0;
-                }
             } else if(event == end) {
-                if(mercenary->index != 26) {
-                    status = panic("invalid index");
-                } else if(map_insert(&mercenary->id, &mercenary->mercenary->id, mercenary->mercenary)) {
+                if(map_insert(&mercenary->id, &mercenary->mercenary->id, mercenary->mercenary))
                     status = panic("failed to insert map object");
-                }
             }
             break;
-        case 2:
-            switch(mercenary->index) {
-                case 0: status = string_long(string, &mercenary->mercenary->id); break;
-                case 2: status = string_store(string, &mercenary->store, &mercenary->mercenary->name); break;
-            }
-            mercenary->index++;
-            break;
+        case 1: status = string_long(string, &mercenary->mercenary->id); break;
+        case 3: status = string_store(string, &mercenary->store, &mercenary->mercenary->name); break;
     }
 
     return status;
@@ -662,7 +621,7 @@ void table_destroy(struct table * table) {
 }
 
 int table_item_parse(struct table * table, char * path) {
-    return parser_file(&table->parser, csv_markup, path, item_parse, &table->item);
+    return csv_parse(path, item_parse, &table->item);
 }
 
 int table_skill_parse(struct table * table, char * path) {
@@ -670,11 +629,11 @@ int table_skill_parse(struct table * table, char * path) {
 }
 
 int table_mob_parse(struct table * table, char * path) {
-    return parser_file(&table->parser, csv_markup, path, mob_parse, &table->mob);
+    return csv_parse(path, mob_parse, &table->mob);
 }
 
 int table_mercenary_parse(struct table * table, char * path) {
-    return parser_file(&table->parser, csv_markup, path, mercenary_parse, &table->mercenary);
+    return csv_parse(path, mercenary_parse, &table->mercenary);
 }
 
 int table_constant_parse(struct table * table, char * path) {

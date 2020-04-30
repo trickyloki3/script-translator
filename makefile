@@ -7,7 +7,6 @@ OBJECT+=range.o
 OBJECT+=logic.o
 OBJECT+=store.o
 OBJECT+=heap.o
-OBJECT+=csv_parser.o
 OBJECT+=csv_scanner.o
 OBJECT+=csv.o
 OBJECT+=json_parser.o
@@ -43,9 +42,6 @@ pj60: $(OBJECT)
 
 clean:
 	@rm -f *.o
-	@rm -f csv_parser.c
-	@rm -f csv_parser.h
-	@rm -f csv_parser.output
 	@rm -f csv_scanner.c
 	@rm -f csv_scanner.h
 	@rm -f lex.backup

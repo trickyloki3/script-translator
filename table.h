@@ -16,7 +16,6 @@ struct item {
     struct map id;
     struct map name;
     struct item_node * item;
-    size_t index;
 };
 
 int item_create(struct item *, size_t, struct heap *);
@@ -52,7 +51,6 @@ struct mob {
     struct map id;
     struct map sprite;
     struct mob_node * mob;
-    size_t index;
 };
 
 int mob_create(struct mob *, size_t, struct heap *);
@@ -68,7 +66,6 @@ struct mercenary {
     struct store store;
     struct map id;
     struct mercenary_node * mercenary;
-    size_t index;
 };
 
 int mercenary_create(struct mercenary *, size_t, struct heap *);

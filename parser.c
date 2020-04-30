@@ -477,11 +477,8 @@ int parser_create(struct parser * parser, size_t size, struct heap * heap) {
 
     parser->size = size;
 
-    if(csv_create(&parser->csv, parser->size, heap)) {
-        status = panic("failed to create csv object");
-    } else if(json_create(&parser->json, parser->size)) {
+    if(json_create(&parser->json, parser->size)) {
         status = panic("failed to create json object");
-        goto json_fail;
     } else if(yaml_create(&parser->yaml, parser->size, heap)) {
         status = panic("failed to create yaml object");
         goto yaml_fail;
@@ -501,8 +498,6 @@ strbuf_fail:
     yaml_destroy(&parser->yaml);
 yaml_fail:
     json_destroy(&parser->json);
-json_fail:
-    csv_destroy(&parser->csv);
 
     return status;
 }
@@ -512,7 +507,6 @@ void parser_destroy(struct parser * parser) {
     strbuf_destroy(&parser->strbuf);
     yaml_destroy(&parser->yaml);
     json_destroy(&parser->json);
-    csv_destroy(&parser->csv);
 }
 
 int parser_schema_parse(struct parser * parser, struct schema * schema, const char * path) {
@@ -572,10 +566,7 @@ int parser_parse(struct parser * parser, const char * path, event_cb callback, v
     if(!ext) {
         status = panic("failed to get file extension - %s", path);
     } else {
-        if(!strcmp(ext, ".txt")) {
-            if(csv_parse(&parser->csv, path, parser->size, callback, context))
-                status = panic("failed to parse csv object");
-        } else if(!strcmp(ext, ".json")) {
+        if(!strcmp(ext, ".json")) {
             if(json_parse(&parser->json, path, parser->size, callback, context))
                 status = panic("failed to parse json object");
         } else if(!strcmp(ext, ".yaml") || !strcmp(ext, ".yml")) {

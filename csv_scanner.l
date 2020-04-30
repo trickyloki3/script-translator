@@ -1,11 +1,10 @@
 %{
 #include "csv.h"
-#include "csv_parser.h"
 %}
 
 %option outfile="csv_scanner.c" header-file="csv_scanner.h"
 %option batch 8bit nodefault never-interactive yylineno noyywrap
-%option bison-bridge reentrant pointer prefix="csv"
+%option reentrant pointer prefix="csv"
 %option align read full
 %option backup warn
 %option noinput nounput
@@ -21,11 +20,20 @@ TEXTDATA    [\x9\x20-\x21\x23-\x2B\x2D-\x7A\x7C\x7E]
 %%
 
 {COMMA} {
-    return CSV_COMMA;
+    struct csv * csv = yyextra;
+
+    csv->index++;
 }
 
 {NEWLINE} {
-    return CSV_NEWLINE;
+    struct csv * csv = yyextra;
+
+    if(csv->index) {
+        csv->index = 0;
+
+        if(csv->callback(end, csv->index, NULL, csv->context))
+            return panic("failed to process list end event");
+    }
 }
 
 {SPACE}* {
@@ -36,21 +44,41 @@ TEXTDATA    [\x9\x20-\x21\x23-\x2B\x2D-\x7A\x7C\x7E]
     /* ignore comment */
 }
 
-{CURLY}.* {
-    return strbuf_strcpy(yyextra, yytext, yyleng) ? -1 : CSV_STRING;
+{CURLY}.*|{TEXTDATA}* {
+    struct csv * csv = yyextra;
+    struct string string = { yyleng, yytext };
+
+    if(!csv->index) {
+        if(csv->callback(start, csv->index, NULL, csv->context)) {
+            return panic("failed to process list start event");
+        } else {
+            csv->index++;
+        }
+    }
+
+    if(csv->callback(next, csv->index, &string, csv->context))
+        return panic("failed to process scalar event");
 }
 
 {QUOTE}({TEXTDATA}|{COMMA})*{QUOTE} {
-    return strbuf_strcpy(yyextra, yytext, yyleng) ? -1 : CSV_STRING;
+    struct csv * csv = yyextra;
+    struct string string = { yyleng - 2, yytext + 1 };
+
+    if(!csv->index) {
+        if(csv->callback(start, csv->index, NULL, csv->context)) {
+            return panic("failed to process list start event");
+        } else {
+            csv->index++;
+        }
+    }
+
+    if(csv->callback(next, csv->index, &string, csv->context))
+        return panic("failed to process scalar event");
 }
 
 {QUOTE}({TEXTDATA}|{COMMA})* {
     panic("unmatch double quote (line %d)", yylineno);
     return -1;
-}
-
-{TEXTDATA}* {
-    return strbuf_strcpy(yyextra, yytext, yyleng) ? -1 : CSV_STRING;
 }
 
 . {
