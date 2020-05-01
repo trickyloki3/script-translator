@@ -13,7 +13,7 @@ enum schema_type {
 
 struct schema_node {
     int state;
-    enum schema_type type;
+    int type;
     int mark;
     struct map * map;
     struct schema_node * list;

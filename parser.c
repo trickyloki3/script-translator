@@ -266,7 +266,6 @@ int schema_reload(struct schema * schema, struct schema_markup * array) {
 
 int schema_update(struct schema * schema, struct schema_markup * array) {
     int status = 0;
-    enum schema_type type;
     struct schema_node * node;
 
     schema->root->state = 0;
