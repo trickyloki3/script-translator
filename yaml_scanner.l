@@ -13,7 +13,6 @@
 %option extra-type="struct yaml *"
 
 c-sequence-entry        \x2D
-c-mapping-key           \x3F
 c-mapping-value         \x3A
 c-comment               \x23
 c-literal               \x7C
@@ -35,10 +34,6 @@ ns-plain-one-line       {ns-plain-first}({s-space}*{ns-plain-char})*
 
 {c-sequence-entry} {
     return yaml_token(yyextra, yaml_c_sequence_entry, 0, NULL, yylval) ? -1 : yaml_c_sequence_entry;
-}
-
-{c-mapping-key} {
-    return yaml_token(yyextra, yaml_c_mapping_key, 0, NULL, yylval) ? -1 : yaml_c_mapping_key;
 }
 
 {c-mapping-value} {

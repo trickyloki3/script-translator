@@ -17,7 +17,7 @@
 %define parse.error simple
 %define parse.trace false
 
-%token c_sequence_entry c_mapping_key c_mapping_value
+%token c_sequence_entry c_mapping_value
 %token c_literal c_folded
 %token s_indent s_separate_in_line
 %token l_empty b_break
