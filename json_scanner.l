@@ -1,6 +1,8 @@
 %{
 #include "json.h"
 #include "json_parser.h"
+
+int json_next(struct json *, enum event_type, int, struct string *);
 %}
 
 %option outfile="json_scanner.c" header-file="json_scanner.h"
