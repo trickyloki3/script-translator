@@ -12,7 +12,6 @@ OBJECT+=csv.o
 OBJECT+=json_parser.o
 OBJECT+=json_scanner.o
 OBJECT+=json.o
-OBJECT+=yaml_parser.o
 OBJECT+=yaml_scanner.o
 OBJECT+=yaml.o
 OBJECT+=parser.o
@@ -50,9 +49,6 @@ clean:
 	@rm -f json_parser.output
 	@rm -f json_scanner.c
 	@rm -f json_scanner.h
-	@rm -f yaml_parser.c
-	@rm -f yaml_parser.h
-	@rm -f yaml_parser.output
 	@rm -f yaml_scanner.c
 	@rm -f yaml_scanner.h
 	@rm -f script_parser.c
