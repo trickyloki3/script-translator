@@ -259,24 +259,9 @@ int yaml_block(struct yaml * yaml, int scope) {
                     status = panic("failed to container yaml object");
             }
             break;
-        case c_literal:
-            yaml->token = yamllex(yaml->scanner);
-            if(yaml_scalar(yaml, yaml_literal)) {
-                status = panic("failed to scalar yaml object");
-            } else if(yaml_next(yaml)) {
-                status = panic("failed to next yaml object");
-            }
-            break;
-        case c_folded:
-            yaml->token = yamllex(yaml->scanner);
-            if(yaml_scalar(yaml, yaml_folded)) {
-                status = panic("failed to scalar yaml object");
-            } else if(yaml_next(yaml)) {
-                status = panic("failed to next yaml object");
-            }
-            break;
         default:
-            status = panic("invalid token - %d", yaml->token);
+            if(yaml_plain(yaml, scope))
+                status = panic("failed to plain yaml object");
             break;
     }
 
@@ -322,7 +307,7 @@ int yaml_plain(struct yaml * yaml, int scope) {
             }
             break;
         default:
-            status = panic("expected scalar");
+            status = panic("invalid token - %d", yaml->token);
             break;
     }
 
