@@ -170,41 +170,39 @@ int yaml_document(struct yaml * yaml) {
             if(yaml->root) {
                 if(yaml->root->scope != scope) {
                     status = panic("invalid scope - %d", scope);
-                } else {
-                    if(yaml->root->type == sequence_type) {
-                        if(yaml->token == c_sequence_entry) {
+                } else if(yaml->root->type == sequence_type) {
+                    if(yaml->token == c_sequence_entry) {
+                        yaml->token = yamllex(yaml->scanner);
+
+                        if(yaml_sequence(yaml, scope))
+                            status = panic("failed to sequence entry yaml object");
+                    } else {
+                        status = panic("expected sequence entry");
+                    }
+                } else if(yaml->root->type == map_type) {
+                    if(yaml->token == ns_plain_one_line) {
+                        if(strbuf_strcpy(&yaml->strbuf, yaml->string, yaml->length)) {
+                            status = panic("failed to strcpy strbuf object");
+                        } else {
                             yaml->token = yamllex(yaml->scanner);
 
-                            if(yaml_sequence(yaml, scope))
-                                status = panic("failed to sequence entry yaml object");
-                        } else {
-                            status = panic("expected sequence entry");
-                        }
-                    } else if(yaml->root->type == map_type) {
-                        if(yaml->token == ns_plain_one_line) {
-                            if(strbuf_strcpy(&yaml->strbuf, yaml->string, yaml->length)) {
-                                status = panic("failed to strcpy strbuf object");
-                            } else {
+                            if(yaml->token == c_mapping_value) {
                                 yaml->token = yamllex(yaml->scanner);
 
-                                if(yaml->token == c_mapping_value) {
-                                    yaml->token = yamllex(yaml->scanner);
-
-                                    if(yaml_next(yaml)) {
-                                        status = panic("failed to next yaml object");
-                                    } else if(yaml_map(yaml, scope)) {
-                                        status = panic("failed to map entry yaml object");
-                                    }
-                                } else {
-                                    status = panic("expected mapping value");
+                                if(yaml_next(yaml)) {
+                                    status = panic("failed to next yaml object");
+                                } else if(yaml_map(yaml, scope)) {
+                                    status = panic("failed to map entry yaml object");
                                 }
+                            } else {
+                                status = panic("expected mapping value");
                             }
-                        } else {
-                            status = panic("expected mapping key");
                         }
                     } else {
-                        status = panic("invalid type - %d", yaml->root->type);
+                        status = panic("expected mapping key");
                     }
+                } else {
+                    status = panic("invalid type - %d", yaml->root->type);
                 }
             } else if(yaml_block(yaml, scope)) {
                 status = panic("failed to block yaml object");
@@ -259,13 +257,19 @@ int yaml_block(struct yaml * yaml, int scope) {
             break;
         case c_literal:
             yaml->token = yamllex(yaml->scanner);
-            if(yaml_scalar(yaml, scope, 1))
+            if(yaml_scalar(yaml, scope, 1)) {
                 status = panic("failed to scalar yaml object");
+            } else if(yaml_next(yaml)) {
+                status = panic("failed to next yaml object");
+            }
             break;
         case c_folded:
             yaml->token = yamllex(yaml->scanner);
-            if(yaml_scalar(yaml, scope, 0))
+            if(yaml_scalar(yaml, scope, 0)) {
                 status = panic("failed to scalar yaml object");
+            } else if(yaml_next(yaml)) {
+                status = panic("failed to next yaml object");
+            }
             break;
         default:
             status = panic("invalid token - %d", yaml->token);
@@ -394,9 +398,6 @@ int yaml_scalar(struct yaml * yaml, int scope, int is_literal) {
                         }
                     }
                 } while(yaml->token == s_indent && scope <= yaml->space && !status);
-
-                if(!status && yaml_next(yaml))
-                    status = panic("failed to next yaml object");
             } else {
                 status = panic("invalid scope");
             }
