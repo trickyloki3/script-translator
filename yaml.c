@@ -11,8 +11,7 @@ int yaml_end(struct yaml *, int);
 int yaml_document(struct yaml *);
 int yaml_block(struct yaml *, int);
 int yaml_block_scalar(struct yaml *, int);
-int yaml_sequence(struct yaml *, int);
-int yaml_map(struct yaml *, int);
+int yaml_container(struct yaml *, int, yaml_cb);
 int yaml_scalar(struct yaml *, yaml_cb);
 int yaml_literal(struct yaml *, int);
 int yaml_folded(struct yaml *, int);
@@ -179,8 +178,8 @@ int yaml_document(struct yaml * yaml) {
                     if(yaml->token == c_sequence_entry) {
                         yaml->token = yamllex(yaml->scanner);
 
-                        if(yaml_sequence(yaml, scope))
-                            status = panic("failed to sequence entry yaml object");
+                        if(yaml_container(yaml, scope, yaml_block))
+                            status = panic("failed to container yaml object");
                     } else {
                         status = panic("expected sequence entry");
                     }
@@ -196,8 +195,8 @@ int yaml_document(struct yaml * yaml) {
 
                                 if(yaml_next(yaml)) {
                                     status = panic("failed to next yaml object");
-                                } else if(yaml_map(yaml, scope)) {
-                                    status = panic("failed to map entry yaml object");
+                                } else if(yaml_container(yaml, scope, yaml_block_scalar)) {
+                                    status = panic("failed to container yaml object");
                                 }
                             } else {
                                 status = panic("expected mapping value");
@@ -242,8 +241,8 @@ int yaml_block(struct yaml * yaml, int scope) {
                         status = panic("failed to start yaml object");
                     } else if(yaml_next(yaml)) {
                         status = panic("failed to next yaml object");
-                    } else if(yaml_map(yaml, scope)) {
-                        status = panic("failed to map entry yaml object");
+                    } else if(yaml_container(yaml, scope, yaml_block_scalar)) {
+                        status = panic("failed to container yaml object");
                     }
                 } else {
                     status = panic("expected newline or mapping value");
@@ -256,8 +255,8 @@ int yaml_block(struct yaml * yaml, int scope) {
             } else {
                 yaml->token = yamllex(yaml->scanner);
 
-                if(yaml_sequence(yaml, scope))
-                    status = panic("failed to sequence entry yaml object");
+                if(yaml_container(yaml, scope, yaml_block))
+                    status = panic("failed to container yaml object");
             }
             break;
         case c_literal:
@@ -330,46 +329,15 @@ int yaml_block_scalar(struct yaml * yaml, int scope) {
     return status;
 }
 
-int yaml_sequence(struct yaml * yaml, int scope) {
+int yaml_container(struct yaml * yaml, int scope, yaml_cb callback) {
     int status = 0;
 
     if(yaml->token == s_separate_in_line) {
         scope += yaml->space + 1;
         yaml->token = yamllex(yaml->scanner);
 
-        if(yaml_block(yaml, scope))
+        if(callback(yaml, scope))
             status = panic("failed to block yaml object");
-    } else if(yaml->token == b_break) {
-        yaml->token = yamllex(yaml->scanner);
-        while(yaml->token == l_empty)
-            yaml->token = yamllex(yaml->scanner);
-
-        if(yaml->token == s_indent) {
-            scope = yaml->space;
-            yaml->token = yamllex(yaml->scanner);
-
-            if(yaml_block(yaml, scope))
-                status = panic("failed to block yaml object");
-        } else {
-            status = panic("expected space");
-        }
-    } else {
-        status = panic("expected space or newline");
-    }
-
-    return status;
-}
-
-int yaml_map(struct yaml * yaml, int scope) {
-    int status = 0;
-
-    if(yaml->token == s_separate_in_line) {
-        scope += yaml->space + 1;
-        yaml->token = yamllex(yaml->scanner);
-
-        if(yaml_block_scalar(yaml, scope)) {
-            status = panic("failed to block yaml object");
-        }
     } else if(yaml->token == b_break) {
         yaml->token = yamllex(yaml->scanner);
         while(yaml->token == l_empty)
