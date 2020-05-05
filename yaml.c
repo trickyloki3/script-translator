@@ -2,8 +2,9 @@
 
 #include "yaml_scanner.h"
 
-int yaml_push(struct yaml *, enum yaml_type, int);
-int yaml_pop(struct yaml *, int);
+int yaml_start(struct yaml *, enum yaml_type, int);
+int yaml_next(struct yaml *);
+int yaml_end(struct yaml *, int);
 
 int yaml_document(struct yaml *);
 int yaml_block(struct yaml *, int);
@@ -17,14 +18,22 @@ int yaml_create(struct yaml * yaml, size_t size, struct heap * heap) {
     yaml->pool = heap_pool(heap, sizeof(struct yaml_node));
     if(!yaml->pool) {
         status = panic("failed to pool heap object");
-    } else if(strbuf_create(&yaml->strbuf, size)) {
-        status = panic("failed to create strbuf object");
+    } else {
+        if(strbuf_create(&yaml->strbuf, size)) {
+            status = panic("failed to create strbuf object");
+        } else {
+            if(yamllex_init_extra(yaml, &yaml->scanner))
+                status = panic("failed to create scanner object");
+            if(status)
+                strbuf_destroy(&yaml->strbuf);
+        }
     }
 
     return status;
 }
 
 void yaml_destroy(struct yaml * yaml) {
+    yamllex_destroy(yaml->scanner);
     strbuf_destroy(&yaml->strbuf);
 }
 
@@ -32,42 +41,46 @@ int yaml_parse(struct yaml * yaml, const char * path, event_cb callback, void * 
     int status = 0;
 
     FILE * file;
+    struct yaml_node * node;
 
     file = fopen(path, "r");
     if(!file) {
         status = panic("failed to open %s", path);
     } else {
-        if(yamllex_init_extra(yaml, &yaml->scanner)) {
-            status = panic("failed to create scanner object");
-        } else {
-            yamlrestart(file, yaml->scanner);
+        yaml->root = NULL;
+        strbuf_clear(&yaml->strbuf);
+        yamlrestart(file, yaml->scanner);
+        yaml->string = NULL;
+        yaml->length = 0;
+        yaml->space = 0;
+        yaml->token = 0;
+        yaml->scalar = 0;
+        yaml->callback = callback;
+        yaml->context = context;
 
-            yaml->scalar = 0;
-            yaml->stack = NULL;
-            yaml->callback = callback;
-            yaml->context = context;
-
-            if(yaml_document(yaml)) {
-                status = panic("failed to document yaml object");
-            } else if(yaml_pop(yaml, -1)) {
-                status = panic("failed to pop yaml object");
-            }
-
-            yamllex_destroy(yaml->scanner);
+        if(yaml_document(yaml)) {
+            status = panic("failed to document yaml object");
+        } else if(yaml_end(yaml, -1)) {
+            status = panic("failed to end yaml object");
         }
+
+        while(yaml->root) {
+            node = yaml->root;
+            yaml->root = yaml->root->next;
+            pool_put(yaml->pool, node);
+        }
+
         fclose(file);
     }
-
-    strbuf_clear(&yaml->strbuf);
 
     return status;
 }
 
-int yaml_push(struct yaml * yaml, enum yaml_type type, int scope) {
+int yaml_start(struct yaml * yaml, enum yaml_type type, int scope) {
     int status = 0;
     struct yaml_node * node;
 
-    if(yaml->stack && yaml->stack->scope >= scope) {
+    if(yaml->root && yaml->root->scope >= scope) {
         status = panic("invalid scope - %d", scope);
     } else {
         node = pool_get(yaml->pool);
@@ -76,8 +89,8 @@ int yaml_push(struct yaml * yaml, enum yaml_type type, int scope) {
         } else {
             node->type = type;
             node->scope = scope;
-            node->next = yaml->stack;
-            yaml->stack = node;
+            node->next = yaml->root;
+            yaml->root = node;
 
             switch(type) {
                 case sequence_type:
@@ -95,12 +108,28 @@ int yaml_push(struct yaml * yaml, enum yaml_type type, int scope) {
     return status;
 }
 
-int yaml_pop(struct yaml * yaml, int scope) {
+int yaml_next(struct yaml * yaml) {
+    int status = 0;
+    struct string * string;
+
+    string = strbuf_string(&yaml->strbuf);
+    if(!string) {
+        status = panic("failed to string strbuf object");
+    } else if(yaml->callback(event_scalar, string, yaml->context)) {
+        status = panic("failed to process scalar event");
+    }
+
+    strbuf_clear(&yaml->strbuf);
+
+    return status;
+}
+
+int yaml_end(struct yaml * yaml, int scope) {
     int status = 0;
     struct yaml_node * node;
 
-    while(yaml->stack && yaml->stack->scope > scope && !status) {
-        switch(yaml->stack->type) {
+    while(yaml->root && yaml->root->scope > scope && !status) {
+        switch(yaml->root->type) {
             case sequence_type:
                 if(yaml->callback(event_list_end, NULL, yaml->context))
                     status = panic("failed to process list end event");
@@ -111,8 +140,8 @@ int yaml_pop(struct yaml * yaml, int scope) {
                 break;
         }
 
-        node = yaml->stack;
-        yaml->stack = yaml->stack->next;
+        node = yaml->root;
+        yaml->root = yaml->root->next;
         pool_put(yaml->pool, node);
     }
 
@@ -121,9 +150,7 @@ int yaml_pop(struct yaml * yaml, int scope) {
 
 int yaml_document(struct yaml * yaml) {
     int status = 0;
-
     int scope;
-    struct string string;
 
     yaml->token = yamllex(yaml->scanner);
     while(yaml->token == l_empty)
@@ -137,34 +164,37 @@ int yaml_document(struct yaml * yaml) {
             yaml->token = yamllex(yaml->scanner);
         }
 
-        if(yaml_pop(yaml, scope)) {
-            status = panic("failed to pop yaml object");
+        if(yaml_end(yaml, scope)) {
+            status = panic("failed to end yaml object");
         } else {
-            if(yaml->stack) {
-                if(yaml->stack->scope != scope) {
+            if(yaml->root) {
+                if(yaml->root->scope != scope) {
                     status = panic("invalid scope - %d", scope);
                 } else {
-                    if(yaml->stack->type == sequence_type) {
+                    if(yaml->root->type == sequence_type) {
                         if(yaml->token == c_sequence_entry) {
                             yaml->token = yamllex(yaml->scanner);
+
                             if(yaml_sequence(yaml, scope))
                                 status = panic("failed to sequence entry yaml object");
                         } else {
                             status = panic("expected sequence entry");
                         }
-                    } else if(yaml->stack->type == map_type) {
+                    } else if(yaml->root->type == map_type) {
                         if(yaml->token == ns_plain_one_line) {
-                            string.string = yaml->string;
-                            string.length = yaml->length;
-
-                            if(yaml->callback(event_scalar, &string, yaml->context)) {
-                                status = panic("failed to process scalar event");
+                            if(strbuf_strcpy(&yaml->strbuf, yaml->string, yaml->length)) {
+                                status = panic("failed to strcpy strbuf object");
                             } else {
                                 yaml->token = yamllex(yaml->scanner);
+
                                 if(yaml->token == c_mapping_value) {
                                     yaml->token = yamllex(yaml->scanner);
-                                    if(yaml_map(yaml, scope))
+
+                                    if(yaml_next(yaml)) {
+                                        status = panic("failed to next yaml object");
+                                    } else if(yaml_map(yaml, scope)) {
                                         status = panic("failed to map entry yaml object");
+                                    }
                                 } else {
                                     status = panic("expected mapping value");
                                 }
@@ -173,7 +203,7 @@ int yaml_document(struct yaml * yaml) {
                             status = panic("expected mapping key");
                         }
                     } else {
-                        status = panic("invalid type - %d", yaml->stack->type);
+                        status = panic("invalid type - %d", yaml->root->type);
                     }
                 }
             } else if(yaml_block(yaml, scope)) {
@@ -188,55 +218,41 @@ int yaml_document(struct yaml * yaml) {
 int yaml_block(struct yaml * yaml, int scope) {
     int status = 0;
 
-    struct string * string;
-
     switch(yaml->token) {
         case ns_plain_one_line:
             if(strbuf_strcpy(&yaml->strbuf, yaml->string, yaml->length)) {
                 status = panic("failed to strcpy strbuf object");
             } else {
-                string = strbuf_string(&yaml->strbuf);
-                if(!string) {
-                    status = panic("failed to string strbuf object");
-                } else {
+                yaml->token = yamllex(yaml->scanner);
+
+                if(yaml->token == b_break) {
+                    yaml->token = yamllex(yaml->scanner);
+                    while(yaml->token == l_empty)
+                        yaml->token = yamllex(yaml->scanner);
+
+                    if(yaml_next(yaml))
+                        status = panic("failed to next yaml object");
+                } else if(yaml->token == c_mapping_value) {
                     yaml->token = yamllex(yaml->scanner);
 
-                    if(yaml->token == b_break) {
-                        if(yaml->callback(event_scalar, string, yaml->context)) {
-                            status = panic("failed to process scalar event");
-                        } else {
-                            strbuf_clear(&yaml->strbuf);
-
-                            yaml->token = yamllex(yaml->scanner);
-                            while(yaml->token == l_empty)
-                                yaml->token = yamllex(yaml->scanner);
-                        }
-                    } else if(yaml->token == c_mapping_value) {
-                        if(yaml_push(yaml, map_type, scope)) {
-                            status = panic("failed to push yaml object");
-                        } else {
-                            yaml->token = yamllex(yaml->scanner);
-
-                            if(yaml->callback(event_scalar, string, yaml->context)) {
-                                status = panic("failed to process scalar event");
-                            } else {
-                                strbuf_clear(&yaml->strbuf);
-
-                                if(yaml_map(yaml, scope))
-                                    status = panic("failed to map entry yaml object");
-                            }
-                        }
-                    } else {
-                        status = panic("expected newline or mapping value");
+                    if(yaml_start(yaml, map_type, scope)) {
+                        status = panic("failed to start yaml object");
+                    } else if(yaml_next(yaml)) {
+                        status = panic("failed to next yaml object");
+                    } else if(yaml_map(yaml, scope)) {
+                        status = panic("failed to map entry yaml object");
                     }
+                } else {
+                    status = panic("expected newline or mapping value");
                 }
             }
             break;
         case c_sequence_entry:
-            if(yaml_push(yaml, sequence_type, scope)) {
-                status = panic("failed ot push yaml object");
+            if(yaml_start(yaml, sequence_type, scope)) {
+                status = panic("failed ot start yaml object");
             } else {
                 yaml->token = yamllex(yaml->scanner);
+
                 if(yaml_sequence(yaml, scope))
                     status = panic("failed to sequence entry yaml object");
             }
@@ -324,11 +340,7 @@ int yaml_map(struct yaml * yaml, int scope) {
 
 int yaml_scalar(struct yaml * yaml, int scope, int is_literal) {
     int status = 0;
-
     int newline;
-    struct string * string;
-
-    yaml->scalar = 1;
 
     if(yaml->token == b_break) {
         yaml->token = yamllex(yaml->scanner);
@@ -343,7 +355,9 @@ int yaml_scalar(struct yaml * yaml, int scope, int is_literal) {
                     if(strbuf_putcn(&yaml->strbuf, ' ', yaml->space - scope)) {
                         status = panic("failed to putcn strbuf object");
                     } else {
+                        yaml->scalar = 1;
                         yaml->token = yamllex(yaml->scanner);
+                        yaml->scalar = 0;
 
                         if(yaml->token == nb_char) {
                             if(strbuf_strcpy(&yaml->strbuf, yaml->string, yaml->length)) {
@@ -381,20 +395,8 @@ int yaml_scalar(struct yaml * yaml, int scope, int is_literal) {
                     }
                 } while(yaml->token == s_indent && scope <= yaml->space && !status);
 
-                if(!status) {
-                    status = panic("failed to literal yaml object");
-                } else {
-                    string = strbuf_string(&yaml->strbuf);
-                    if(!string) {
-                        status = panic("failed to string strbuf object");
-                    } else {
-                        if(yaml->callback(event_scalar, string, yaml->context)) {
-                            status = panic("failed to process scalar event");
-                        } else {
-                            strbuf_clear(&yaml->strbuf);
-                        }
-                    }
-                }
+                if(!status && yaml_next(yaml))
+                    status = panic("failed to next yaml object");
             } else {
                 status = panic("invalid scope");
             }
@@ -404,8 +406,6 @@ int yaml_scalar(struct yaml * yaml, int scope, int is_literal) {
     } else {
         status = panic("expected newline");
     }
-
-    yaml->scalar = 0;
 
     return status;
 }

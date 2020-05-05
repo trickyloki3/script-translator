@@ -30,6 +30,7 @@ struct yaml_node {
 
 struct yaml {
     struct pool * pool;
+    struct yaml_node * root;
     struct strbuf strbuf;
     void * scanner;
     char * string;
@@ -37,7 +38,6 @@ struct yaml {
     size_t space;
     enum yaml_token token;
     int scalar;
-    struct yaml_node * stack;
     event_cb callback;
     void * context;
 };
