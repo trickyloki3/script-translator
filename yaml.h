@@ -18,8 +18,8 @@ enum yaml_token {
 };
 
 enum yaml_type {
-    sequence_type,
-    map_type
+    yaml_sequence,
+    yaml_map
 };
 
 struct yaml_node {

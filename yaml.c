@@ -97,11 +97,11 @@ int yaml_start(struct yaml * yaml, enum yaml_type type, int scope) {
             yaml->root = node;
 
             switch(type) {
-                case sequence_type:
+                case yaml_sequence:
                     if(yaml->callback(event_list_start, NULL, yaml->context))
                         status = panic("failed to process list start event");
                     break;
-                case map_type:
+                case yaml_map:
                     if(yaml->callback(event_map_start, NULL, yaml->context))
                         status = panic("failed to process map start event");
                     break;
@@ -134,11 +134,11 @@ int yaml_end(struct yaml * yaml, int scope) {
 
     while(yaml->root && yaml->root->scope > scope && !status) {
         switch(yaml->root->type) {
-            case sequence_type:
+            case yaml_sequence:
                 if(yaml->callback(event_list_end, NULL, yaml->context))
                     status = panic("failed to process list end event");
                 break;
-            case map_type:
+            case yaml_map:
                 if(yaml->callback(event_map_end, NULL, yaml->context))
                     status = panic("failed to process map end event");
                 break;
@@ -174,7 +174,7 @@ int yaml_document(struct yaml * yaml) {
             if(yaml->root) {
                 if(yaml->root->scope != scope) {
                     status = panic("invalid scope - %d", scope);
-                } else if(yaml->root->type == sequence_type) {
+                } else if(yaml->root->type == yaml_sequence) {
                     if(yaml->token == c_sequence_entry) {
                         yaml->token = yamllex(yaml->scanner);
 
@@ -183,7 +183,7 @@ int yaml_document(struct yaml * yaml) {
                     } else {
                         status = panic("expected sequence entry");
                     }
-                } else if(yaml->root->type == map_type) {
+                } else if(yaml->root->type == yaml_map) {
                     if(yaml->token == ns_plain_one_line) {
                         if(strbuf_strcpy(&yaml->strbuf, yaml->string, yaml->length)) {
                             status = panic("failed to strcpy strbuf object");
@@ -237,7 +237,7 @@ int yaml_block(struct yaml * yaml, int scope) {
                 } else if(yaml->token == c_mapping_value) {
                     yaml->token = yamllex(yaml->scanner);
 
-                    if(yaml_start(yaml, map_type, scope)) {
+                    if(yaml_start(yaml, yaml_map, scope)) {
                         status = panic("failed to start yaml object");
                     } else if(yaml_next(yaml)) {
                         status = panic("failed to next yaml object");
@@ -250,7 +250,7 @@ int yaml_block(struct yaml * yaml, int scope) {
             }
             break;
         case c_sequence_entry:
-            if(yaml_start(yaml, sequence_type, scope)) {
+            if(yaml_start(yaml, yaml_sequence, scope)) {
                 status = panic("failed ot start yaml object");
             } else {
                 yaml->token = yamllex(yaml->scanner);
