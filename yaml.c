@@ -10,6 +10,7 @@ int yaml_end(struct yaml *, int);
 
 int yaml_document(struct yaml *);
 int yaml_block(struct yaml *, int);
+int yaml_block_scalar(struct yaml *, int);
 int yaml_sequence(struct yaml *, int);
 int yaml_map(struct yaml *, int);
 int yaml_scalar(struct yaml *, int, yaml_cb);
@@ -283,6 +284,52 @@ int yaml_block(struct yaml * yaml, int scope) {
     return status;
 }
 
+int yaml_block_scalar(struct yaml * yaml, int scope) {
+    int status = 0;
+
+    switch(yaml->token) {
+        case ns_plain_one_line:
+            if(strbuf_strcpy(&yaml->strbuf, yaml->string, yaml->length)) {
+                status = panic("failed to strcpy strbuf object");
+            } else {
+                yaml->token = yamllex(yaml->scanner);
+
+                if(yaml->token == b_break) {
+                    yaml->token = yamllex(yaml->scanner);
+                    while(yaml->token == l_empty)
+                        yaml->token = yamllex(yaml->scanner);
+
+                    if(yaml_next(yaml))
+                        status = panic("failed to next yaml object");
+                } else {
+                    status = panic("expected newline");
+                }
+            }
+            break;
+        case c_literal:
+            yaml->token = yamllex(yaml->scanner);
+            if(yaml_scalar(yaml, scope, yaml_literal)) {
+                status = panic("failed to scalar yaml object");
+            } else if(yaml_next(yaml)) {
+                status = panic("failed to next yaml object");
+            }
+            break;
+        case c_folded:
+            yaml->token = yamllex(yaml->scanner);
+            if(yaml_scalar(yaml, scope, yaml_folded)) {
+                status = panic("failed to scalar yaml object");
+            } else if(yaml_next(yaml)) {
+                status = panic("failed to next yaml object");
+            }
+            break;
+        default:
+            status = panic("expected scalar");
+            break;
+    }
+
+    return status;
+}
+
 int yaml_sequence(struct yaml * yaml, int scope) {
     int status = 0;
 
@@ -317,12 +364,10 @@ int yaml_map(struct yaml * yaml, int scope) {
     int status = 0;
 
     if(yaml->token == s_separate_in_line) {
-        scope += yaml->space + 1;
+        /*scope += yaml->space + 1;*/
         yaml->token = yamllex(yaml->scanner);
 
-        if(yaml->token == c_sequence_entry || yaml->token == c_mapping_value) {
-            status = panic("map does not support compact notation");
-        } else if(yaml_block(yaml, scope)) {
+        if(yaml_block_scalar(yaml, scope)) {
             status = panic("failed to block yaml object");
         }
     } else if(yaml->token == b_break) {
