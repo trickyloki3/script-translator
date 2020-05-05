@@ -10,7 +10,7 @@ int yaml_end(struct yaml *, int);
 
 int yaml_document(struct yaml *);
 int yaml_block(struct yaml *, int);
-int yaml_block_scalar(struct yaml *, int);
+int yaml_plain(struct yaml *, int);
 int yaml_container(struct yaml *, int, yaml_cb);
 int yaml_scalar(struct yaml *, yaml_cb);
 int yaml_literal(struct yaml *, int);
@@ -195,7 +195,7 @@ int yaml_document(struct yaml * yaml) {
 
                                 if(yaml_next(yaml)) {
                                     status = panic("failed to next yaml object");
-                                } else if(yaml_container(yaml, scope, yaml_block_scalar)) {
+                                } else if(yaml_container(yaml, scope, yaml_plain)) {
                                     status = panic("failed to container yaml object");
                                 }
                             } else {
@@ -241,7 +241,7 @@ int yaml_block(struct yaml * yaml, int scope) {
                         status = panic("failed to start yaml object");
                     } else if(yaml_next(yaml)) {
                         status = panic("failed to next yaml object");
-                    } else if(yaml_container(yaml, scope, yaml_block_scalar)) {
+                    } else if(yaml_container(yaml, scope, yaml_plain)) {
                         status = panic("failed to container yaml object");
                     }
                 } else {
@@ -283,7 +283,7 @@ int yaml_block(struct yaml * yaml, int scope) {
     return status;
 }
 
-int yaml_block_scalar(struct yaml * yaml, int scope) {
+int yaml_plain(struct yaml * yaml, int scope) {
     int status = 0;
 
     switch(yaml->token) {
@@ -460,7 +460,7 @@ int yaml_folded(struct yaml * yaml, int scope) {
                         }
 
                         if(newline == 1) {
-                            if(strbuf_putc(&yaml->strbuf, space ? '\n' : ' '))
+                            if(strbuf_putc(&yaml->strbuf, space || yaml->space > scope ? '\n' : ' '))
                                 status = panic("failed to putcn strbuf object");
                         } else {
                             if(strbuf_putcn(&yaml->strbuf, '\n', newline - 1))
