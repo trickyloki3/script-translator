@@ -417,11 +417,12 @@ int yaml_scalar(struct yaml * yaml, yaml_cb callback) {
 
 int yaml_literal(struct yaml * yaml) {
     int status = 0;
+    int newline = 0;
 
-    int newline;
-
-    while(yaml->token == s_indent && yaml->scope <= yaml->space && !status) {
-        if(strbuf_putcn(&yaml->strbuf, ' ', yaml->space - yaml->scope)) {
+    while(!status && yaml->token == s_indent && yaml->scope <= yaml->space) {
+        if(strbuf_putcn(&yaml->strbuf, '\n', newline)) {
+            status = panic("failed to putcn strbuf object");
+        } else if(strbuf_putcn(&yaml->strbuf, ' ', yaml->space - yaml->scope)) {
             status = panic("failed to putcn strbuf object");
         } else {
             yaml->token = yamllex(yaml->scanner);
@@ -439,9 +440,6 @@ int yaml_literal(struct yaml * yaml) {
                             newline++;
                             yaml->token = yamllex(yaml->scanner);
                         }
-
-                        if(strbuf_putcn(&yaml->strbuf, '\n', newline))
-                            status = panic("failed to putcn strbuf object");
                     } else {
                         status = panic("expected newline");
                     }
@@ -451,6 +449,9 @@ int yaml_literal(struct yaml * yaml) {
             }
         }
     }
+
+    if(!status && strbuf_putc(&yaml->strbuf, '\n'))
+        status = panic("failed to putcn strbuf object");
 
     return status;
 }
@@ -484,7 +485,7 @@ int yaml_folded(struct yaml * yaml) {
                         }
 
                         if(newline == 1) {
-                            if(strbuf_putc(&yaml->strbuf, space || yaml->space > yaml->scope ? '\n' : ' '))
+                            if(strbuf_putc(&yaml->strbuf, space || yaml->scope < yaml->space ? '\n' : ' '))
                                 status = panic("failed to putcn strbuf object");
                         } else {
                             if(strbuf_putcn(&yaml->strbuf, '\n', newline - 1))
