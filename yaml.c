@@ -458,45 +458,46 @@ int yaml_literal(struct yaml * yaml) {
 
 int yaml_folded(struct yaml * yaml) {
     int status = 0;
+    int space = 0;
+    int newline = 0;
 
-    int space;
-    int newline;
+    while(!status && yaml->token == s_indent && yaml->scope <= yaml->space) {
+        if(newline == 1) {
+            if(strbuf_putc(&yaml->strbuf, space || yaml->scope < yaml->space ? '\n' : ' '))
+                status = panic("failed to putcn strbuf object");
+        } else if(newline) {
+            if(strbuf_putcn(&yaml->strbuf, '\n', newline - 1))
+                status = panic("failed to putcn strbuf object");
+        }
 
-    while(yaml->token == s_indent && yaml->scope <= yaml->space && !status) {
-        space = yaml->space - yaml->scope;
+        if(!status) {
+            space = yaml->space - yaml->scope;
 
-        if(strbuf_putcn(&yaml->strbuf, ' ', space)) {
-            status = panic("failed to putcn strbuf object");
-        } else {
-            yaml->token = yamllex(yaml->scanner);
-
-            if(yaml->token == nb_char) {
-                if(strbuf_strcpy(&yaml->strbuf, yaml->string, yaml->length)) {
-                    status = panic("failed to strcpy strbuf object");
-                } else {
-                    yaml->token = yamllex(yaml->scanner);
-
-                    if(yaml->token == b_break) {
-                        newline = 1;
-                        yaml->token = yamllex(yaml->scanner);
-                        while(yaml->token == l_empty) {
-                            newline++;
-                            yaml->token = yamllex(yaml->scanner);
-                        }
-
-                        if(newline == 1) {
-                            if(strbuf_putc(&yaml->strbuf, space || yaml->scope < yaml->space ? '\n' : ' '))
-                                status = panic("failed to putcn strbuf object");
-                        } else {
-                            if(strbuf_putcn(&yaml->strbuf, '\n', newline - 1))
-                                status = panic("failed to putcn strbuf object");
-                        }
-                    } else {
-                        status = panic("expected newline");
-                    }
-                }
+            if(strbuf_putcn(&yaml->strbuf, ' ', space)) {
+                status = panic("failed to putcn strbuf object");
             } else {
-                status = panic("expected scalar");
+                yaml->token = yamllex(yaml->scanner);
+
+                if(yaml->token == nb_char) {
+                    if(strbuf_strcpy(&yaml->strbuf, yaml->string, yaml->length)) {
+                        status = panic("failed to strcpy strbuf object");
+                    } else {
+                        yaml->token = yamllex(yaml->scanner);
+
+                        if(yaml->token == b_break) {
+                            newline = 1;
+                            yaml->token = yamllex(yaml->scanner);
+                            while(yaml->token == l_empty) {
+                                newline++;
+                                yaml->token = yamllex(yaml->scanner);
+                            }
+                        } else {
+                            status = panic("expected newline");
+                        }
+                    }
+                } else {
+                    status = panic("expected scalar");
+                }
             }
         }
     }
