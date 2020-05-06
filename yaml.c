@@ -420,7 +420,7 @@ int yaml_literal(struct yaml * yaml) {
 
     int newline;
 
-    do {
+    while(yaml->token == s_indent && yaml->scope <= yaml->space && !status) {
         if(strbuf_putcn(&yaml->strbuf, ' ', yaml->space - yaml->scope)) {
             status = panic("failed to putcn strbuf object");
         } else {
@@ -450,7 +450,7 @@ int yaml_literal(struct yaml * yaml) {
                 status = panic("expected scalar");
             }
         }
-    } while(yaml->token == s_indent && yaml->scope <= yaml->space && !status);
+    }
 
     return status;
 }
@@ -461,7 +461,7 @@ int yaml_folded(struct yaml * yaml) {
     int space;
     int newline;
 
-    do {
+    while(yaml->token == s_indent && yaml->scope <= yaml->space && !status) {
         space = yaml->space - yaml->scope;
 
         if(strbuf_putcn(&yaml->strbuf, ' ', space)) {
@@ -498,7 +498,7 @@ int yaml_folded(struct yaml * yaml) {
                 status = panic("expected scalar");
             }
         }
-    } while(yaml->token == s_indent && yaml->scope <= yaml->space && !status);
+    }
 
     return status;
 }
