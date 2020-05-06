@@ -20,7 +20,7 @@ struct item {
 
 int item_create(struct item *, size_t, struct heap *);
 void item_destroy(struct item *);
-int item_parse(enum parser_event, int, struct string *, void *);
+int item_parse(enum parser_type, int, struct string *, void *);
 int item_script_parse(struct item *, char *);
 
 struct skill_node {
@@ -38,7 +38,7 @@ struct skill {
 
 int skill_create(struct skill *, size_t, struct heap *);
 void skill_destroy(struct skill *);
-int skill_parse(enum parser_event, int, struct string *, void *);
+int skill_parse(enum parser_type, int, struct string *, void *);
 
 struct mob_node {
     long id;
@@ -55,7 +55,7 @@ struct mob {
 
 int mob_create(struct mob *, size_t, struct heap *);
 void mob_destroy(struct mob *);
-int mob_parse(enum parser_event, int, struct string *, void *);
+int mob_parse(enum parser_type, int, struct string *, void *);
 
 struct mercenary_node {
     long id;
@@ -70,7 +70,7 @@ struct mercenary {
 
 int mercenary_create(struct mercenary *, size_t, struct heap *);
 void mercenary_destroy(struct mercenary *);
-int mercenary_parse(enum parser_event, int, struct string *, void *);
+int mercenary_parse(enum parser_type, int, struct string *, void *);
 
 struct constant_node {
     char * identifier;
@@ -88,7 +88,7 @@ struct constant {
 
 int constant_create(struct constant *, size_t, struct heap *);
 void constant_destroy(struct constant *);
-int constant_parse(enum parser_event, int, struct string *, void *);
+int constant_parse(enum parser_type, int, struct string *, void *);
 
 enum spec_flag {
     spec_sign = 1 << 0,
@@ -138,7 +138,7 @@ int argument_create(struct argument *, size_t, struct heap *);
 void argument_destroy(struct argument *);
 int argument_print(struct argument *, struct string *, struct print_node **);
 int argument_map(struct argument *, struct map **);
-int argument_parse(enum parser_event, int, struct string *, void *);
+int argument_parse(enum parser_type, int, struct string *, void *);
 
 struct table {
     struct parser parser;

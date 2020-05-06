@@ -26,7 +26,7 @@ TEXTDATA    [\x9\x20-\x21\x23-\x2B\x2D-\x7A\x7C\x7E]
 
 {NEWLINE} {
     if(yyextra->index) {
-        if(yyextra->callback(end, 0, NULL, yyextra->context)) {
+        if(yyextra->callback(parser_end, 0, NULL, yyextra->context)) {
             return panic("failed to process list end event");
         } else {
             yyextra->index = 0;
@@ -46,14 +46,14 @@ TEXTDATA    [\x9\x20-\x21\x23-\x2B\x2D-\x7A\x7C\x7E]
     struct string string = { yyleng, yytext };
 
     if(!yyextra->index) {
-        if(yyextra->callback(start, 0, NULL, yyextra->context)) {
+        if(yyextra->callback(parser_start, 0, NULL, yyextra->context)) {
             return panic("failed to process list start event");
         } else {
             yyextra->index = 1;
         }
     }
 
-    if(yyextra->callback(next, yyextra->index, &string, yyextra->context))
+    if(yyextra->callback(parser_next, yyextra->index, &string, yyextra->context))
         return panic("failed to process scalar event");
 }
 
@@ -61,14 +61,14 @@ TEXTDATA    [\x9\x20-\x21\x23-\x2B\x2D-\x7A\x7C\x7E]
     struct string string = { yyleng - 2, yytext + 1 };
 
     if(!yyextra->index) {
-        if(yyextra->callback(start, 0, NULL, yyextra->context)) {
+        if(yyextra->callback(parser_start, 0, NULL, yyextra->context)) {
             return panic("failed to process list start event");
         } else {
             yyextra->index = 1;
         }
     }
 
-    if(yyextra->callback(next, yyextra->index, &string, yyextra->context))
+    if(yyextra->callback(parser_next, yyextra->index, &string, yyextra->context))
         return panic("failed to process scalar event");
 }
 

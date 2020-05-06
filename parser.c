@@ -391,7 +391,7 @@ int data_state_parse(enum event_type type, struct string * value, void * context
 
     if(schema->root->state == list) {
         if(type == event_list_end) {
-            if(state->callback(end, schema->root->mark, NULL, state->context)) {
+            if(state->callback(parser_end, schema->root->mark, NULL, state->context)) {
                 status = panic("failed to process end event");
             } else {
                 schema->root = schema->root->next;
@@ -419,7 +419,7 @@ int data_state_parse(enum event_type type, struct string * value, void * context
                 state->data = node;
             }
         } else if(type == event_map_end) {
-            if(state->callback(end, schema->root->mark, NULL, state->context)) {
+            if(state->callback(parser_end, schema->root->mark, NULL, state->context)) {
                 status = panic("failed to process end event");
             } else {
                 schema->root = schema->root->next;
@@ -439,7 +439,7 @@ int data_state_node(struct data_state * state, struct schema_node * node, enum e
 
     if(type == event_list_start) {
         if(node->type & list) {
-            if(state->callback(start, node->mark, NULL, state->context)) {
+            if(state->callback(parser_start, node->mark, NULL, state->context)) {
                 status = panic("failed to process start event");
             } else {
                 schema_push(state->schema, node, list);
@@ -449,7 +449,7 @@ int data_state_node(struct data_state * state, struct schema_node * node, enum e
         }
     } else if(type == event_map_start) {
         if(node->type & map) {
-            if(state->callback(start, node->mark, NULL, state->context)) {
+            if(state->callback(parser_start, node->mark, NULL, state->context)) {
                 status = panic("failed to process start event");
             } else {
                 schema_push(state->schema, node, map);
@@ -459,7 +459,7 @@ int data_state_node(struct data_state * state, struct schema_node * node, enum e
         }
     } else if(type == event_scalar) {
         if(node->type & string) {
-            if(state->callback(next, node->mark, value, state->context))
+            if(state->callback(parser_next, node->mark, value, state->context))
                 status = panic("failed to process next event");
         } else {
             status = panic("unexpected string");

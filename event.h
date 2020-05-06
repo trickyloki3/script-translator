@@ -13,12 +13,12 @@ enum event_type {
 
 typedef int (* event_cb) (enum event_type, struct string *, void *);
 
-enum parser_event {
-    start,
-    next,
-    end
+enum parser_type {
+    parser_start,
+    parser_next,
+    parser_end
 };
 
-typedef int (* parser_cb) (enum parser_event, int, struct string *, void *);
+typedef int (* parser_cb) (enum parser_type, int, struct string *, void *);
 
 #endif
