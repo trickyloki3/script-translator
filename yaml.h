@@ -37,6 +37,7 @@ struct yaml {
     size_t length;
     size_t space;
     enum yaml_token token;
+    int scope;
     int scalar;
     event_cb callback;
     void * context;
