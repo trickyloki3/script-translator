@@ -518,13 +518,20 @@ struct script_range * script_range(struct script * script, enum script_type type
 struct script_range * script_range_argument(struct script * script, struct argument_node * argument) {
     int status = 0;
     struct script_range * range;
+    struct range_node * node;
 
     range = script_range(script, identifier, "%s", argument->identifier);
     if(!range) {
         status = panic("failed to range script object");
     } else if(argument->range) {
-        if(range_add_list(range->range, argument->range))
-            status = panic("failed to add list range object");
+        node = argument->range;
+        while(node && !status) {
+            if(range_add(range->range, node->min, node->max)) {
+                status = panic("failed to add range object");
+            } else {
+                node = node->next;
+            }
+        }
     }
 
     return status ? NULL : range;
@@ -533,14 +540,21 @@ struct script_range * script_range_argument(struct script * script, struct argum
 struct script_range * script_range_constant(struct script * script, struct constant_node * constant) {
     int status = 0;
     struct script_range * range;
+    struct range_node * node;
 
     range = script_range(script, integer, "%s", constant->tag ? constant->tag : constant->identifier);
     if(!range) {
         status = panic("failed to range script object");
     } else {
         if(constant->range) {
-            if(range_add_list(range->range, constant->range))
-                status = panic("failed to add list range object");
+            node = constant->range;
+            while(node && !status) {
+                if(range_add(range->range, node->min, node->max)) {
+                    status = panic("failed to add range object");
+                } else {
+                    node = node->next;
+                }
+            }
         } else {
             if(range_add(range->range, constant->value, constant->value))
                 status = panic("failed to add range object");

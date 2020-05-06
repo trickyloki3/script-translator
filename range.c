@@ -110,20 +110,6 @@ int range_add(struct range * range, long min, long max) {
     return status;
 }
 
-int range_add_list(struct range * range, struct range_node * node) {
-    int status = 0;
-
-    while(node && !status) {
-        if(range_add(range, node->min, node->max)) {
-            status = panic("failed to add range object");
-        } else {
-            node = node->next;
-        }
-    }
-
-    return status;
-}
-
 int range_remove(struct range * range, long min, long max) {
     int status = 0;
     struct range_node * prev;
