@@ -6,9 +6,9 @@
 #include "yaml.h"
 
 enum schema_type {
-    list = 0x1,
-    map = 0x2,
-    string = 0x4
+    schema_list = 0x1,
+    schema_map = 0x2,
+    schema_string = 0x4
 };
 
 struct schema_node {
