@@ -267,32 +267,36 @@ int schema_reload(struct schema * schema, struct schema_markup * array) {
 int schema_update(struct schema * schema, struct schema_markup * array) {
     int status = 0;
     struct schema_node * node;
+    struct schema_node * root;
 
-    schema->root->state = 0;
+    root = schema->root;
+    if(!root) {
+        status = panic("invalid node");
+    } else {
+        root->state = 0;
 
-    while(array->level > 0 && !status) {
-        while(schema->root->state >= array->level)
-            schema->root = schema->root->next;
+        while(array->level > 0 && !status) {
+            while(root->state >= array->level)
+                root = root->next;
 
-        node = schema_get(schema->root, array->key);
-        if(!node) {
-            status = panic("failed to get schema object");
-        } else {
-            if(node->type & array->type) {
+            node = schema_get(root, array->key);
+            if(!node) {
+                status = panic("failed to get schema object");
+            } else if(node->type & array->type == 0) {
+                status = panic("expected %d", array->type);
+            } else {
                 node->mark = array->mark;
 
-                if(array->type & (schema_list | schema_map))
-                    schema_push(schema, node, array->level);
-            } else {
-                status = panic("expected %d", array->type);
+                if(array->type & (schema_list | schema_map)) {
+                    node->state = array->level;
+                    node->next = root;
+                    root = node;
+                }
+
+                array++;
             }
         }
-
-        array++;
     }
-
-    while(schema->root->next)
-        schema->root = schema->root->next;
 
     return status;
 }
