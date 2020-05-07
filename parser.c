@@ -543,10 +543,14 @@ int parser_data_parse(struct parser * parser, struct schema * schema, const char
     state.callback = callback;
     state.context = context;
 
-    state.root->state = schema_list;
+    if(!state.root) {
+        status = panic("invalid node");
+    } else {
+        state.root->state = schema_list;
 
-    if(parser_parse(parser, path, data_state_parse, &state))
-        status = panic("failed to parse parser object");
+        if(parser_parse(parser, path, data_state_parse, &state))
+            status = panic("failed to parse parser object");
+    }
 
     return status;
 }
