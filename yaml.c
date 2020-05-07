@@ -9,8 +9,7 @@ int yaml_next(struct yaml *);
 int yaml_end(struct yaml *, enum yaml_type);
 
 int yaml_push(struct yaml *, enum yaml_type);
-int yaml_pop(struct yaml *);
-int yaml_clear(struct yaml *);
+int yaml_pop(struct yaml *, int);
 
 int yaml_document(struct yaml *);
 int yaml_block(struct yaml *);
@@ -69,8 +68,8 @@ int yaml_parse(struct yaml * yaml, const char * path, event_cb callback, void * 
 
         if(yaml_document(yaml)) {
             status = panic("failed to document yaml object");
-        } else if(yaml_clear(yaml)) {
-            status = panic("failed to clear yaml object");
+        } else if(yaml_pop(yaml, -1)) {
+            status = panic("failed to pop yaml object");
         }
 
         while(yaml->root) {
@@ -157,28 +156,11 @@ int yaml_push(struct yaml * yaml, enum yaml_type type) {
     return status;
 }
 
-int yaml_pop(struct yaml * yaml) {
+int yaml_pop(struct yaml * yaml, int scope) {
     int status = 0;
     struct yaml_node * node;
 
-    while(yaml->root && yaml->root->scope > yaml->scope && !status) {
-        if(yaml_end(yaml, yaml->root->type)) {
-            status = panic("failed to end yaml object");
-        } else {
-            node = yaml->root;
-            yaml->root = yaml->root->next;
-            pool_put(yaml->pool, node);
-        }
-    }
-
-    return status;
-}
-
-int yaml_clear(struct yaml * yaml) {
-    int status = 0;
-    struct yaml_node * node;
-
-    while(yaml->root && !status) {
+    while(yaml->root && yaml->root->scope > scope && !status) {
         if(yaml_end(yaml, yaml->root->type)) {
             status = panic("failed to end yaml object");
         } else {
@@ -206,7 +188,7 @@ int yaml_document(struct yaml * yaml) {
             yaml->token = yamllex(yaml->scanner);
         }
 
-        if(yaml_pop(yaml)) {
+        if(yaml_pop(yaml, yaml->scope)) {
             status = panic("failed to pop yaml object");
         } else {
             if(yaml->root) {
