@@ -4,9 +4,9 @@
 
 typedef int (* yaml_cb)(struct yaml *);
 
-int yaml_start(struct yaml *);
+int yaml_start(struct yaml *, enum yaml_type);
 int yaml_next(struct yaml *);
-int yaml_end(struct yaml *);
+int yaml_end(struct yaml *, enum yaml_type);
 
 int yaml_push(struct yaml *, enum yaml_type);
 int yaml_pop(struct yaml *);
@@ -85,18 +85,17 @@ int yaml_parse(struct yaml * yaml, const char * path, event_cb callback, void * 
     return status;
 }
 
-int yaml_start(struct yaml * yaml) {
+int yaml_start(struct yaml * yaml, enum yaml_type type) {
     int status = 0;
 
-    switch(yaml->root->type) {
-        case yaml_sequence:
-            if(yaml->callback(event_list_start, NULL, yaml->context))
-                status = panic("failed to process list start event");
-            break;
-        case yaml_map:
-            if(yaml->callback(event_map_start, NULL, yaml->context))
-                status = panic("failed to process map start event");
-            break;
+    if(type == yaml_sequence) {
+        if(yaml->callback(event_list_start, NULL, yaml->context))
+            status = panic("failed to process list start event");
+    } else if(type == yaml_map) {
+        if(yaml->callback(event_map_start, NULL, yaml->context))
+            status = panic("failed to process map start event");
+    } else {
+        status = panic("invalid type - %d", type);
     }
 
     return status;
@@ -118,18 +117,17 @@ int yaml_next(struct yaml * yaml) {
     return status;
 }
 
-int yaml_end(struct yaml * yaml) {
+int yaml_end(struct yaml * yaml, enum yaml_type type) {
     int status = 0;
 
-    switch(yaml->root->type) {
-        case yaml_sequence:
-            if(yaml->callback(event_list_end, NULL, yaml->context))
-                status = panic("failed to process list end event");
-            break;
-        case yaml_map:
-            if(yaml->callback(event_map_end, NULL, yaml->context))
-                status = panic("failed to process map end event");
-            break;
+    if(type == yaml_sequence) {
+        if(yaml->callback(event_list_end, NULL, yaml->context))
+            status = panic("failed to process list end event");
+    } else if(type == yaml_map) {
+        if(yaml->callback(event_map_end, NULL, yaml->context))
+            status = panic("failed to process map end event");
+    } else {
+        status = panic("invalid type - %d", type);
     }
 
     return status;
@@ -151,7 +149,7 @@ int yaml_push(struct yaml * yaml, enum yaml_type type) {
             node->next = yaml->root;
             yaml->root = node;
 
-            if(yaml_start(yaml))
+            if(yaml_start(yaml, yaml->root->type))
                 status = panic("failed to start yaml object");
         }
     }
@@ -164,7 +162,7 @@ int yaml_pop(struct yaml * yaml) {
     struct yaml_node * node;
 
     while(yaml->root && yaml->root->scope > yaml->scope && !status) {
-        if(yaml_end(yaml)) {
+        if(yaml_end(yaml, yaml->root->type)) {
             status = panic("failed to end yaml object");
         } else {
             node = yaml->root;
@@ -181,7 +179,7 @@ int yaml_clear(struct yaml * yaml) {
     struct yaml_node * node;
 
     while(yaml->root && !status) {
-        if(yaml_end(yaml)) {
+        if(yaml_end(yaml, yaml->root->type)) {
             status = panic("failed to end yaml object");
         } else {
             node = yaml->root;
