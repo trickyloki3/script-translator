@@ -352,9 +352,9 @@ int schema_state_parse(enum event_type type, struct string * string, void * cont
             if(strbuf_strcpy(state->strbuf, string->string, string->length)) {
                 status = panic("failed to strcpy strbuf object");
             } else {
-                state->key = strbuf_char(state->strbuf);
+                state->key = strbuf_array(state->strbuf);
                 if(!state->key)
-                    status = panic("failed to char strbuf object");
+                    status = panic("failed to array strbuf object");
             }
         } else if(type == event_map_end) {
             state->root = state->root->next;

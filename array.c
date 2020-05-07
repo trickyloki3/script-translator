@@ -113,7 +113,7 @@ struct string * strbuf_string(struct strbuf * strbuf) {
     return status ? NULL : string;
 }
 
-char * strbuf_char(struct strbuf * strbuf) {
+char * strbuf_array(struct strbuf * strbuf) {
     int status = 0;
     char * string;
 

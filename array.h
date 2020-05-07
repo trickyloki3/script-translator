@@ -24,6 +24,6 @@ int strbuf_strcpy(struct strbuf *, char *, size_t);
 int strbuf_printf(struct strbuf *, char *, ...);
 int strbuf_vprintf(struct strbuf *, char *, va_list);
 struct string * strbuf_string(struct strbuf *);
-char * strbuf_char(struct strbuf *);
+char * strbuf_array(struct strbuf *);
 
 #endif
