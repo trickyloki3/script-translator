@@ -33,7 +33,7 @@ void schema_print(struct schema *);
 
 void schema_push(struct schema *, struct schema_node *, int);
 struct schema_node * schema_add(struct schema *, enum schema_type, int, char *);
-struct schema_node * schema_get(struct schema *, char *);
+struct schema_node * schema_get(struct schema_node *, char *);
 
 struct schema_markup {
     int level;

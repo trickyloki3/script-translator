@@ -14,7 +14,7 @@ int schema_state_parse(enum event_type, struct string *, void *);
 int schema_state_node(struct schema *, enum event_type, char *);
 
 struct data_state {
-    struct schema * schema;
+    struct schema_node * root;
     struct schema_node * data;
     parser_cb callback;
     void * context;
@@ -206,21 +206,21 @@ struct schema_node * schema_add(struct schema * schema, enum schema_type type, i
     return status ? NULL : node;
 }
 
-struct schema_node * schema_get(struct schema * schema, char * key) {
+struct schema_node * schema_get(struct schema_node * root, char * key) {
     int status = 0;
     struct schema_node * node;
 
     if(key) {
-        if(schema->root->type & schema_map) {
-            node = map_search(schema->root->map, key);
+        if(root->type & schema_map) {
+            node = map_search(root->map, key);
             if(!node)
                 status = panic("invalid key - %s", key);
         } else {
             status = panic("expected map");
         }
     } else {
-        if(schema->root->type & schema_list) {
-            node = schema->root->list;
+        if(root->type & schema_list) {
+            node = root->list;
             if(!node)
                 status = panic("invalid node");
         } else {
@@ -274,7 +274,7 @@ int schema_update(struct schema * schema, struct schema_markup * array) {
         while(schema->root->state >= array->level)
             schema->root = schema->root->next;
 
-        node = schema_get(schema, array->key);
+        node = schema_get(schema->root, array->key);
         if(!node) {
             status = panic("failed to get schema object");
         } else {
@@ -383,28 +383,26 @@ int data_state_parse(enum event_type type, struct string * string, void * contex
     int status = 0;
 
     struct data_state * state;
-    struct schema * schema;
     struct schema_node * node;
 
     state = context;
-    schema = state->schema;
 
-    if(schema->root->state == schema_list) {
+    if(state->root->state == schema_list) {
         if(type == event_list_end) {
-            if(state->callback(parser_end, schema->root->mark, NULL, state->context)) {
+            if(state->callback(parser_end, state->root->mark, NULL, state->context)) {
                 status = panic("failed to process end event");
             } else {
-                schema->root = schema->root->next;
+                state->root = state->root->next;
             }
         } else {
-            node = schema_get(state->schema, NULL);
+            node = schema_get(state->root, NULL);
             if(!node) {
                 status = panic("failed to get schema object");
             } else if(data_state_node(state, node, type, string)) {
                 status = panic("failed to node parser state object");
             }
         }
-    } else if(schema->root->state == schema_map) {
+    } else if(state->root->state == schema_map) {
         if(state->data) {
             if(data_state_node(state, state->data, type, string)) {
                 status = panic("failed to node parser state object");
@@ -412,23 +410,23 @@ int data_state_parse(enum event_type type, struct string * string, void * contex
                 state->data = NULL;
             }
         } else if(type == event_scalar) {
-            node = schema_get(state->schema, string->string);
+            node = schema_get(state->root, string->string);
             if(!node) {
                 status = panic("failed to get schema object");
             } else {
                 state->data = node;
             }
         } else if(type == event_map_end) {
-            if(state->callback(parser_end, schema->root->mark, NULL, state->context)) {
+            if(state->callback(parser_end, state->root->mark, NULL, state->context)) {
                 status = panic("failed to process end event");
             } else {
-                schema->root = schema->root->next;
+                state->root = state->root->next;
             }
         } else {
             status = panic("invalid type - %d", type);
         }
     } else {
-        status = panic("invalid node state - %d", schema->root->state);
+        status = panic("invalid node state - %d", state->root->state);
     }
 
     return status;
@@ -442,7 +440,9 @@ int data_state_node(struct data_state * state, struct schema_node * node, enum e
             if(state->callback(parser_start, node->mark, NULL, state->context)) {
                 status = panic("failed to process start event");
             } else {
-                schema_push(state->schema, node, schema_list);
+                node->state = schema_list;
+                node->next = state->root;
+                state->root = node;
             }
         } else {
             status = panic("unexpected list");
@@ -452,7 +452,9 @@ int data_state_node(struct data_state * state, struct schema_node * node, enum e
             if(state->callback(parser_start, node->mark, NULL, state->context)) {
                 status = panic("failed to process start event");
             } else {
-                schema_push(state->schema, node, schema_map);
+                node->state = schema_map;
+                node->next = state->root;
+                state->root = node;
             }
         } else {
             status = panic("unexpected map");
@@ -532,18 +534,15 @@ int parser_data_parse(struct parser * parser, struct schema * schema, const char
 
     struct data_state state;
 
-    state.schema = schema;
+    state.root = schema->root;
     state.data = NULL;
     state.callback = callback;
     state.context = context;
 
-    schema->root->state = schema_list;
+    state.root->state = schema_list;
 
     if(parser_parse(parser, path, data_state_parse, &state))
         status = panic("failed to parse parser object");
-
-    while(schema->root->next)
-        schema->root = schema->root->next;
 
     return status;
 }
