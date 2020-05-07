@@ -19,6 +19,5 @@ void stack_clear(struct stack *);
 int stack_push(struct stack *, void *);
 void * stack_pop(struct stack *);
 void * stack_top(struct stack *);
-size_t stack_size(struct stack *);
 
 #endif
