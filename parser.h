@@ -28,12 +28,7 @@ struct schema {
 
 int schema_create(struct schema *, size_t);
 void schema_destroy(struct schema *);
-void schema_clear(struct schema *);
 void schema_print(struct schema *);
-
-void schema_push(struct schema *, struct schema_node *, int);
-struct schema_node * schema_add(struct schema *, enum schema_type, int, char *);
-struct schema_node * schema_get(struct schema_node *, char *);
 
 struct schema_markup {
     int level;
