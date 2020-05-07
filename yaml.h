@@ -5,7 +5,8 @@
 #include "heap.h"
 
 enum yaml_token {
-    c_sequence_entry = 1,
+    end_of_file = 0,
+    c_sequence_entry,
     c_mapping_value,
     c_literal,
     c_folded,

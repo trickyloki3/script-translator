@@ -240,49 +240,42 @@ int yaml_document(struct yaml * yaml) {
 int yaml_block(struct yaml * yaml) {
     int status = 0;
 
-    switch(yaml->token) {
-        case ns_plain_one_line:
-            if(strbuf_strcpy(&yaml->strbuf, yaml->string, yaml->length)) {
-                status = panic("failed to strcpy strbuf object");
-            } else {
+    if(yaml->token == ns_plain_one_line) {
+        if(strbuf_strcpy(&yaml->strbuf, yaml->string, yaml->length)) {
+            status = panic("failed to strcpy strbuf object");
+        } else {
+            yaml->token = yamllex(yaml->scanner);
+
+            if(yaml->token == b_break) {
                 yaml->token = yamllex(yaml->scanner);
-
-                if(yaml->token == b_break) {
-                    yaml->token = yamllex(yaml->scanner);
-                    while(yaml->token == l_empty)
-                        yaml->token = yamllex(yaml->scanner);
-
-                    if(yaml_next(yaml))
-                        status = panic("failed to next yaml object");
-                } else if(yaml->token == c_mapping_value) {
+                while(yaml->token == l_empty)
                     yaml->token = yamllex(yaml->scanner);
 
-                    if(yaml_push(yaml, yaml_map)) {
-                        status = panic("failed to start yaml object");
-                    } else if(yaml_next(yaml)) {
-                        status = panic("failed to next yaml object");
-                    } else if(yaml_container(yaml, yaml_plain)) {
-                        status = panic("failed to container yaml object");
-                    }
-                } else {
-                    status = panic("expected newline or mapping value");
-                }
-            }
-            break;
-        case c_sequence_entry:
-            if(yaml_push(yaml, yaml_sequence)) {
-                status = panic("failed ot start yaml object");
-            } else {
+                if(yaml_next(yaml))
+                    status = panic("failed to next yaml object");
+            } else if(yaml->token == c_mapping_value) {
                 yaml->token = yamllex(yaml->scanner);
 
-                if(yaml_container(yaml, yaml_block))
+                if(yaml_push(yaml, yaml_map)) {
+                    status = panic("failed to start yaml object");
+                } else if(yaml_next(yaml)) {
+                    status = panic("failed to next yaml object");
+                } else if(yaml_container(yaml, yaml_plain)) {
                     status = panic("failed to container yaml object");
+                }
+            } else {
+                status = panic("expected newline or mapping value");
             }
-            break;
-        default:
-            if(yaml_plain(yaml))
-                status = panic("failed to plain yaml object");
-            break;
+        }
+    } else if(yaml->token == c_sequence_entry) {
+        yaml->token = yamllex(yaml->scanner);
+        if(yaml_push(yaml, yaml_sequence)) {
+            status = panic("failed ot start yaml object");
+        } else if(yaml_container(yaml, yaml_block)) {
+            status = panic("failed to container yaml object");
+        }
+    } else if(yaml_plain(yaml)) {
+        status = panic("failed to plain yaml object");
     }
 
     return status;
@@ -291,44 +284,39 @@ int yaml_block(struct yaml * yaml) {
 int yaml_plain(struct yaml * yaml) {
     int status = 0;
 
-    switch(yaml->token) {
-        case ns_plain_one_line:
-            if(strbuf_strcpy(&yaml->strbuf, yaml->string, yaml->length)) {
-                status = panic("failed to strcpy strbuf object");
-            } else {
+    if(yaml->token == ns_plain_one_line) {
+        if(strbuf_strcpy(&yaml->strbuf, yaml->string, yaml->length)) {
+            status = panic("failed to strcpy strbuf object");
+        } else {
+            yaml->token = yamllex(yaml->scanner);
+
+            if(yaml->token == b_break) {
                 yaml->token = yamllex(yaml->scanner);
-
-                if(yaml->token == b_break) {
+                while(yaml->token == l_empty)
                     yaml->token = yamllex(yaml->scanner);
-                    while(yaml->token == l_empty)
-                        yaml->token = yamllex(yaml->scanner);
 
-                    if(yaml_next(yaml))
-                        status = panic("failed to next yaml object");
-                } else {
-                    status = panic("expected newline");
-                }
+                if(yaml_next(yaml))
+                    status = panic("failed to next yaml object");
+            } else {
+                status = panic("expected newline");
             }
-            break;
-        case c_literal:
-            yaml->token = yamllex(yaml->scanner);
-            if(yaml_scalar(yaml, yaml_literal)) {
-                status = panic("failed to scalar yaml object");
-            } else if(yaml_next(yaml)) {
-                status = panic("failed to next yaml object");
-            }
-            break;
-        case c_folded:
-            yaml->token = yamllex(yaml->scanner);
-            if(yaml_scalar(yaml, yaml_folded)) {
-                status = panic("failed to scalar yaml object");
-            } else if(yaml_next(yaml)) {
-                status = panic("failed to next yaml object");
-            }
-            break;
-        default:
-            status = panic("invalid token - %d", yaml->token);
-            break;
+        }
+    } else if(yaml->token == c_literal) {
+        yaml->token = yamllex(yaml->scanner);
+        if(yaml_scalar(yaml, yaml_literal)) {
+            status = panic("failed to scalar yaml object");
+        } else if(yaml_next(yaml)) {
+            status = panic("failed to next yaml object");
+        }
+    } else if(yaml->token == c_folded) {
+        yaml->token = yamllex(yaml->scanner);
+        if(yaml_scalar(yaml, yaml_folded)) {
+            status = panic("failed to scalar yaml object");
+        } else if(yaml_next(yaml)) {
+            status = panic("failed to next yaml object");
+        }
+    } else {
+        status = panic("invalid token - %d", yaml->token);
     }
 
     return status;
