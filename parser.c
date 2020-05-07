@@ -147,7 +147,7 @@ void schema_clear(struct schema * schema) {
 
     if(schema->root) {
         node = schema->root;
-        schema->root = schema->root->next;
+        schema->root = NULL;
         schema_node_destroy(schema, node);
     }
 
