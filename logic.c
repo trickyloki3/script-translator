@@ -135,19 +135,21 @@ void logic_cond_insert(struct logic * logic, struct logic_node * root, struct lo
     }
 }
 
-int logic_and_subset(struct logic_node * x, struct logic_node * y) {
-    x = x->root;
-    y = y->root;
+int logic_and_subset(struct logic_node * root, struct logic_node * node) {
+    struct logic_node * prev;
+    struct logic_node * iter;
 
-    while(x && x->data < y->data)
-        x = x->next;
+    prev = root->root;
+    while(prev && prev->data < node->data)
+        prev = prev->next;
 
-    while(x && y && x->data == y->data && x->type == y->type) {
-        x = x->next;
-        y = y->next;
+    iter = node->root;
+    while(prev && iter && prev->data == iter->data && prev->type == iter->type) {
+        prev = prev->next;
+        iter = iter->next;
     }
 
-    return y ? 1 : 0;
+    return iter ? 1 : 0;
 }
 
 void logic_and_insert(struct logic * logic, struct logic_node * root, struct logic_node * node) {
