@@ -386,9 +386,7 @@ int logic_create(struct logic * logic, struct pool * pool) {
         status = panic("invalid pool");
     } else {
         logic->pool = pool;
-        logic->root = logic_node_create(logic, or, NULL);
-        if(!logic->root)
-            status = panic("failed to create logic node object");
+        logic->root = NULL;
     }
 
     return status;
@@ -407,10 +405,33 @@ void logic_destroy(struct logic * logic) {
 int logic_copy(struct logic * result, struct logic * logic) {
     int status = 0;
 
-    result->pool = logic->pool;
-    result->root = logic_node_copy(result, logic->root);
-    if(!result->root)
-        status = panic("failed to copy logic node object");
+    struct logic_node * prev;
+    struct logic_node * iter;
+    struct logic_node * copy;
+
+    if(logic_create(result, logic->pool)) {
+        status = panic("failed to create logic object");
+    } else {
+        prev = NULL;
+        iter = logic->root;
+        while(iter && !status) {
+            copy = logic_node_copy(result, iter);
+            if(!copy) {
+                status = panic("failed to copy logic node object");
+            } else {
+                if(prev) {
+                    prev->next = copy;
+                } else {
+                    result->root = copy;
+                }
+                prev = copy;
+            }
+            iter = iter->next;
+        }
+
+        if(status)
+            logic_destroy(result);
+    }
 
     return status;
 }

@@ -420,13 +420,27 @@ int script_logic_push(struct script * script) {
         status = panic("failed to object store object");
     } else {
         top = stack_top(&script->logic);
-        if(top ? logic_copy(logic, top) : logic_create(logic, script->heap->logic_pool)) {
-            status = panic("failed to create logic object");
+        if(top) {
+            if(logic_copy(logic, top)) {
+                status = panic("failed to copy logic object");
+            } else {
+                if(stack_push(&script->logic, logic))
+                    status = panic("failed to push stack object");
+                if(status)
+                    logic_destroy(logic);
+            }
         } else {
-            if(stack_push(&script->logic, logic))
-                status = panic("failed to push stack object");
-            if(status)
-                logic_destroy(logic);
+            if(logic_create(logic, script->heap->logic_pool)) {
+                status = panic("failed to create logic object");
+            } else {
+                if(logic_push(logic, or, NULL)) {
+                    status = panic("failed to push logic object");
+                } else if(stack_push(&script->logic, logic)) {
+                    status = panic("failed to push stack object");
+                }
+                if(status)
+                    logic_destroy(logic);
+            }
         }
     }
 
