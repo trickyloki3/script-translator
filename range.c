@@ -549,7 +549,7 @@ int range_pow(struct range * range, struct range * x, struct range * y) {
 
     iter = x->root;
     while(iter && !status) {
-        if(range_add(range, pow(x->min, y->min), pow(x->max, y->max))) {
+        if(range_add(range, pow(iter->min, y->min), pow(iter->max, y->max))) {
             status = panic("failed to add range object");
         } else {
             iter = iter->next;
