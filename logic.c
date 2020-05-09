@@ -200,13 +200,13 @@ int logic_or_cond(struct logic * logic, struct logic_node * root, enum logic_typ
     if(!node) {
         status = panic("failed to create logic node object");
     } else {
-        if(logic_and_cond(logic, node, type, data))
+        if(logic_and_cond(logic, node, type, data)) {
             status = panic("failed to and cond logic object");
-        if(status) {
-            logic_node_destroy(logic, node);
         } else {
             logic_and_insert(logic, root, node);
         }
+        if(status)
+            logic_node_destroy(logic, node);
     }
 
     return status;
@@ -218,9 +218,11 @@ int logic_and_or_cond(struct logic * logic, struct logic_node * root, enum logic
 
     iter = root->root;
     while(iter && !status) {
-        if(logic_and_cond(logic, iter, type, data))
+        if(logic_and_cond(logic, iter, type, data)) {
             status = panic("failed to and cond logic object");
-        iter = iter->next;
+        } else {
+            iter = iter->next;
+        }
     }
 
     return status;
