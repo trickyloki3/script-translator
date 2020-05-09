@@ -403,10 +403,10 @@ int logic_create(struct logic * logic, struct pool * pool) {
 void logic_destroy(struct logic * logic) {
     struct logic_node * node;
 
-    node = logic_pop_node(logic);
-    while(node) {
+    while(logic->root) {
+        node = logic->root;
+        logic->root = logic->root->next;
         logic_node_destroy(logic, node);
-        node = logic_pop_node(logic);
     }
 }
 
