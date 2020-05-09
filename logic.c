@@ -151,8 +151,7 @@ int logic_and_subset(struct logic_node * x, struct logic_node * y) {
 }
 
 void logic_and_insert(struct logic * logic, struct logic_node * root, struct logic_node * node) {
-    struct logic_node * head;
-    struct logic_node * last;
+    struct logic_node * prev;
     struct logic_node * iter;
 
     iter = root->root;
@@ -162,29 +161,18 @@ void logic_and_insert(struct logic * logic, struct logic_node * root, struct log
     if(iter) {
         logic_node_destroy(logic, node);
     } else {
-        head = NULL;
-        last = NULL;
+        prev = node;
         while(root->root) {
             iter = root->root;
             root->root = root->root->next;
             if(logic_and_subset(iter, node)) {
-                if(last) {
-                    last->next = iter;
-                } else {
-                    head = iter;
-                }
-                last = iter;
+                prev = prev->next = iter;
             } else {
                 logic_node_destroy(logic, iter);
             }
         }
-        if(last) {
-            last->next = node;
-        } else {
-            head = node;
-        }
-        node->next = NULL;
-        root->root = head;
+        prev->next = NULL;
+        root->root = node;
     }
 }
 
