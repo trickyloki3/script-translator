@@ -37,74 +37,76 @@ struct logic_node * logic_node_create(struct logic * logic, enum logic_type type
     return node;
 }
 
-void logic_node_destroy(struct logic * logic, struct logic_node * node) {
-    struct logic_node * iter;
+void logic_node_destroy(struct logic * logic, struct logic_node * root) {
+    struct logic_node * node;
 
-    while(node->root) {
-        iter = node->root;
-        node->root = node->root->next;
-        logic_node_destroy(logic, iter);
+    while(root->root) {
+        node = root->root;
+        root->root = root->root->next;
+        logic_node_destroy(logic, node);
     }
 
-    pool_put(logic->pool, node);
+    pool_put(logic->pool, root);
 }
 
-struct logic_node * logic_node_copy(struct logic * logic, struct logic_node * node) {
+struct logic_node * logic_node_copy(struct logic * logic, struct logic_node * root) {
     int status = 0;
-    struct logic_node * root;
-    struct logic_node * last;
+
+    struct logic_node * node;
+    struct logic_node * prev;
     struct logic_node * iter;
     struct logic_node * copy;
 
-    root = logic_node_create(logic, node->type, node->data);
-    if(!root) {
+    node = logic_node_create(logic, root->type, root->data);
+    if(!node) {
         status = panic("failed to create logic node object");
     } else {
-        last = NULL;
-        iter = node->root;
+        prev = NULL;
+        iter = root->root;
         while(iter && !status) {
             copy = logic_node_copy(logic, iter);
             if(!copy) {
                 status = panic("failed to copy logic node object");
             } else {
-                if(last) {
-                    last->next = copy;
+                if(prev) {
+                    prev->next = copy;
                 } else {
-                    root->root = copy;
+                    node->root = copy;
                 }
-                last = copy;
+                prev = copy;
             }
             iter = iter->next;
         }
         if(status)
-            logic_node_destroy(logic, root);
+            logic_node_destroy(logic, node);
     }
 
-    return status ? NULL : root;
+    return status ? NULL : node;
 }
 
-void logic_node_print(struct logic_node * node, int indent) {
+void logic_node_print(struct logic_node * root, int indent) {
     int i;
+
     struct logic_node * iter;
 
     for(i = 0; i < indent; i++)
         fputs("    ", stdout);
 
-    if(node->type == cond) {
-        fprintf(stdout, "[cond:%p]\n", node->data);
-    } else if(node->type == not_cond) {
-        fprintf(stdout, "[not_cond:%p]\n", node->data);
-    } else if(node->type == and) {
+    if(root->type == cond) {
+        fprintf(stdout, "[cond:%p]\n", root->data);
+    } else if(root->type == not_cond) {
+        fprintf(stdout, "[not_cond:%p]\n", root->data);
+    } else if(root->type == and) {
         fprintf(stdout, "[and]\n");
-    } else if(node->type == or) {
+    } else if(root->type == or) {
         fprintf(stdout, "[or]\n");
-    } else if(node->type == not) {
+    } else if(root->type == not) {
         fprintf(stdout, "[not]\n");
-    } else if(node->type == and_or) {
+    } else if(root->type == and_or) {
         fprintf(stdout, "[and_or]\n");
     }
 
-    iter = node->root;
+    iter = root->root;
     while(iter) {
         logic_node_print(iter, indent + 1);
         iter = iter->next;
