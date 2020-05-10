@@ -1600,8 +1600,11 @@ struct script_range * script_execute(struct script * script, struct script_array
 
     if(!argument->handler) {
         range = script_array_get(array, argument->index);
-        if(!range)
+        if(!range) {
             status = panic("failed to get script array object");
+        } else {
+            range->type = identifier;
+        }
     } else {
         handler = map_search(&script->argument, argument->handler);
         if(!handler) {
