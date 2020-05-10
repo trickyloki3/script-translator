@@ -13,12 +13,12 @@ int logic_and_cond(struct logic *, struct logic_node *, enum logic_type, void *)
 int logic_or_cond(struct logic *, struct logic_node *, enum logic_type, void *);
 int logic_and_or_cond(struct logic *, struct logic_node *, enum logic_type, void *);
 
-void logic_and(struct logic *, struct logic_node *, struct logic_node *);
-void logic_or(struct logic *, struct logic_node *, struct logic_node *);
-struct logic_node * logic_not_and(struct logic *, struct logic_node *);
-struct logic_node * logic_not_or(struct logic *, struct logic_node *);
-int logic_and_or_and(struct logic *, struct logic_node *, struct logic_node *);
-struct logic_node * logic_and_or_or(struct logic *, struct logic_node *, struct logic_node *);
+struct logic_node * logic_and_and(struct logic *, struct logic_node *, struct logic_node *);
+struct logic_node * logic_and_and_or(struct logic *, struct logic_node *, struct logic_node *);
+struct logic_node * logic_or_and(struct logic *, struct logic_node *, struct logic_node *);
+struct logic_node * logic_or_and_or(struct logic *, struct logic_node *, struct logic_node *);
+int logic_not(struct logic *, struct logic_node *);
+struct logic_node * logic_and_or_and_or(struct logic *, struct logic_node *, struct logic_node *);
 
 void logic_push_node(struct logic *, struct logic_node *);
 struct logic_node * logic_pop_node(struct logic *);
@@ -228,139 +228,172 @@ int logic_and_or_cond(struct logic * logic, struct logic_node * root, enum logic
     return status;
 }
 
-void logic_and(struct logic * logic, struct logic_node * root, struct logic_node * node) {
-    struct logic_node * iter;
-
-    while(node->root) {
-        iter = node->root;
-        node->root = node->root->next;
-        logic_cond_insert(logic, root, iter);
-    }
-
-    logic_node_destroy(logic, node);
-}
-
-void logic_or(struct logic * logic, struct logic_node * root, struct logic_node * node) {
-    struct logic_node * iter;
-
-    while(node->root) {
-        iter = node->root;
-        node->root = node->root->next;
-        logic_and_insert(logic, root, iter);
-    }
-
-    logic_node_destroy(logic, node);
-}
-
-struct logic_node * logic_not_and(struct logic * logic, struct logic_node * root) {
+struct logic_node * logic_and_and(struct logic * logic, struct logic_node * root, struct logic_node * node) {
     int status = 0;
-    struct logic_node * node;
+
+    struct logic_node * leaf;
     struct logic_node * iter;
 
-    node = logic_node_create(logic, or, NULL);
-    if(!node) {
-        status = panic("failed to create logic node object");
+    leaf = logic_node_copy(logic, root);
+    if(!leaf) {
+        status = panic("failed to copy logic node object");
+    } else {
+        iter = node->root;
+        while(iter && !status) {
+            if(logic_and_cond(logic, leaf, iter->type, iter->data)) {
+                status = panic("failed to and cond logic object");
+            } else {
+                iter = iter->next;
+            }
+        }
+        if(status)
+            logic_node_destroy(logic, leaf);
+    }
+
+    return status ? NULL : leaf;
+}
+
+struct logic_node * logic_and_and_or(struct logic * logic, struct logic_node * root, struct logic_node * node) {
+    int status = 0;
+
+    struct logic_node * leaf;
+    struct logic_node * iter;
+
+    leaf = logic_node_copy(logic, node);
+    if(!leaf) {
+        status = panic("failed to copy logic node object");
     } else {
         iter = root->root;
         while(iter && !status) {
-            if(iter->type == cond) {
-                if(logic_or_cond(logic, node, not_cond, iter->data))
-                    status = panic("failed to or cond logic object");
-            } else if(iter->type == not_cond) {
-                if(logic_or_cond(logic, node, cond, iter->data))
-                    status = panic("failed to or cond logic object");
+            if(logic_and_or_cond(logic, leaf, iter->type, iter->data)) {
+                status = panic("failed to and cond logic object");
             } else {
-                status = panic("invalid logic type");
+                iter = iter->next;
             }
-            iter = iter->next;
         }
         if(status)
-            logic_node_destroy(logic, node);
+            logic_node_destroy(logic, leaf);
     }
 
-    return status ? NULL : node;
+    return status ? NULL : leaf;
 }
 
-struct logic_node * logic_not_or(struct logic * logic, struct logic_node * root) {
+struct logic_node * logic_or_and(struct logic * logic, struct logic_node * root, struct logic_node * node) {
     int status = 0;
-    struct logic_node * node;
+
+    struct logic_node * leaf;
+    struct logic_node * copy;
+
+    leaf = logic_node_copy(logic, root);
+    if(!leaf) {
+        status = panic("failed to copy logic node object");
+    } else {
+        copy = logic_node_copy(logic, node);
+        if(!copy) {
+            status = panic("failed to copy logic node object");
+        } else {
+            logic_and_insert(logic, leaf, copy);
+        }
+        if(status)
+            logic_node_destroy(logic, leaf);
+    }
+
+    return status ? NULL : leaf;
+}
+
+struct logic_node * logic_or_and_or(struct logic * logic, struct logic_node * root, struct logic_node * node) {
+    int status = 0;
+
+    struct logic_node * leaf;
     struct logic_node * iter;
     struct logic_node * copy;
-    struct logic_node * temp;
 
-    node = logic_not_and(logic, root->root);
-    if(!node) {
-        status = panic("failed to not and logic object");
+    leaf = logic_node_copy(logic, root);
+    if(!leaf) {
+        status = panic("failed to copy logic node object");
     } else {
-        iter = root->root->next;
+        iter = node->root;
         while(iter && !status) {
-            copy = logic_not_and(logic, iter);
+            copy = logic_node_copy(logic, iter);
             if(!copy) {
-                status = panic("failed to not and logic object");
+                status = panic("failed to copy logic node object");
             } else {
-                temp = logic_and_or_or(logic, node, copy);
-                if(!temp) {
-                    status = panic("failed to and or or logic object");
-                } else {
-                    logic_node_destroy(logic, node);
-                    node = temp;
-                }
-                logic_node_destroy(logic, copy);
+                logic_and_insert(logic, leaf, copy);
             }
             iter = iter->next;
         }
         if(status)
-            logic_node_destroy(logic, node);
+            logic_node_destroy(logic, leaf);
     }
 
-    return status ? NULL : node;
+    return status ? NULL : leaf;
 }
 
-int logic_and_or_and(struct logic * logic, struct logic_node * root, struct logic_node * node) {
+int logic_not(struct logic * logic, struct logic_node * root) {
     int status = 0;
+
     struct logic_node * iter;
 
-    iter = node->root;
-    while(iter && !status) {
-        if(logic_and_or_cond(logic, root, iter->type, iter->data))
-            status = panic("failed to and or cond logic object");
-        iter = iter->next;
+    if(root->type == cond) {
+        if(logic_push(logic, not_cond, root->data))
+            status = panic("failed to push logic object");
+    } else if(root->type == not_cond) {
+        if(logic_push(logic, cond, root->data))
+            status = panic("failed to push logic object");
+    } else if(root->type == and) {
+        if(logic_push(logic, or, NULL)) {
+            status = panic("failed to push logic object");
+        } else {
+            iter = root->root;
+            while(iter && !status) {
+                if(logic_not(logic, iter)) {
+                    status = panic("failed to not logic object");
+                } else {
+                    iter = iter->next;
+                }
+            }
+            if(!status && logic_pop(logic))
+                status = panic("failed to pop logic object");
+        }
+    } else {
+        status = panic("invalid type - %d", root->type);
     }
 
     return status;
 }
 
-struct logic_node * logic_and_or_or(struct logic * logic, struct logic_node * root, struct logic_node * node) {
+struct logic_node * logic_and_or_and_or(struct logic * logic, struct logic_node * root, struct logic_node * node) {
     int status = 0;
-    struct logic_node * temp;
+
+    struct logic_node * leaf;
+    struct logic_node * prev;
     struct logic_node * iter;
     struct logic_node * copy;
 
-    temp = logic_node_create(logic, and_or, NULL);
-    if(!temp) {
+    leaf = logic_node_create(logic, and_or, NULL);
+    if(!leaf) {
         status = panic("failed to create logic node object");
     } else {
-        iter = root->root;
-        while(iter && !status) {
-            copy = logic_node_copy(logic, node);
-            if(!copy) {
-                status = panic("failed to copy logic node object");
-            } else {
-                if(logic_and_or_and(logic, copy, iter))
-                    status = panic("failed to and or logic object");
-                if(status) {
-                    logic_node_destroy(logic, copy);
+        prev = root->root;
+        while(prev && !status) {
+            iter = node->root;
+            while(iter && !status) {
+                copy = logic_and_and(logic, prev, iter);
+                if(!copy) {
+                    status = panic("failed to and and logic object");
                 } else {
-                    logic_or(logic, temp, copy);
+                    logic_and_insert(logic, leaf, copy);
                 }
+                iter = iter->next;
             }
-            iter = iter->next;
+            prev = prev->next;
         }
+
         if(status)
-            logic_node_destroy(logic, temp);
+            logic_node_destroy(logic, leaf);
     }
 
-    return status ? NULL : temp;
+    return status ? NULL : leaf;
 }
 
 void logic_push_node(struct logic * logic, struct logic_node * node) {
@@ -475,100 +508,117 @@ int logic_push(struct logic * logic, enum logic_type type, void * data) {
 
 int logic_pop(struct logic * logic) {
     int status = 0;
+
     struct logic_node * node;
     struct logic_node * root;
-    struct logic_node * temp;
+    struct logic_node * leaf;
 
     node = logic_pop_node(logic);
     if(!node) {
         status = panic("failed to pop logic node object");
-    } else if(!node->root) {
-        logic_node_destroy(logic, node);
     } else {
-        root = logic_pop_node(logic);
-        if(!root) {
-            status = panic("failed to pop logic node object");
-        } else {
-            if(node->type == not) {
-                node->type = and;
-            } else if(node->type == or) {
-                node->type = and_or;
-            }
-
-            if(root->type == and) {
-                if(node->type == and) {
-                    logic_and(logic, root, node);
-                    logic_push_node(logic, root);
-                } else if(node->type == and_or) {
-                    if(logic_and_or_and(logic, node, root)) {
-                        status = panic("failed to and or logic object");
-                    } else {
-                        logic_node_destroy(logic, root);
-                        logic_push_node(logic, node);
-                    }
-                } else {
-                    status = panic("invalid logic type");
-                }
-            } else if(root->type == or) {
-                if(node->type == and) {
-                    logic_and_insert(logic, root, node);
-                    logic_push_node(logic, root);
-                } else if(node->type == and_or) {
-                    logic_or(logic, root, node);
-                    logic_push_node(logic, root);
-                } else {
-                    status = panic("invalid logic type");
-                }
-            } else if(root->type == not) {
-                if(node->type == and) {
-                    temp = logic_not_and(logic, node);
-                    if(!temp) {
-                        status = panic("failed to not and logic object");
-                    } else {
-                        logic_node_destroy(logic, node);
-                        logic_node_destroy(logic, root);
-                        logic_push_node(logic, temp);
-                    }
-                } else if(node->type == and_or) {
-                    temp = logic_not_or(logic, node);
-                    if(!temp) {
-                        status = panic("failed to not and logic object");
-                    } else {
-                        logic_node_destroy(logic, node);
-                        logic_node_destroy(logic, root);
-                        logic_push_node(logic, temp);
-                    }
-                } else {
-                    status = panic("invalid logic type");
-                }
-            } else if(root->type == and_or) {
-                if(node->type == and) {
-                    if(logic_and_or_and(logic, root, node)) {
-                        status = panic("failed to and or logic object");
-                    } else {
-                        logic_node_destroy(logic, node);
-                        logic_push_node(logic, root);
-                    }
-                } else if(node->type == and_or) {
-                    temp = logic_and_or_or(logic, root, node);
-                    if(!temp) {
-                        status = panic("failed to and or product logic object");
-                    } else {
-                        logic_node_destroy(logic, node);
-                        logic_node_destroy(logic, root);
-                        logic_push_node(logic, temp);
-                    }
-                } else {
-                    status = panic("invalid logic type");
-                }
+        if(node->root) {
+            root = logic_pop_node(logic);
+            if(!root) {
+                status = panic("failed to pop logic node object");
             } else {
-                status = panic("invalid logic type");
-            }
-            if(status)
+                if(node->type == not) {
+                    node->type = and;
+                } else if(node->type == or) {
+                    node->type = and_or;
+                }
+
+                if(root->type == and) {
+                    if(node->type == and) {
+                        leaf = logic_and_and(logic, root, node);
+                        if(!leaf) {
+                            status = panic("failed to and and logic object");
+                        } else {
+                            logic_push_node(logic, leaf);
+                        }
+                    } else if(node->type == and_or) {
+                        leaf = logic_and_and_or(logic, root, node);
+                        if(!leaf) {
+                            status = panic("failed to and and or logic object");
+                        } else {
+                            logic_push_node(logic, leaf);
+                        }
+                    } else {
+                        status = panic("invalid logic type");
+                    }
+                } else if(root->type == or) {
+                    if(node->type == and) {
+                        leaf = logic_or_and(logic, root, node);
+                        if(!leaf) {
+                            status = panic("failed to or and logic object");
+                        } else {
+                            logic_push_node(logic, leaf);
+                        }
+                    } else if(node->type == and_or) {
+                        leaf = logic_or_and_or(logic, root, node);
+                        if(!leaf) {
+                            status = panic("failed to or and or logic object");
+                        } else {
+                            logic_push_node(logic, leaf);
+                        }
+                    } else {
+                        status = panic("invalid logic type");
+                    }
+                } else if(root->type == not) {
+                    if(node->type == and) {
+                        if(logic_push(logic, or, NULL)) {
+                            status = panic("failed to push logic object");
+                        } else {
+                            leaf = node->root;
+                            while(leaf && !status) {
+                                if(logic_not(logic, leaf)) {
+                                    status = panic("failed to not logic object");
+                                } else {
+                                    leaf = leaf->next;
+                                }
+                            }
+                        }
+                    } else if(node->type == and_or) {
+                        if(logic_push(logic, and, NULL)) {
+                            status = panic("failed to push logic object");
+                        } else {
+                            leaf = node->root;
+                            while(leaf && !status) {
+                                if(logic_not(logic, leaf)) {
+                                    status = panic("failed to not logic object");
+                                } else {
+                                    leaf = leaf->next;
+                                }
+                            }
+                        }
+                    } else {
+                        status = panic("invalid logic type");
+                    }
+                } else if(root->type == and_or) {
+                    if(node->type == and) {
+                        leaf = root->root ? logic_and_and_or(logic, node, root) : logic_or_and(logic, root, node);
+                        if(!leaf) {
+                            status = panic("failed to and and or logic object");
+                        } else {
+                            logic_push_node(logic, leaf);
+                        }
+                    } else if(node->type == and_or) {
+                        leaf = root->root ? logic_and_or_and_or(logic, root, node) : logic_or_and_or(logic, root, node);
+                        if(!leaf) {
+                            status = panic("failed to and or and or logic object");
+                        } else {
+                            logic_push_node(logic, leaf);
+                        }
+                    } else {
+                        status = panic("invalid logic type");
+                    }
+                } else {
+                    status = panic("invalid logic type");
+                }
                 logic_node_destroy(logic, root);
+            }
         }
-        if(status)
-            logic_node_destroy(logic, node);
+        logic_node_destroy(logic, node);
     }
 
     return status;
