@@ -44,13 +44,14 @@ struct strbuf * script_buffer_get(struct script_buffer *);
 void script_buffer_put(struct script_buffer *, struct strbuf *);
 
 struct script_undef {
+    struct strbuf strbuf;
     struct store store;
     struct map map;
 };
 
 int script_undef_create(struct script_undef *, size_t, struct heap *);
 void script_undef_destroy(struct script_undef *);
-int script_undef_add(struct script_undef *, char *);
+int script_undef_add(struct script_undef *, char *, ...);
 void script_undef_print(struct script_undef *);
 
 struct script {

@@ -165,13 +165,19 @@ void script_buffer_put(struct script_buffer * buffer, struct strbuf * strbuf) {
 int script_undef_create(struct script_undef * undef, size_t size, struct heap * heap) {
     int status = 0;
 
-    if(store_create(&undef->store, size)) {
-        status = panic("failed to create store object");
+    if(strbuf_create(&undef->strbuf, size)) {
+        status = panic("failed to create strbuf object");
     } else {
-        if(map_create(&undef->map, (map_compare_cb) strcmp, heap->map_pool))
-            status = panic("failed to create map object");
+        if(store_create(&undef->store, size)) {
+            status = panic("failed to create store object");
+        } else {
+            if(map_create(&undef->map, (map_compare_cb) strcmp, heap->map_pool))
+                status = panic("failed to create map object");
+            if(status)
+                store_destroy(&undef->store);
+        }
         if(status)
-            store_destroy(&undef->store);
+            strbuf_destroy(&undef->strbuf);
     }
 
     return status;
@@ -180,20 +186,40 @@ int script_undef_create(struct script_undef * undef, size_t size, struct heap * 
 void script_undef_destroy(struct script_undef * undef) {
     map_destroy(&undef->map);
     store_destroy(&undef->store);
+    strbuf_destroy(&undef->strbuf);
 }
 
-int script_undef_add(struct script_undef * undef, char * identifier) {
+int script_undef_add(struct script_undef * undef, char * format, ...) {
     int status = 0;
+
+    va_list vararg;
+    va_list varcpy;
     char * string;
 
-    if(!map_search(&undef->map, identifier)) {
-        string = store_printf(&undef->store, "%s", identifier);
+    va_start(vararg, format);
+    va_copy(varcpy, vararg);
+
+    if(strbuf_vprintf(&undef->strbuf, format, vararg)) {
+        status = panic("failed to vprintf strbuf object");
+    } else {
+        string = strbuf_array(&undef->strbuf);
         if(!string) {
-            status = panic("failed to printf store object");
-        } else if(map_insert(&undef->map, string, string)) {
-            status = panic("failed to insert map object");
+            status = panic("failed to array strbuf object");
+        } else {
+            if(!map_search(&undef->map, string)) {
+                string = store_vprintf(&undef->store, format, varcpy);
+                if(!string) {
+                    status = panic("failed to printf store object");
+                } else if(map_insert(&undef->map, string, string)) {
+                    status = panic("failed to insert map object");
+                }
+            }
         }
+        strbuf_clear(&undef->strbuf);
     }
+
+    va_end(varcpy);
+    va_end(vararg);
 
     return status;
 }
@@ -860,7 +886,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                                         *result = range;
                                     }
                                 } else {
-                                    if(script_undef_add(&script->undef, root->identifier)) {
+                                    if(script_undef_add(&script->undef, "%s", root->identifier)) {
                                         status = panic("failed to add script undef object");
                                     } else {
                                         range = script_range(script, identifier, "%s", root->identifier);
