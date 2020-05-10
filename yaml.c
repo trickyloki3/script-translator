@@ -5,12 +5,12 @@
 typedef int (* yaml_cb)(struct yaml *);
 typedef int (* yaml_scalar_cb)(struct yaml *, int, int);
 
-int yaml_start(struct yaml *, enum yaml_type);
-int yaml_next(struct yaml *);
-int yaml_end(struct yaml *, enum yaml_type);
+static inline int yaml_start(struct yaml *, enum yaml_type);
+static inline int yaml_next(struct yaml *);
+static inline int yaml_end(struct yaml *, enum yaml_type);
 
-int yaml_push(struct yaml *, enum yaml_type);
-int yaml_pop(struct yaml *, int);
+static inline int yaml_push(struct yaml *, enum yaml_type);
+static inline int yaml_pop(struct yaml *, int);
 
 int yaml_document(struct yaml *);
 int yaml_block(struct yaml *);
@@ -85,7 +85,7 @@ int yaml_parse(struct yaml * yaml, const char * path, event_cb callback, void * 
     return status;
 }
 
-int yaml_start(struct yaml * yaml, enum yaml_type type) {
+static inline int yaml_start(struct yaml * yaml, enum yaml_type type) {
     int status = 0;
 
     if(type == yaml_sequence) {
@@ -101,7 +101,7 @@ int yaml_start(struct yaml * yaml, enum yaml_type type) {
     return status;
 }
 
-int yaml_next(struct yaml * yaml) {
+static inline int yaml_next(struct yaml * yaml) {
     int status = 0;
     struct string * string;
 
@@ -117,7 +117,7 @@ int yaml_next(struct yaml * yaml) {
     return status;
 }
 
-int yaml_end(struct yaml * yaml, enum yaml_type type) {
+static inline int yaml_end(struct yaml * yaml, enum yaml_type type) {
     int status = 0;
 
     if(type == yaml_sequence) {
@@ -133,7 +133,7 @@ int yaml_end(struct yaml * yaml, enum yaml_type type) {
     return status;
 }
 
-int yaml_push(struct yaml * yaml, enum yaml_type type) {
+static inline int yaml_push(struct yaml * yaml, enum yaml_type type) {
     int status = 0;
     struct yaml_node * node;
 
@@ -157,7 +157,7 @@ int yaml_push(struct yaml * yaml, enum yaml_type type) {
     return status;
 }
 
-int yaml_pop(struct yaml * yaml, int scope) {
+static inline int yaml_pop(struct yaml * yaml, int scope) {
     int status = 0;
     struct yaml_node * node;
 
