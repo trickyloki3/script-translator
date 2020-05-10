@@ -60,17 +60,33 @@ int long_compare(void * x, void * y) {
 }
 
 int string_long(struct string * string, long * result) {
+    int status = 0;
+
     char * last;
+    long value;
 
-    *result = strtol(string->string, &last, 0);
+    value = strtol(string->string, &last, 0);
+    if(*last) {
+        status = panic("failed to strtol");
+    } else {
+        *result = value;
+    }
 
-    return *last ? panic("failed to parse long") : 0;
+    return status;
 }
 
 int string_store(struct string * string, struct store * store, char ** result) {
-    *result = store_strcpy(store, string->string, string->length);
+    int status = 0;
+    char * object;
 
-    return *result ? 0 : panic("failed to strcpy store object");
+    object = store_strcpy(store, string->string, string->length);
+    if(!object) {
+        status = panic("failed to strcpy store object");
+    } else {
+        *result = object;
+    }
+
+    return status;
 }
 
 int item_create(struct item * item, size_t size, struct heap * heap) {
