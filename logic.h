@@ -8,8 +8,8 @@ enum logic_type {
     not_cond,
     and,
     or,
-    not,
-    and_or
+    and_or,
+    not
 };
 
 struct logic_node {
