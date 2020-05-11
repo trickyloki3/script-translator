@@ -2071,8 +2071,8 @@ int argument_second(struct script * script, struct script_array * array, struct 
     if(!range) {
         status = panic("failed to get script array object");
     } else {
-        min = range->range->min;
-        max = range->range->max;
+        min = labs(range->range->min);
+        max = labs(range->range->max);
         print = argument->print;
         if(min / 86400 > 0) {
             min /= 86400;
@@ -2117,8 +2117,8 @@ int argument_millisecond(struct script * script, struct script_array * array, st
     if(!range) {
         status = panic("failed to get script array object");
     } else {
-        min = range->range->min;
-        max = range->range->max;
+        min = labs(range->range->min);
+        max = labs(range->range->max);
         print = argument->print;
         if(min / 86400000 > 0) {
             min /= 86400000;
