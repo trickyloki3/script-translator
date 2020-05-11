@@ -1,6 +1,7 @@
 #ifndef table_h
 #define table_h
 
+#include "heap.h"
 #include "parser.h"
 
 struct item_node {

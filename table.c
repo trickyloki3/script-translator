@@ -580,7 +580,7 @@ int argument_parse(enum parser_type type, int mark, struct string * string, void
 int table_create(struct table * table, size_t size, struct heap * heap) {
     int status = 0;
 
-    if(parser_create(&table->parser, size, heap)) {
+    if(parser_create(&table->parser, size)) {
         status = panic("failed to create parser object");
     } else if(item_create(&table->item, size, heap)) {
         status = panic("failed to create item object");

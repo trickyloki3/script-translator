@@ -1,6 +1,8 @@
 #ifndef parser_h
 #define parser_h
 
+#include "map.h"
+#include "store.h"
 #include "json.h"
 #include "yaml.h"
 
@@ -45,7 +47,7 @@ struct parser {
     struct schema schema;
 };
 
-int parser_create(struct parser *, size_t, struct heap *);
+int parser_create(struct parser *, size_t);
 void parser_destroy(struct parser *);
 int parser_schema_parse(struct parser *, struct schema *, const char *);
 int parser_data_parse(struct parser *, struct schema *, const char *, parser_cb, void *);

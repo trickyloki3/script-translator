@@ -20,12 +20,11 @@ int yaml_scalar(struct yaml *, yaml_scalar_cb);
 int yaml_literal(struct yaml *, int, int);
 int yaml_folded(struct yaml *, int, int);
 
-int yaml_create(struct yaml * yaml, size_t size, struct heap * heap) {
+int yaml_create(struct yaml * yaml, size_t size) {
     int status = 0;
 
-    yaml->pool = heap_pool(heap, sizeof(struct yaml_node));
-    if(!yaml->pool) {
-        status = panic("failed to pool heap object");
+    if(pool_create(&yaml->pool, sizeof(struct yaml_node), size / sizeof(struct yaml_node))) {
+        status = panic("failed to create pool object");
     } else {
         if(strbuf_create(&yaml->strbuf, size)) {
             status = panic("failed to create strbuf object");
@@ -35,6 +34,8 @@ int yaml_create(struct yaml * yaml, size_t size, struct heap * heap) {
             if(status)
                 strbuf_destroy(&yaml->strbuf);
         }
+        if(status)
+            pool_destroy(&yaml->pool);
     }
 
     return status;
@@ -43,6 +44,7 @@ int yaml_create(struct yaml * yaml, size_t size, struct heap * heap) {
 void yaml_destroy(struct yaml * yaml) {
     yamllex_destroy(yaml->scanner);
     strbuf_destroy(&yaml->strbuf);
+    pool_destroy(&yaml->pool);
 }
 
 int yaml_parse(struct yaml * yaml, const char * path, event_cb callback, void * context) {
@@ -76,7 +78,7 @@ int yaml_parse(struct yaml * yaml, const char * path, event_cb callback, void * 
         while(yaml->root) {
             node = yaml->root;
             yaml->root = yaml->root->next;
-            pool_put(yaml->pool, node);
+            pool_put(&yaml->pool, node);
         }
 
         fclose(file);
@@ -140,7 +142,7 @@ static inline int yaml_push(struct yaml * yaml, enum yaml_type type) {
     if(yaml->root && yaml->root->scope >= yaml->scope) {
         status = panic("invalid scope");
     } else {
-        node = pool_get(yaml->pool);
+        node = pool_get(&yaml->pool);
         if(!node) {
             status = panic("out of memory");
         } else {
@@ -167,7 +169,7 @@ static inline int yaml_pop(struct yaml * yaml, int scope) {
         } else {
             node = yaml->root;
             yaml->root = yaml->root->next;
-            pool_put(yaml->pool, node);
+            pool_put(&yaml->pool, node);
         }
     }
 

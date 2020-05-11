@@ -1,8 +1,8 @@
 #ifndef yaml_h
 #define yaml_h
 
+#include "pool.h"
 #include "event.h"
-#include "heap.h"
 
 enum yaml_token {
     end_of_file = 0,
@@ -30,7 +30,7 @@ struct yaml_node {
 };
 
 struct yaml {
-    struct pool * pool;
+    struct pool pool;
     struct yaml_node * root;
     struct strbuf strbuf;
     void * scanner;
@@ -44,7 +44,7 @@ struct yaml {
     void * context;
 };
 
-int yaml_create(struct yaml *, size_t, struct heap *);
+int yaml_create(struct yaml *, size_t);
 void yaml_destroy(struct yaml *);
 int yaml_parse(struct yaml *, const char *, event_cb, void *);
 
