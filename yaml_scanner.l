@@ -47,7 +47,7 @@ ns-plain-one-line       {ns-plain-first}({s-space}*{ns-plain-char})*
 }
 
 {s-indent} {
-    if(yyextra->scalar)
+    if(yyextra->scalar && yyextra->scope <= yyleng)
         BEGIN(literal);
 
     yyextra->space = yyleng;

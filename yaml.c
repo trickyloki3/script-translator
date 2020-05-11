@@ -360,13 +360,15 @@ int yaml_scalar(struct yaml * yaml, yaml_scalar_cb callback) {
 
     yaml->scalar = 1;
 
+    yaml->scope = yaml->root ? yaml->root->scope : 0;
+
     if(yaml->token == b_break) {
         yaml->token = yamllex(yaml->scanner);
         while(yaml->token == l_empty)
             yaml->token = yamllex(yaml->scanner);
 
         if(yaml->token == s_indent) {
-            if(!yaml->root || yaml->root->scope < yaml->space) {
+            if(yaml->scope < yaml->space) {
                 yaml->scope = yaml->space;
 
                 while(!status && yaml->token == s_indent && yaml->scope <= yaml->space) {
