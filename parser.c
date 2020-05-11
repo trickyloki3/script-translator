@@ -30,8 +30,6 @@ struct data_state {
 int data_state_parse(enum event_type, struct string *, void *);
 int data_state_node(struct data_state *, struct schema_node *, enum event_type, struct string *);
 
-int parser_schema_parse(struct parser *, struct schema *, const char *);
-int parser_data_parse(struct parser *, struct schema *, const char *, parser_cb, void *);
 int parser_parse(struct parser *, const char *, event_cb, void *);
 
 struct schema_node * schema_node_create(struct schema * schema, enum schema_type type, int mark) {
