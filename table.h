@@ -91,14 +91,14 @@ int constant_create(struct constant *, size_t, struct heap *);
 void constant_destroy(struct constant *);
 int constant_parse(enum parser_type, int, struct string *, void *);
 
-enum spec_flag {
-    spec_sign = 1 << 0,
-    spec_string = 1 << 1,
-    spec_percent = 1 << 2,
-    spec_absolute = 1 << 3
+enum integer_flag {
+    integer_sign = 1 << 0,
+    integer_string = 1 << 1,
+    integer_percent = 1 << 2,
+    integer_absolute = 1 << 3
 };
 
-struct spec_node {
+struct integer_node {
     long flag;
     long divide;
 };
@@ -120,7 +120,7 @@ struct argument_node {
     struct print_node * print;
     struct range_node * range;
     struct map * array;
-    struct spec_node * spec;
+    struct integer_node * integer;
     long index;
 };
 
@@ -132,7 +132,7 @@ struct argument {
     struct print_node * print;
     struct range_node * range;
     struct array_node * array;
-    struct spec_node * spec;
+    struct integer_node * integer;
 };
 
 int argument_create(struct argument *, size_t, struct heap *);

@@ -43,7 +43,7 @@ struct schema_markup argument_markup[] = {
     {4, schema_map, 12, NULL},
     {5, schema_string, 13, "index"},
     {5, schema_string, 14, "string"},
-    {3, schema_map, 15, "spec"},
+    {3, schema_map, 15, "integer"},
     {4, schema_string, 16, "sign"},
     {4, schema_string, 17, "string"},
     {4, schema_string, 18, "percent"},
@@ -547,30 +547,30 @@ int argument_parse(enum parser_type type, int mark, struct string * string, void
         case 14: status = string_store(string, &argument->store, &argument->array->string); break;
         case 15:
             if(type == parser_start) {
-                argument->spec = store_calloc(&argument->store, sizeof(*argument->spec));
-                if(!argument->spec)
+                argument->integer = store_calloc(&argument->store, sizeof(*argument->integer));
+                if(!argument->integer)
                     status = panic("failed to calloc store object");
             } else if(type == parser_end) {
-                argument->argument->spec = argument->spec;
+                argument->argument->integer = argument->integer;
             }
             break;
         case 16:
             if(!strcmp("true", string->string))
-                argument->spec->flag |= spec_sign;
+                argument->integer->flag |= integer_sign;
             break;
         case 17:
             if(!strcmp("true", string->string))
-                argument->spec->flag |= spec_string;
+                argument->integer->flag |= integer_string;
             break;
         case 18:
             if(!strcmp("true", string->string))
-                argument->spec->flag |= spec_percent;
+                argument->integer->flag |= integer_percent;
             break;
         case 19:
             if(!strcmp("true", string->string))
-                argument->spec->flag |= spec_absolute;
+                argument->integer->flag |= integer_absolute;
             break;
-        case 20: status = string_long(string, &argument->spec->divide); break;
+        case 20: status = string_long(string, &argument->integer->divide); break;
         case 21: status = string_long(string, &argument->argument->index); break;
     }
 
