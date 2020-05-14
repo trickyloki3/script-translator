@@ -3,8 +3,6 @@
 #include "script_parser.h"
 #include "script_scanner.h"
 
-int script_initialize(struct script *);
-
 int script_map_push(struct script *);
 void script_map_pop(struct script *);
 void script_map_clear(struct script *);
@@ -237,6 +235,9 @@ void script_undef_print(struct script_undef * undef) {
 int script_create(struct script * script, size_t size, struct heap * heap, struct table * table) {
     int status = 0;
 
+    struct function_entry * function;
+    struct argument_entry * argument;
+
     script->heap = heap;
     if(!script->heap) {
         status = panic("invalid heap object");
@@ -279,9 +280,27 @@ int script_create(struct script * script, size_t size, struct heap * heap, struc
                 } else if(script_undef_create(&script->undef, size, heap)) {
                     status = panic("failed to create script undef object");
                     goto undef_fail;
-                } else if(script_initialize(script)) {
-                    status = panic("failed to initialize script object");
-                    goto initialize_fail;
+                } else {
+                    function = function_array;
+                    while(function->identifier && !status) {
+                        if(map_insert(&script->function, function->identifier, function->function)) {
+                            status = panic("failed to insert map object");
+                        } else {
+                            function++;
+                        }
+                    }
+
+                    argument = argument_array;
+                    while(argument->identifier && !status) {
+                        if(map_insert(&script->argument, argument->identifier, argument->argument)) {
+                            status = panic("failed to insert map object");
+                        } else {
+                            argument++;
+                        }
+                    }
+
+                    if(status)
+                        goto script_fail;
                 }
             }
         }
@@ -289,7 +308,7 @@ int script_create(struct script * script, size_t size, struct heap * heap, struc
 
     return status;
 
-initialize_fail:
+script_fail:
     script_undef_destroy(&script->undef);
 undef_fail:
     script_buffer_destroy(&script->buffer);
@@ -343,32 +362,6 @@ int script_compile(struct script * script, char * string) {
     script_logic_clear(script);
     script_map_clear(script);
     store_clear(&script->store);
-
-    return status;
-}
-
-int script_initialize(struct script * script) {
-    int status = 0;
-    struct function_entry * function;
-    struct argument_entry * argument;
-
-    function = function_array;
-    while(function->identifier) {
-        if(map_insert(&script->function, function->identifier, function->function)) {
-            status = panic("failed to insert map object");
-        } else {
-            function++;
-        }
-    }
-
-    argument = argument_array;
-    while(argument->identifier) {
-        if(map_insert(&script->argument, argument->identifier, argument->argument)) {
-            status = panic("failed to insert map object");
-        } else {
-            argument++;
-        }
-    }
 
     return status;
 }
