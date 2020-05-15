@@ -3,11 +3,8 @@
 #include "script_parser.h"
 #include "script_scanner.h"
 
-int script_map_push(struct script *);
+int script_map_push(struct script *, struct map *);
 void script_map_pop(struct script *);
-void script_map_clear(struct script *);
-int script_map_insert(struct script *, struct script_range *);
-struct script_range * script_map_search(struct script *, char *);
 
 int script_logic_push(struct script *);
 void script_logic_pop(struct script *);
@@ -18,7 +15,6 @@ int script_logic_top_pop(struct script *);
 struct script_range * script_range(struct script *, enum script_type, char *, ...);
 struct script_range * script_range_argument(struct script *, struct argument_node *);
 struct script_range * script_range_constant(struct script *, struct constant_node *);
-struct script_range * script_range_variable(struct script *, char *);
 void script_range_clear(struct script *);
 
 struct script_array * script_array(struct script *);
@@ -256,7 +252,7 @@ int script_create(struct script * script, size_t size, struct heap * heap, struc
                 } else if(store_create(&script->store, size)) {
                     status = panic("failed to create store object");
                     goto store_fail;
-                } else if(stack_create(&script->map, heap->stack_pool)) {
+                } else if(stack_create(&script->map_stack, heap->stack_pool)) {
                     status = panic("failed to create stack object");
                     goto map_fail;
                 } else if(stack_create(&script->logic, heap->stack_pool)) {
@@ -323,7 +319,7 @@ array_fail:
 range_fail:
     stack_destroy(&script->logic);
 logic_fail:
-    stack_destroy(&script->map);
+    stack_destroy(&script->map_stack);
 map_fail:
     store_destroy(&script->store);
 store_fail:
@@ -342,7 +338,7 @@ void script_destroy(struct script * script) {
     stack_destroy(&script->array);
     stack_destroy(&script->range);
     stack_destroy(&script->logic);
-    stack_destroy(&script->map);
+    stack_destroy(&script->map_stack);
     store_destroy(&script->store);
     scriptpstate_delete(script->parser);
     scriptlex_destroy(script->scanner);
@@ -350,6 +346,9 @@ void script_destroy(struct script * script) {
 
 int script_compile(struct script * script, char * string) {
     int status = 0;
+
+    script->root = NULL;
+    script->map = NULL;
 
     if(script_parse(script, string)) {
         status = panic("failed to parse script object");
@@ -360,29 +359,27 @@ int script_compile(struct script * script, char * string) {
     script_array_clear(script);
     script_range_clear(script);
     script_logic_clear(script);
-    script_map_clear(script);
     store_clear(&script->store);
 
     return status;
 }
 
-int script_map_push(struct script * script) {
+int script_map_push(struct script * script, struct map * map) {
     int status = 0;
-    struct map * map;
-    struct map * top;
 
-    map = store_malloc(&script->store, sizeof(*map));
-    if(!map) {
-        status = panic("failed to object store object");
+    if(script->map) {
+        if(stack_push(&script->map_stack, script->map)) {
+            status = panic("failed to push stack object");
+        } else if(map_copy(map, script->map)) {
+            status = panic("failed to copy map object");
+        } else {
+            script->map = map;
+        }
     } else {
-        top = stack_top(&script->map);
-        if(top ? map_copy(map, top) : map_create(map, (map_compare_cb) strcmp, script->heap->map_pool)) {
+        if(map_create(map, (map_compare_cb) strcmp, script->heap->map_pool)) {
             status = panic("failed to create map object");
         } else {
-            if(stack_push(&script->map, map))
-                status = panic("failed to push stack object");
-            if(status)
-                map_destroy(map);
+            script->map = map;
         }
     }
 
@@ -390,43 +387,9 @@ int script_map_push(struct script * script) {
 }
 
 void script_map_pop(struct script * script) {
-    struct map * map;
+    map_destroy(script->map);
 
-    map = stack_pop(&script->map);
-    if(map)
-        map_destroy(map);
-}
-
-void script_map_clear(struct script * script) {
-    struct map * map;
-
-    map = stack_pop(&script->map);
-    while(map) {
-        map_destroy(map);
-        map = stack_pop(&script->map);
-    }
-}
-
-int script_map_insert(struct script * script, struct script_range * range) {
-    int status = 0;
-    struct map * map;
-
-    map = stack_top(&script->map);
-    if(!map) {
-        status = panic("invalid map");
-    } else if(map_insert(map, range->string, range)) {
-        status = panic("failed to insert map object");
-    }
-
-    return status;
-}
-
-struct script_range * script_map_search(struct script * script, char * identifier) {
-    struct map * map;
-
-    map = stack_top(&script->map);
-
-    return map ? map_search(map, identifier) : NULL;
+    script->map = stack_pop(&script->map_stack);
 }
 
 int script_logic_push(struct script * script) {
@@ -597,20 +560,6 @@ struct script_range * script_range_constant(struct script * script, struct const
     return status ? NULL : range;
 }
 
-struct script_range * script_range_variable(struct script * script, char * variable) {
-    int status = 0;
-    struct script_range * range;
-
-    range = script_map_search(script, variable);
-    if(!range) {
-        range = script_range(script, identifier, "%s", variable);
-        if(!range)
-            status = panic("failed to range script object");
-    }
-
-    return status ? NULL : range;
-}
-
 void script_range_clear(struct script * script) {
     struct script_range * range;
 
@@ -761,9 +710,11 @@ int script_translate(struct script * script, struct script_node * root) {
     struct script_node * node;
     struct script_range * range;
 
+    struct map map;
+
     switch(root->token) {
         case script_curly_open:
-            if(script_map_push(script)) {
+            if(script_map_push(script, &map)) {
                 status = panic("failed to map push script object");
             } else {
                 node = root->root;
@@ -914,11 +865,16 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                             *result = range;
                         }
                     } else {
-                        range = script_range_variable(script, root->identifier);
-                        if(!range) {
-                            status = panic("failed to range variable script object");
-                        } else {
+                        range = map_search(script->map, root->identifier);
+                        if(range) {
                             *result = range;
+                        } else {
+                            range = script_range(script, identifier, "%s", root->identifier);
+                            if(!range) {
+                                status = panic("failed to range script object");
+                            } else {
+                                *result = range;
+                            }
                         }
                     }
                 }
@@ -969,7 +925,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                     status = panic("failed to range script object");
                 } else if(range_assign(range->range, y->range)) {
                     status = panic("failed to assign range object");
-                } else if(script_map_insert(script, range)) {
+                } else if(map_insert(script->map, range->string, range)) {
                     status = panic("failed to map insert script object");
                 } else {
                     *result = range;
@@ -986,7 +942,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                     status = panic("failed to range script object");
                 } else if(range_plus(range->range, x->range, y->range)) {
                     status = panic("failed to plus range object");
-                } else if(script_map_insert(script, range)) {
+                } else if(map_insert(script->map, range->string, range)) {
                     status = panic("failed to map insert script object");
                 } else {
                     *result = range;
@@ -1003,7 +959,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                     status = panic("failed to range script object");
                 } else if(range_minus(range->range, x->range, y->range)) {
                     status = panic("failed to minus range object");
-                } else if(script_map_insert(script, range)) {
+                } else if(map_insert(script->map, range->string, range)) {
                     status = panic("failed to map insert script object");
                 } else {
                     *result = range;
@@ -1672,7 +1628,7 @@ struct script_range * function_set(struct script * script, struct script_array *
                 status = panic("failed to range script object");
             } else if(range_assign(range->range, y->range)) {
                 status = panic("failed to assign range object");
-            }  else if(script_map_insert(script, range)) {
+            }  else if(map_insert(script->map, range->string, range)) {
                 status = panic("failed to map insert script object");
             }
         }
