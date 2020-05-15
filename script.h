@@ -61,7 +61,7 @@ struct script {
     void * parser;
     struct store store;
     struct stack map_stack;
-    struct stack logic;
+    struct stack logic_stack;
     struct stack range;
     struct stack array;
     struct map function;
@@ -70,6 +70,7 @@ struct script {
     struct script_undef undef;
     struct script_node * root;
     struct map * map;
+    struct logic * logic;
 };
 
 int script_create(struct script *, size_t, struct heap *, struct table *);

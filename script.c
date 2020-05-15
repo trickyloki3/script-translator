@@ -6,11 +6,8 @@
 int script_map_push(struct script *, struct map *);
 void script_map_pop(struct script *);
 
-int script_logic_push(struct script *);
+int script_logic_push(struct script *, struct logic *);
 void script_logic_pop(struct script *);
-void script_logic_clear(struct script *);
-int script_logic_top_push(struct script *, enum logic_type, void *);
-int script_logic_top_pop(struct script *);
 
 struct script_range * script_range(struct script *, enum script_type, char *, ...);
 struct script_range * script_range_argument(struct script *, struct argument_node *);
@@ -255,7 +252,7 @@ int script_create(struct script * script, size_t size, struct heap * heap, struc
                 } else if(stack_create(&script->map_stack, heap->stack_pool)) {
                     status = panic("failed to create stack object");
                     goto map_fail;
-                } else if(stack_create(&script->logic, heap->stack_pool)) {
+                } else if(stack_create(&script->logic_stack, heap->stack_pool)) {
                     status = panic("failed to create stack object");
                     goto logic_fail;
                 } else if(stack_create(&script->range, heap->stack_pool)) {
@@ -317,7 +314,7 @@ function_fail:
 array_fail:
     stack_destroy(&script->range);
 range_fail:
-    stack_destroy(&script->logic);
+    stack_destroy(&script->logic_stack);
 logic_fail:
     stack_destroy(&script->map_stack);
 map_fail:
@@ -337,7 +334,7 @@ void script_destroy(struct script * script) {
     map_destroy(&script->function);
     stack_destroy(&script->array);
     stack_destroy(&script->range);
-    stack_destroy(&script->logic);
+    stack_destroy(&script->logic_stack);
     stack_destroy(&script->map_stack);
     store_destroy(&script->store);
     scriptpstate_delete(script->parser);
@@ -349,6 +346,7 @@ int script_compile(struct script * script, char * string) {
 
     script->root = NULL;
     script->map = NULL;
+    script->logic = NULL;
 
     if(script_parse(script, string)) {
         status = panic("failed to parse script object");
@@ -358,7 +356,6 @@ int script_compile(struct script * script, char * string) {
 
     script_array_clear(script);
     script_range_clear(script);
-    script_logic_clear(script);
     store_clear(&script->store);
 
     return status;
@@ -392,37 +389,29 @@ void script_map_pop(struct script * script) {
     script->map = stack_pop(&script->map_stack);
 }
 
-int script_logic_push(struct script * script) {
+int script_logic_push(struct script * script, struct logic * logic) {
     int status = 0;
-    struct logic * logic;
-    struct logic * top;
 
-    logic = store_malloc(&script->store, sizeof(*logic));
-    if(!logic) {
-        status = panic("failed to object store object");
-    } else {
-        top = stack_top(&script->logic);
-        if(top) {
-            if(logic_copy(logic, top)) {
-                status = panic("failed to copy logic object");
-            } else {
-                if(stack_push(&script->logic, logic))
-                    status = panic("failed to push stack object");
-                if(status)
-                    logic_destroy(logic);
-            }
+    if(script->logic) {
+        if(stack_push(&script->logic_stack, script->logic)) {
+            status = panic("failed to push stack object");
+        } else if(logic_copy(logic, script->logic)) {
+            status = panic("failed to copy logic object");
         } else {
-            if(logic_create(logic, script->heap->logic_pool)) {
-                status = panic("failed to create logic object");
+            script->logic = logic;
+        }
+    } else {
+        if(logic_create(logic, script->heap->logic_pool)) {
+            status = panic("failed to create logic object");
+        } else {
+            if(logic_push(logic, or, NULL)) {
+                status = panic("failed to push logic object");
             } else {
-                if(logic_push(logic, or, NULL)) {
-                    status = panic("failed to push logic object");
-                } else if(stack_push(&script->logic, logic)) {
-                    status = panic("failed to push stack object");
-                }
-                if(status)
-                    logic_destroy(logic);
+                script->logic = logic;
             }
+
+            if(status)
+                logic_destroy(logic);
         }
     }
 
@@ -430,49 +419,9 @@ int script_logic_push(struct script * script) {
 }
 
 void script_logic_pop(struct script * script) {
-    struct logic * logic;
+    logic_destroy(script->logic);
 
-    logic = stack_pop(&script->logic);
-    if(logic)
-        logic_destroy(logic);
-}
-
-void script_logic_clear(struct script * script) {
-    struct logic * logic;
-
-    logic = stack_pop(&script->logic);
-    while(logic) {
-        logic_destroy(logic);
-        logic = stack_pop(&script->logic);
-    }
-}
-
-int script_logic_top_push(struct script * script, enum logic_type type, void * data) {
-    int status = 0;
-    struct logic * logic;
-
-    logic = stack_top(&script->logic);
-    if(!logic) {
-        status = panic("invalid logic");
-    } else if(logic_push(logic, type, data)) {
-        status = panic("failed to push logic object");
-    }
-
-    return status;
-}
-
-int script_logic_top_pop(struct script * script) {
-    int status = 0;
-    struct logic * logic;
-
-    logic = stack_top(&script->logic);
-    if(!logic) {
-        status = panic("invalid logic");
-    } else if(logic_pop(logic)) {
-        status = panic("failed to pop logic object");
-    }
-
-    return status;
+    script->logic = stack_pop(&script->logic_stack);
 }
 
 struct script_range * script_range(struct script * script, enum script_type type, char * format, ...) {
@@ -707,10 +656,12 @@ int script_parse_loop(struct script * script, struct string * string) {
 
 int script_translate(struct script * script, struct script_node * root) {
     int status = 0;
-    struct script_node * node;
-    struct script_range * range;
 
     struct map map;
+    struct logic logic;
+
+    struct script_node * node;
+    struct script_range * range;
 
     switch(root->token) {
         case script_curly_open:
@@ -735,7 +686,7 @@ int script_translate(struct script * script, struct script_node * root) {
             /* unsupport loop */
             break;
         case script_if:
-            if(script_logic_push(script)) {
+            if(script_logic_push(script, &logic)) {
                 status = panic("failed to logic push script object");
             } else {
                 if(script_evaluate(script, root->root, is_logic, &range)) {
@@ -747,17 +698,17 @@ int script_translate(struct script * script, struct script_node * root) {
             }
             break;
         case script_else:
-            if(script_logic_push(script)) {
+            if(script_logic_push(script, &logic)) {
                 status = panic("failed to logic push script object");
             } else {
-                if(script_logic_top_push(script, not, NULL)) {
+                if(logic_push(script->logic, not, NULL)) {
                     status = panic("failed to logic top push script object");
                 } else {
                     if(script_evaluate(script, root->root, is_logic, &range)) {
                         status = panic("failed to expression script object");
                     } else if(script_translate(script, root->root->next)) {
                         status = panic("failed to statement script object");
-                    } else if(script_logic_top_pop(script)) {
+                    } else if(logic_pop(script->logic)) {
                         status = panic("failed to logic top pop script object");
                     } else if(script_translate(script, root->root->next->next)) {
                         status = panic("failed to statement script object");
@@ -777,6 +728,9 @@ int script_translate(struct script * script, struct script_node * root) {
 
 int script_evaluate(struct script * script, struct script_node * root, int flag, struct script_range ** result) {
     int status = 0;
+
+    struct logic logic;
+
     struct script_range * x;
     struct script_range * y;
 
@@ -967,10 +921,10 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
             }
             break;
         case script_question:
-            if(script_logic_push(script)) {
+            if(script_logic_push(script, &logic)) {
                 status = panic("failed to logic push script object");
             } else {
-                if(script_logic_top_push(script, not, NULL)) {
+                if(logic_push(script->logic, not, NULL)) {
                     status = panic("failed to logic top push script object");
                 } else {
                     if( script_evaluate(script, root->root, flag | is_logic, &x) ||
@@ -993,7 +947,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
         case script_colon:
             if(script_evaluate(script, root->root, flag, &x)) {
                 status = panic("failed to evaluate script object");
-            } else if(script_logic_top_pop(script)) {
+            } else if(logic_pop(script->logic)) {
                 status = panic("failed to logic top pop script object");
             } else if(script_evaluate(script, root->root->next, flag, &y)) {
                 status = panic("failed to evaluate script object");
@@ -1232,13 +1186,13 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
             break;
         case script_or:
             if(flag & is_logic) {
-                if(script_logic_top_push(script, or, NULL)) {
+                if(logic_push(script->logic, or, NULL)) {
                     status = panic("failed to logic top push script object");
                 } else {
                     if( script_evaluate(script, root->root, flag, &x) ||
                         script_evaluate(script, root->root->next, flag, &y) ) {
                         status = panic("failed to evaluate script object");
-                    } else if(script_logic_top_pop(script)) {
+                    } else if(logic_pop(script->logic)) {
                         status = panic("failed to logic top pop script object");
                     }
                 }
@@ -1261,13 +1215,13 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
             break;
         case script_and:
             if(flag & is_logic) {
-                if(script_logic_top_push(script, and, NULL)) {
+                if(logic_push(script->logic, and, NULL)) {
                     status = panic("failed to logic top push script object");
                 } else {
                     if( script_evaluate(script, root->root, flag, &x) ||
                         script_evaluate(script, root->root->next, flag, &y) ) {
                         status = panic("failed to evaluate script object");
-                    } else if(script_logic_top_pop(script)) {
+                    } else if(logic_pop(script->logic)) {
                         status = panic("failed to logic top pop script object");
                     }
                 }
@@ -1290,11 +1244,11 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
             break;
         case script_not:
             if(flag & is_logic) {
-                if(script_logic_top_push(script, not, NULL)) {
+                if(logic_push(script->logic, not, NULL)) {
                     status = panic("failed to logic top push script object");
                 } else if(script_evaluate(script, root->root, flag, &x)) {
                     status = panic("failed to evaluate script object");
-                } else if(script_logic_top_pop(script)) {
+                } else if(logic_pop(script->logic)) {
                     status = panic("failed to logic top pop script object");
                 }
             } else {
@@ -1325,7 +1279,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                             status = panic("failed to range script object");
                         } else if(range_equal(range->range, x->range, y->range)) {
                             status = panic("failed to equal range object");
-                        } else if(script_logic_top_push(script, cond, range)) {
+                        } else if(logic_push(script->logic, cond, range)) {
                             status = panic("failed to logic top push script object");
                         }
                     }
@@ -1336,7 +1290,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                             status = panic("failed to range script object");
                         } else if(range_equal(range->range, y->range, x->range)) {
                             status = panic("failed to equal range object");
-                        } else if(script_logic_top_push(script, cond, range)) {
+                        } else if(logic_push(script->logic, cond, range)) {
                             status = panic("failed to logic top push script object");
                         }
                     }
@@ -1366,7 +1320,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                             status = panic("failed to range script object");
                         } else if(range_not_equal(range->range, x->range, y->range)) {
                             status = panic("failed to not equal range object");
-                        } else if(script_logic_top_push(script, cond, range)) {
+                        } else if(logic_push(script->logic, cond, range)) {
                             status = panic("failed to logic top push script object");
                         }
                     }
@@ -1377,7 +1331,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                             status = panic("failed to range script object");
                         } else if(range_not_equal(range->range, y->range, x->range)) {
                             status = panic("failed to not equal range object");
-                        } else if(script_logic_top_push(script, cond, range)) {
+                        } else if(logic_push(script->logic, cond, range)) {
                             status = panic("failed to logic top push script object");
                         }
                     }
@@ -1407,7 +1361,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                             status = panic("failed to range script object");
                         } else if(range_lesser(range->range, x->range, y->range)) {
                             status = panic("failed to lesser range object");
-                        } else if(script_logic_top_push(script, cond, range)) {
+                        } else if(logic_push(script->logic, cond, range)) {
                             status = panic("failed to logic top push script object");
                         }
                     }
@@ -1418,7 +1372,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                             status = panic("failed to range script object");
                         } else if(range_greater(range->range, y->range, x->range)) {
                             status = panic("failed to greater range object");
-                        } else if(script_logic_top_push(script, cond, range)) {
+                        } else if(logic_push(script->logic, cond, range)) {
                             status = panic("failed to logic top push script object");
                         }
                     }
@@ -1448,7 +1402,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                             status = panic("failed to range script object");
                         } else if(range_lesser_equal(range->range, x->range, y->range)) {
                             status = panic("failed to lesser equal range object");
-                        } else if(script_logic_top_push(script, cond, range)) {
+                        } else if(logic_push(script->logic, cond, range)) {
                             status = panic("failed to logic top push script object");
                         }
                     }
@@ -1459,7 +1413,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                             status = panic("failed to range script object");
                         } else if(range_greater_equal(range->range, y->range, x->range)) {
                             status = panic("failed to greater equal range object");
-                        } else if(script_logic_top_push(script, cond, range)) {
+                        } else if(logic_push(script->logic, cond, range)) {
                             status = panic("failed to logic top push script object");
                         }
                     }
@@ -1489,7 +1443,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                             status = panic("failed to range script object");
                         } else if(range_greater(range->range, x->range, y->range)) {
                             status = panic("failed to greater range object");
-                        } else if(script_logic_top_push(script, cond, range)) {
+                        } else if(logic_push(script->logic, cond, range)) {
                             status = panic("failed to logic top push script object");
                         }
                     }
@@ -1500,7 +1454,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                             status = panic("failed to range script object");
                         } else if(range_lesser(range->range, y->range, x->range)) {
                             status = panic("failed to lesser range object");
-                        } else if(script_logic_top_push(script, cond, range)) {
+                        } else if(logic_push(script->logic, cond, range)) {
                             status = panic("failed to logic top push script object");
                         }
                     }
@@ -1530,7 +1484,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                             status = panic("failed to range script object");
                         } else if(range_greater_equal(range->range, x->range, y->range)) {
                             status = panic("failed to greater equal range object");
-                        } else if(script_logic_top_push(script, cond, range)) {
+                        } else if(logic_push(script->logic, cond, range)) {
                             status = panic("failed to logic top push script object");
                         }
                     }
@@ -1541,7 +1495,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                             status = panic("failed to range script object");
                         } else if(range_lesser_equal(range->range, y->range, x->range)) {
                             status = panic("failed to lesser equal range object");
-                        } else if(script_logic_top_push(script, cond, range)) {
+                        } else if(logic_push(script->logic, cond, range)) {
                             status = panic("failed to logic top push script object");
                         }
                     }
