@@ -59,6 +59,7 @@ void yyerror(struct script *, char const *);
 %%
 
 script  : statement_block {
+              $$->next = script->root;
               script->root = $$;
           }
 
