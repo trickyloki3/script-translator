@@ -9,7 +9,7 @@ void script_map_pop(struct script *);
 int script_logic_push(struct script *, struct logic *);
 void script_logic_pop(struct script *);
 
-int script_array_push(struct script *, struct script_array *);
+int script_array_push(struct script *, struct array *);
 void script_array_pop(struct script *);
 
 struct script_range * script_range_create(struct script *, enum script_type, char *, ...);
@@ -24,15 +24,15 @@ enum script_flag {
 int script_parse(struct script *, char *);
 int script_translate(struct script *, struct script_node *);
 int script_evaluate(struct script *, struct script_node *, int, struct script_range **);
-struct script_range * script_execute(struct script *, struct script_array *, struct argument_node *);
+struct script_range * script_execute(struct script *, struct array *, struct argument_node *);
 
-struct script_range * function_set(struct script *, struct script_array *);
-struct script_range * function_min(struct script *, struct script_array *);
-struct script_range * function_max(struct script *, struct script_array *);
-struct script_range * function_pow(struct script *, struct script_array *);
-struct script_range * function_rand(struct script *, struct script_array *);
+struct script_range * function_set(struct script *, struct array *);
+struct script_range * function_min(struct script *, struct array *);
+struct script_range * function_max(struct script *, struct array *);
+struct script_range * function_pow(struct script *, struct array *);
+struct script_range * function_rand(struct script *, struct array *);
 
-typedef struct script_range * (*function_cb) (struct script *, struct script_array *);
+typedef struct script_range * (*function_cb) (struct script *, struct array *);
 
 struct function_entry {
     char * identifier;
@@ -46,21 +46,21 @@ struct function_entry {
     { NULL, NULL}
 };
 
-int argument_write(struct script *, struct script_array *, struct strbuf *, char *);
-int argument_description(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
-int argument_sign(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
-int argument_zero(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
-int argument_array(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
-int argument_integer(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
-int argument_string(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
-int argument_second(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
-int argument_millisecond(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
-int argument_item(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
-int argument_skill(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
-int argument_mob(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
-int argument_mercenary(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
+int argument_write(struct script *, struct array *, struct strbuf *, char *);
+int argument_description(struct script *, struct array *, struct argument_node *, struct strbuf *);
+int argument_sign(struct script *, struct array *, struct argument_node *, struct strbuf *);
+int argument_zero(struct script *, struct array *, struct argument_node *, struct strbuf *);
+int argument_array(struct script *, struct array *, struct argument_node *, struct strbuf *);
+int argument_integer(struct script *, struct array *, struct argument_node *, struct strbuf *);
+int argument_string(struct script *, struct array *, struct argument_node *, struct strbuf *);
+int argument_second(struct script *, struct array *, struct argument_node *, struct strbuf *);
+int argument_millisecond(struct script *, struct array *, struct argument_node *, struct strbuf *);
+int argument_item(struct script *, struct array *, struct argument_node *, struct strbuf *);
+int argument_skill(struct script *, struct array *, struct argument_node *, struct strbuf *);
+int argument_mob(struct script *, struct array *, struct argument_node *, struct strbuf *);
+int argument_mercenary(struct script *, struct array *, struct argument_node *, struct strbuf *);
 
-typedef int (*argument_cb) (struct script *, struct script_array *, struct argument_node *, struct strbuf *);
+typedef int (*argument_cb) (struct script *, struct array *, struct argument_node *, struct strbuf *);
 
 struct argument_entry {
     char * identifier;
@@ -81,7 +81,7 @@ struct argument_entry {
     { NULL, NULL }
 };
 
-int script_array_add(struct script_array * array, struct script_range * range) {
+int array_add(struct array * array, struct script_range * range) {
     int status = 0;
 
     if(array->count >= ARRAY_TOTAL) {
@@ -94,7 +94,7 @@ int script_array_add(struct script_array * array, struct script_range * range) {
     return status;
 }
 
-struct script_range * script_array_get(struct script_array * array, size_t index) {
+struct script_range * array_get(struct array * array, size_t index) {
     return index < array->count ? array->array[index] : NULL;
 }
 
@@ -158,7 +158,7 @@ void script_buffer_put(struct script_buffer * buffer, struct strbuf * strbuf) {
     }
 }
 
-int script_undef_create(struct script_undef * undef, size_t size, struct heap * heap) {
+int undefined_create(struct undefined * undef, size_t size, struct heap * heap) {
     int status = 0;
 
     if(strbuf_create(&undef->strbuf, size)) {
@@ -179,13 +179,13 @@ int script_undef_create(struct script_undef * undef, size_t size, struct heap * 
     return status;
 }
 
-void script_undef_destroy(struct script_undef * undef) {
+void undefined_destroy(struct undefined * undef) {
     map_destroy(&undef->map);
     store_destroy(&undef->store);
     strbuf_destroy(&undef->strbuf);
 }
 
-int script_undef_add(struct script_undef * undef, char * format, ...) {
+int undefined_add(struct undefined * undef, char * format, ...) {
     int status = 0;
 
     va_list vararg;
@@ -220,7 +220,7 @@ int script_undef_add(struct script_undef * undef, char * format, ...) {
     return status;
 }
 
-void script_undef_print(struct script_undef * undef) {
+void undefined_print(struct undefined * undef) {
     struct map_kv kv;
 
     kv = map_start(&undef->map);
@@ -272,8 +272,8 @@ int script_create(struct script * script, size_t size, struct heap * heap, struc
                 } else if(script_buffer_create(&script->buffer, size, heap)) {
                     status = panic("failed to create script buffer object");
                     goto buffer_fail;
-                } else if(script_undef_create(&script->undef, size, heap)) {
-                    status = panic("failed to create script undef object");
+                } else if(undefined_create(&script->undefined, size, heap)) {
+                    status = panic("failed to create undefined object");
                     goto undef_fail;
                 } else {
                     function = function_list;
@@ -304,7 +304,7 @@ int script_create(struct script * script, size_t size, struct heap * heap, struc
     return status;
 
 script_fail:
-    script_undef_destroy(&script->undef);
+    undefined_destroy(&script->undefined);
 undef_fail:
     script_buffer_destroy(&script->buffer);
 buffer_fail:
@@ -328,7 +328,7 @@ parser_fail:
 }
 
 void script_destroy(struct script * script) {
-    script_undef_destroy(&script->undef);
+    undefined_destroy(&script->undefined);
     script_buffer_destroy(&script->buffer);
     map_destroy(&script->argument);
     map_destroy(&script->function);
@@ -428,7 +428,7 @@ void script_logic_pop(struct script * script) {
     script->logic = stack_pop(&script->logic_stack);
 }
 
-int script_array_push(struct script * script, struct script_array * array) {
+int script_array_push(struct script * script, struct array * array) {
     int status = 0;
 
     array->count = 0;
@@ -651,7 +651,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
     int status = 0;
 
     struct logic logic;
-    struct script_array array;
+    struct array array;
 
     struct script_range * x;
     struct script_range * y;
@@ -680,8 +680,8 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                 } else {
                     if(script_evaluate(script, root->root, flag | is_array, &x)) {
                         status = panic("failed to evaluate script object");
-                    } else if(!script->array->count && script_array_add(script->array, x)) {
-                        status = panic("failed to add script array object");
+                    } else if(!script->array->count && array_add(script->array, x)) {
+                        status = panic("failed to add array object");
                     } else {
                         function = map_search(&script->function, root->identifier);
                         if(function) {
@@ -701,8 +701,8 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                                     *result = range;
                                 }
                             } else {
-                                if(script_undef_add(&script->undef, "%s", root->identifier)) {
-                                    status = panic("failed to add script undef object");
+                                if(undefined_add(&script->undefined, "%s", root->identifier)) {
+                                    status = panic("failed to add undefined object");
                                 } else {
                                     range = script_range_create(script, identifier, "%s", root->identifier);
                                     if(!range) {
@@ -757,14 +757,14 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
             } else {
                 if(flag & is_array) {
                     if(root->root->token == script_comma) {
-                        if(script_array_add(script->array, y))
-                            status = panic("failed to add script array object");
+                        if(array_add(script->array, y))
+                            status = panic("failed to add array object");
                     } else if(root->root->next->token == script_comma) {
-                        if(script_array_add(script->array, x))
-                            status = panic("failed to add script array object");
+                        if(array_add(script->array, x))
+                            status = panic("failed to add array object");
                     } else {
-                        if(script_array_add(script->array, x) || script_array_add(script->array, y))
-                            status = panic("failed to add script array object");
+                        if(array_add(script->array, x) || array_add(script->array, y))
+                            status = panic("failed to add array object");
                     }
                 }
 
@@ -1432,7 +1432,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
     return status;
 }
 
-struct script_range * script_execute(struct script * script, struct script_array * array, struct argument_node * argument) {
+struct script_range * script_execute(struct script * script, struct array * array, struct argument_node * argument) {
     int status = 0;
     argument_cb handler;
     struct strbuf * strbuf;
@@ -1440,9 +1440,9 @@ struct script_range * script_execute(struct script * script, struct script_array
     struct script_range * range;
 
     if(!argument->handler) {
-        range = script_array_get(array, argument->index);
+        range = array_get(array, argument->index);
         if(!range) {
-            status = panic("failed to get script array object");
+            status = panic("failed to get array object");
         } else {
             range->type = identifier;
         }
@@ -1480,17 +1480,17 @@ struct script_range * script_execute(struct script * script, struct script_array
     return status ? NULL : range;
 }
 
-struct script_range * function_set(struct script * script, struct script_array * array) {
+struct script_range * function_set(struct script * script, struct array * array) {
     int status = 0;
     struct script_range * x;
     struct script_range * y;
     struct script_range * range;
 
-    x = script_array_get(array, 0);
+    x = array_get(array, 0);
     if(!x) {
         status = panic("invalid indentifier");
     } else {
-        y = script_array_get(array, 1);
+        y = array_get(array, 1);
         if(!y) {
             status = panic("invalid expression");
         } else {
@@ -1508,17 +1508,17 @@ struct script_range * function_set(struct script * script, struct script_array *
     return status ? NULL : range;
 }
 
-struct script_range * function_min(struct script * script, struct script_array * array) {
+struct script_range * function_min(struct script * script, struct array * array) {
     int status = 0;
     struct script_range * x;
     struct script_range * y;
     struct script_range * range;
 
-    x = script_array_get(array, 0);
+    x = array_get(array, 0);
     if(!x) {
         status = panic("invalid min");
     } else {
-        y = script_array_get(array, 1);
+        y = array_get(array, 1);
         if(!y) {
             status = panic("invalid max");
         } else {
@@ -1534,17 +1534,17 @@ struct script_range * function_min(struct script * script, struct script_array *
     return status ? NULL : range;
 }
 
-struct script_range * function_max(struct script * script, struct script_array * array) {
+struct script_range * function_max(struct script * script, struct array * array) {
     int status = 0;
     struct script_range * x;
     struct script_range * y;
     struct script_range * range;
 
-    x = script_array_get(array, 0);
+    x = array_get(array, 0);
     if(!x) {
         status = panic("invalid min");
     } else {
-        y = script_array_get(array, 1);
+        y = array_get(array, 1);
         if(!y) {
             status = panic("invalid max");
         } else {
@@ -1560,17 +1560,17 @@ struct script_range * function_max(struct script * script, struct script_array *
     return status ? NULL : range;
 }
 
-struct script_range * function_pow(struct script * script, struct script_array * array) {
+struct script_range * function_pow(struct script * script, struct array * array) {
     int status = 0;
     struct script_range * x;
     struct script_range * y;
     struct script_range * range;
 
-    x = script_array_get(array, 0);
+    x = array_get(array, 0);
     if(!x) {
         status = panic("invalid base");
     } else {
-        y = script_array_get(array, 1);
+        y = array_get(array, 1);
         if(!y) {
             status = panic("invalid power");
         } else {
@@ -1586,17 +1586,17 @@ struct script_range * function_pow(struct script * script, struct script_array *
     return status ? NULL : range;
 }
 
-struct script_range * function_rand(struct script * script, struct script_array * array) {
+struct script_range * function_rand(struct script * script, struct array * array) {
     int status = 0;
     struct script_range * x;
     struct script_range * y;
     struct script_range * range;
 
-    x = script_array_get(array, 0);
+    x = array_get(array, 0);
     if(!x) {
         status = panic("invalid min");
     } else {
-        y = script_array_get(array, 1);
+        y = array_get(array, 1);
         if(!y) {
             range = script_range_create(script, integer, "rand(%s)", x->string);
             if(!range) {
@@ -1617,11 +1617,11 @@ struct script_range * function_rand(struct script * script, struct script_array 
     return status ? NULL : range;
 }
 
-int argument_write(struct script * script, struct script_array * array, struct strbuf * strbuf, char * string) {
+int argument_write(struct script * script, struct array * array, struct strbuf * strbuf, char * string) {
     int status = 0;
 
     size_t i;
-    struct script_array subset;
+    struct array subset;
 
     char * anchor;
     struct script_range * range;
@@ -1638,22 +1638,22 @@ int argument_write(struct script * script, struct script_array * array, struct s
 
                 if(*(string + 1) == '*') {
                     for(i = 0; i < array->count; i++) {
-                        range = script_array_get(array, i);
+                        range = array_get(array, i);
                         if(!range) {
-                            status = panic("failed to get script array object");
-                        } else if(script_array_add(&subset, range)) {
-                            status = panic("failed to add script array object");
+                            status = panic("failed to get array object");
+                        } else if(array_add(&subset, range)) {
+                            status = panic("failed to add array object");
                         }
                     }
 
                     string += 2;
                 } else {
                     do {
-                        range = script_array_get(array, strtol(string + 1, &string, 10));
+                        range = array_get(array, strtol(string + 1, &string, 10));
                         if(!range) {
-                            status = panic("failed to get script array object");
-                        } else if(script_array_add(&subset, range)) {
-                            status = panic("failed to add script array object");
+                            status = panic("failed to get array object");
+                        } else if(array_add(&subset, range)) {
+                            status = panic("failed to add array object");
                         }
                     } while(*string == ',' && !status);
                 }
@@ -1703,7 +1703,7 @@ int argument_write(struct script * script, struct script_array * array, struct s
     return status;
 }
 
-int argument_description(struct script * script, struct script_array * array, struct argument_node * argument, struct strbuf * strbuf) {
+int argument_description(struct script * script, struct array * array, struct argument_node * argument, struct strbuf * strbuf) {
     int status = 0;
     struct print_node * print;
 
@@ -1721,14 +1721,14 @@ int argument_description(struct script * script, struct script_array * array, st
     return status;
 }
 
-int argument_sign(struct script * script, struct script_array * array, struct argument_node * argument, struct strbuf * strbuf) {
+int argument_sign(struct script * script, struct array * array, struct argument_node * argument, struct strbuf * strbuf) {
     int status = 0;
     struct print_node * print;
     struct script_range * range;
 
-    range = script_array_get(array, 0);
+    range = array_get(array, 0);
     if(!range) {
-        status = panic("failed to get script array object");
+        status = panic("failed to get array object");
     } else {
         print = argument->print;
         if(range->range->max < 0)
@@ -1744,13 +1744,13 @@ int argument_sign(struct script * script, struct script_array * array, struct ar
     return status;
 }
 
-int argument_zero(struct script * script, struct script_array * array, struct argument_node * argument, struct strbuf * strbuf) {
+int argument_zero(struct script * script, struct array * array, struct argument_node * argument, struct strbuf * strbuf) {
     int status = 0;
     struct script_range * range;
 
-    range = script_array_get(array, 0);
+    range = array_get(array, 0);
     if(!range) {
-        status = panic("failed to get script array object");
+        status = panic("failed to get array object");
     } else if(range->range->min && range->range->max) {
         if(argument_write(script, array, strbuf, argument->print->string)) {
             status = panic("failed to write argument object");
@@ -1762,7 +1762,7 @@ int argument_zero(struct script * script, struct script_array * array, struct ar
     return status;
 }
 
-int argument_array(struct script * script, struct script_array * array, struct argument_node * argument, struct strbuf * strbuf) {
+int argument_array(struct script * script, struct array * array, struct argument_node * argument, struct strbuf * strbuf) {
     int status = 0;
 
     size_t i;
@@ -1773,9 +1773,9 @@ int argument_array(struct script * script, struct script_array * array, struct a
     char * string;
 
     for(i = 0; i < array->count && !status; i++) {
-        range = script_array_get(array, i);
+        range = array_get(array, i);
         if(!range) {
-            status = panic("failed to get script array object");
+            status = panic("failed to get array object");
         } else {
             node = range->range->root;
             while(node && !status) {
@@ -1801,7 +1801,7 @@ int argument_array(struct script * script, struct script_array * array, struct a
     return status;
 }
 
-int argument_integer(struct script * script, struct script_array * array, struct argument_node * argument, struct strbuf * strbuf) {
+int argument_integer(struct script * script, struct array * array, struct argument_node * argument, struct strbuf * strbuf) {
     int status = 0;
 
     long min;
@@ -1812,9 +1812,9 @@ int argument_integer(struct script * script, struct script_array * array, struct
 
     struct script_range * range;
 
-    range = script_array_get(array, 0);
+    range = array_get(array, 0);
     if(!range) {
-        status = panic("failed to get script array object");
+        status = panic("failed to get array object");
     } else {
         if(argument->integer) {
             flag = argument->integer->flag;
@@ -1872,13 +1872,13 @@ int argument_integer(struct script * script, struct script_array * array, struct
     return status;
 }
 
-int argument_string(struct script * script, struct script_array * array, struct argument_node * argument, struct strbuf * strbuf) {
+int argument_string(struct script * script, struct array * array, struct argument_node * argument, struct strbuf * strbuf) {
     int status = 0;
     struct script_range * range;
 
-    range = script_array_get(array, 0);
+    range = array_get(array, 0);
     if(!range) {
-        status = panic("failed to get script array object");
+        status = panic("failed to get array object");
     } else if(strbuf_printf(strbuf, "%s", range->string)) {
         status = panic("failed to printf strbuf object");
     }
@@ -1886,7 +1886,7 @@ int argument_string(struct script * script, struct script_array * array, struct 
     return status;
 }
 
-int argument_second(struct script * script, struct script_array * array, struct argument_node * argument, struct strbuf * strbuf) {
+int argument_second(struct script * script, struct array * array, struct argument_node * argument, struct strbuf * strbuf) {
     int status = 0;
     struct script_range * range;
 
@@ -1894,9 +1894,9 @@ int argument_second(struct script * script, struct script_array * array, struct 
     long max;
     struct print_node * print;
 
-    range = script_array_get(array, 0);
+    range = array_get(array, 0);
     if(!range) {
-        status = panic("failed to get script array object");
+        status = panic("failed to get array object");
     } else {
         min = labs(range->range->min);
         max = labs(range->range->max);
@@ -1932,7 +1932,7 @@ int argument_second(struct script * script, struct script_array * array, struct 
     return status;
 }
 
-int argument_millisecond(struct script * script, struct script_array * array, struct argument_node * argument, struct strbuf * strbuf) {
+int argument_millisecond(struct script * script, struct array * array, struct argument_node * argument, struct strbuf * strbuf) {
     int status = 0;
     struct script_range * range;
 
@@ -1940,9 +1940,9 @@ int argument_millisecond(struct script * script, struct script_array * array, st
     long max;
     struct print_node * print;
 
-    range = script_array_get(array, 0);
+    range = array_get(array, 0);
     if(!range) {
-        status = panic("failed to get script array object");
+        status = panic("failed to get array object");
     } else {
         min = labs(range->range->min);
         max = labs(range->range->max);
@@ -1984,7 +1984,7 @@ int argument_millisecond(struct script * script, struct script_array * array, st
     return status;
 }
 
-int argument_item(struct script * script, struct script_array * array, struct argument_node * argument, struct strbuf * strbuf) {
+int argument_item(struct script * script, struct array * array, struct argument_node * argument, struct strbuf * strbuf) {
     int status = 0;
 
     size_t i;
@@ -1995,9 +1995,9 @@ int argument_item(struct script * script, struct script_array * array, struct ar
     struct item_node * item;
 
     for(i = 0; i < array->count && !status; i++) {
-        range = script_array_get(array, i);
+        range = array_get(array, i);
         if(!range) {
-            status = panic("failed to get script array object");
+            status = panic("failed to get array object");
         } else {
             item = item_name(script->table, range->string);
             if(item) {
@@ -2034,7 +2034,7 @@ int argument_item(struct script * script, struct script_array * array, struct ar
     return status;
 }
 
-int argument_skill(struct script * script, struct script_array * array, struct argument_node * argument, struct strbuf * strbuf) {
+int argument_skill(struct script * script, struct array * array, struct argument_node * argument, struct strbuf * strbuf) {
     int status = 0;
 
     size_t i;
@@ -2045,9 +2045,9 @@ int argument_skill(struct script * script, struct script_array * array, struct a
     struct skill_node * skill;
 
     for(i = 0; i < array->count && !status; i++) {
-        range = script_array_get(array, i);
+        range = array_get(array, i);
         if(!range) {
-            status = panic("failed to get script array object");
+            status = panic("failed to get array object");
         } else {
             skill = skill_name(script->table, range->string);
             if(skill) {
@@ -2084,7 +2084,7 @@ int argument_skill(struct script * script, struct script_array * array, struct a
     return status;
 }
 
-int argument_mob(struct script * script, struct script_array * array, struct argument_node * argument, struct strbuf * strbuf) {
+int argument_mob(struct script * script, struct array * array, struct argument_node * argument, struct strbuf * strbuf) {
     int status = 0;
 
     size_t i;
@@ -2095,9 +2095,9 @@ int argument_mob(struct script * script, struct script_array * array, struct arg
     struct mob_node * mob;
 
     for(i = 0; i < array->count && !status; i++) {
-        range = script_array_get(array, i);
+        range = array_get(array, i);
         if(!range) {
-            status = panic("failed to get script array object");
+            status = panic("failed to get array object");
         } else {
             mob = mob_sprite(script->table, range->string);
             if(mob) {
@@ -2134,7 +2134,7 @@ int argument_mob(struct script * script, struct script_array * array, struct arg
     return status;
 }
 
-int argument_mercenary(struct script * script, struct script_array * array, struct argument_node * argument, struct strbuf * strbuf) {
+int argument_mercenary(struct script * script, struct array * array, struct argument_node * argument, struct strbuf * strbuf) {
     int status = 0;
 
     size_t i;
@@ -2145,9 +2145,9 @@ int argument_mercenary(struct script * script, struct script_array * array, stru
     struct mercenary_node * mercenary;
 
     for(i = 0; i < array->count && !status; i++) {
-        range = script_array_get(array, i);
+        range = array_get(array, i);
         if(!range) {
-            status = panic("failed to get script array object");
+            status = panic("failed to get array object");
         } else {
             node = range->range->root;
             while(node && !status) {
