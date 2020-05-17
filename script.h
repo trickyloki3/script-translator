@@ -22,6 +22,7 @@ struct script_range {
     enum script_type type;
     struct range * range;
     char * string;
+    struct script_range * next;
 };
 
 #define ARRAY_TOTAL 32
@@ -64,7 +65,6 @@ struct script {
     struct store store;
     struct stack map_stack;
     struct stack logic_stack;
-    struct stack range;
     struct stack array_stack;
     struct map function;
     struct map argument;
@@ -74,6 +74,7 @@ struct script {
     struct map * map;
     struct logic * logic;
     struct script_array * array;
+    struct script_range * range;
 };
 
 int script_create(struct script *, size_t, struct heap *, struct table *);

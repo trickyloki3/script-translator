@@ -9,13 +9,12 @@ void script_map_pop(struct script *);
 int script_logic_push(struct script *, struct logic *);
 void script_logic_pop(struct script *);
 
-struct script_range * script_range(struct script *, enum script_type, char *, ...);
-struct script_range * script_range_argument(struct script *, struct argument_node *);
-struct script_range * script_range_constant(struct script *, struct constant_node *);
-void script_range_clear(struct script *);
-
 int script_array_push(struct script *, struct script_array *);
 void script_array_pop(struct script *);
+
+struct script_range * script_range_create(struct script *, enum script_type, char *, ...);
+struct script_range * script_range_argument(struct script *, struct argument_node *);
+struct script_range * script_range_constant(struct script *, struct constant_node *);
 
 char * script_store_strbuf(struct script *, struct strbuf *);
 
@@ -265,9 +264,6 @@ int script_create(struct script * script, size_t size, struct heap * heap, struc
                 } else if(stack_create(&script->logic_stack, heap->stack_pool)) {
                     status = panic("failed to create stack object");
                     goto logic_fail;
-                } else if(stack_create(&script->range, heap->stack_pool)) {
-                    status = panic("failed to create stack object");
-                    goto range_fail;
                 } else if(stack_create(&script->array_stack, heap->stack_pool)) {
                     status = panic("failed to create stack object");
                     goto array_fail;
@@ -322,8 +318,6 @@ argument_fail:
 function_fail:
     stack_destroy(&script->array_stack);
 array_fail:
-    stack_destroy(&script->range);
-range_fail:
     stack_destroy(&script->logic_stack);
 logic_fail:
     stack_destroy(&script->map_stack);
@@ -343,7 +337,6 @@ void script_destroy(struct script * script) {
     map_destroy(&script->argument);
     map_destroy(&script->function);
     stack_destroy(&script->array_stack);
-    stack_destroy(&script->range);
     stack_destroy(&script->logic_stack);
     stack_destroy(&script->map_stack);
     store_destroy(&script->store);
@@ -358,6 +351,7 @@ int script_compile(struct script * script, char * string) {
     script->map = NULL;
     script->logic = NULL;
     script->array = NULL;
+    script->range = NULL;
 
     if(script_parse(script, string)) {
         status = panic("failed to parse script object");
@@ -365,7 +359,11 @@ int script_compile(struct script * script, char * string) {
         status = panic("failed to translate script object");
     }
 
-    script_range_clear(script);
+    while(script->range) {
+        range_destroy(script->range->range);
+        script->range = script->range->next;
+    }
+
     store_clear(&script->store);
 
     return status;
@@ -434,7 +432,29 @@ void script_logic_pop(struct script * script) {
     script->logic = stack_pop(&script->logic_stack);
 }
 
-struct script_range * script_range(struct script * script, enum script_type type, char * format, ...) {
+int script_array_push(struct script * script, struct script_array * array) {
+    int status = 0;
+
+    array->count = 0;
+
+    if(script->array) {
+        if(stack_push(&script->array_stack, script->array)) {
+            status = panic("failed to push stack object");
+        } else {
+            script->array = array;
+        }
+    } else {
+        script->array = array;
+    }
+
+    return status;
+}
+
+void script_array_pop(struct script * script) {
+    script->array = stack_pop(&script->array_stack);
+}
+
+struct script_range * script_range_create(struct script * script, enum script_type type, char * format, ...) {
     int status = 0;
     va_list vararg;
     struct script_range * range;
@@ -456,8 +476,9 @@ struct script_range * script_range(struct script * script, enum script_type type
                 range->string = store_vprintf(&script->store, format, vararg);
                 if(!range->string) {
                     status = panic("failed to vprintf store object");
-                } else if(stack_push(&script->range, range)) {
-                    status = panic("failed to push stack object");
+                } else {
+                    range->next = script->range;
+                    script->range = range;
                 }
                 if(status)
                     range_destroy(range->range);
@@ -475,7 +496,7 @@ struct script_range * script_range_argument(struct script * script, struct argum
     struct script_range * range;
     struct range_node * node;
 
-    range = script_range(script, identifier, "%s", argument->identifier);
+    range = script_range_create(script, identifier, "%s", argument->identifier);
     if(!range) {
         status = panic("failed to range script object");
     } else if(argument->range) {
@@ -497,7 +518,7 @@ struct script_range * script_range_constant(struct script * script, struct const
     struct script_range * range;
     struct range_node * node;
 
-    range = script_range(script, integer, "%s", constant->tag ? constant->tag : constant->identifier);
+    range = script_range_create(script, integer, "%s", constant->tag ? constant->tag : constant->identifier);
     if(!range) {
         status = panic("failed to range script object");
     } else {
@@ -517,34 +538,6 @@ struct script_range * script_range_constant(struct script * script, struct const
     }
 
     return status ? NULL : range;
-}
-
-void script_range_clear(struct script * script) {
-    struct script_range * range;
-
-    range = stack_pop(&script->range);
-    while(range) {
-        range_destroy(range->range);
-        range = stack_pop(&script->range);
-    }
-}
-
-int script_array_push(struct script * script, struct script_array * array) {
-    int status = 0;
-
-    array->count = 0;
-
-    if(script->array && stack_push(&script->array_stack, script->array)) {
-        status = panic("failed to push stack object");
-    } else {
-        script->array = array;
-    }
-
-    return status;
-}
-
-void script_array_pop(struct script * script) {
-    script->array = stack_pop(&script->array_stack);
 }
 
 char * script_store_strbuf(struct script * script, struct strbuf * strbuf) {
@@ -712,7 +705,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
 
     switch(root->token) {
         case script_integer:
-            range = script_range(script, integer, "%ld", root->integer);
+            range = script_range_create(script, integer, "%ld", root->integer);
             if(!range) {
                 status = panic("failed to range script object");
             } else if(range_add(range->range, root->integer, root->integer)) {
@@ -753,7 +746,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                                     if(script_undef_add(&script->undef, "%s", root->identifier)) {
                                         status = panic("failed to add script undef object");
                                     } else {
-                                        range = script_range(script, identifier, "%s", root->identifier);
+                                        range = script_range_create(script, identifier, "%s", root->identifier);
                                         if(!range) {
                                             status = panic("failed to range script object");
                                         } else {
@@ -789,7 +782,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                         if(range) {
                             *result = range;
                         } else {
-                            range = script_range(script, identifier, "%s", root->identifier);
+                            range = script_range_create(script, identifier, "%s", root->identifier);
                             if(!range) {
                                 status = panic("failed to range script object");
                             } else {
@@ -819,7 +812,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                 }
 
                 if(!status) {
-                    range = script_range(script, integer, "%s", y->string);
+                    range = script_range_create(script, integer, "%s", y->string);
                     if(!range) {
                         status = panic("failed to range script object");
                     } else if(range_assign(range->range, y->range)) {
@@ -835,7 +828,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                 script_evaluate(script, root->root->next, flag, &y) ) {
                 status = panic("failed to evaluate script object");
             } else {
-                range = script_range(script, integer, "%s", x->string);
+                range = script_range_create(script, integer, "%s", x->string);
                 if(!range) {
                     status = panic("failed to range script object");
                 } else if(range_assign(range->range, y->range)) {
@@ -852,7 +845,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                 script_evaluate(script, root->root->next, flag, &y) ) {
                 status = panic("failed to evaluate script object");
             } else {
-                range = script_range(script, integer, "%s", x->string);
+                range = script_range_create(script, integer, "%s", x->string);
                 if(!range) {
                     status = panic("failed to range script object");
                 } else if(range_plus(range->range, x->range, y->range)) {
@@ -869,7 +862,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                 script_evaluate(script, root->root->next, flag, &y) ) {
                 status = panic("failed to evaluate script object");
             } else {
-                range = script_range(script, integer, "%s", x->string);
+                range = script_range_create(script, integer, "%s", x->string);
                 if(!range) {
                     status = panic("failed to range script object");
                 } else if(range_minus(range->range, x->range, y->range)) {
@@ -892,7 +885,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                         script_evaluate(script, root->root->next, flag, &y) ) {
                         status = panic("failed to evaluate script object");
                     } else {
-                        range = script_range(script, integer, "%s ? %s", x->string, y->string);
+                        range = script_range_create(script, integer, "%s ? %s", x->string, y->string);
                         if(!range) {
                             status = panic("failed to range script object");
                         } else if(range_assign(range->range, y->range)) {
@@ -913,7 +906,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
             } else if(script_evaluate(script, root->root->next, flag, &y)) {
                 status = panic("failed to evaluate script object");
             } else {
-                range = script_range(script, integer, "%s : %s", x->string, y->string);
+                range = script_range_create(script, integer, "%s : %s", x->string, y->string);
                 if(!range) {
                     status = panic("failed to range script object");
                 } else if(range_or(range->range, x->range, y->range)) {
@@ -928,7 +921,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                 script_evaluate(script, root->root->next, flag, &y) ) {
                 status = panic("failed to evaluate script object");
             } else {
-                range = script_range(script, integer, "%s | %s", x->string, y->string);
+                range = script_range_create(script, integer, "%s | %s", x->string, y->string);
                 if(!range) {
                     status = panic("failed to range script object");
                 } else if(range_bit_or(range->range, x->range, y->range)) {
@@ -943,7 +936,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                 script_evaluate(script, root->root->next, flag, &y) ) {
                 status = panic("failed to evaluate script object");
             } else {
-                range = script_range(script, integer, "%s ^ %s", x->string, y->string);
+                range = script_range_create(script, integer, "%s ^ %s", x->string, y->string);
                 if(!range) {
                     status = panic("failed to range script object");
                 } else if(range_bit_xor(range->range, x->range, y->range)) {
@@ -958,7 +951,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                 script_evaluate(script, root->root->next, flag, &y) ) {
                 status = panic("failed to evaluate script object");
             } else {
-                range = script_range(script, integer, "%s & %s", x->string, y->string);
+                range = script_range_create(script, integer, "%s & %s", x->string, y->string);
                 if(!range) {
                     status = panic("failed to range script object");
                 } else if(range_bit_and(range->range, x->range, y->range)) {
@@ -973,7 +966,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                 script_evaluate(script, root->root->next, flag, &y) ) {
                 status = panic("failed to evaluate script object");
             } else {
-                range = script_range(script, integer, "%s << %s", x->string, y->string);
+                range = script_range_create(script, integer, "%s << %s", x->string, y->string);
                 if(!range) {
                     status = panic("failed to range script object");
                 } else if(range_bit_left(range->range, x->range, y->range)) {
@@ -988,7 +981,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                 script_evaluate(script, root->root->next, flag, &y) ) {
                 status = panic("failed to evaluate script object");
             } else {
-                range = script_range(script, integer, "%s >> %s", x->string, y->string);
+                range = script_range_create(script, integer, "%s >> %s", x->string, y->string);
                 if(!range) {
                     status = panic("failed to range script object");
                 } else if(range_bit_right(range->range, x->range, y->range)) {
@@ -1003,7 +996,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                 script_evaluate(script, root->root->next, flag, &y) ) {
                 status = panic("failed to evaluate script object");
             } else {
-                range = script_range(script, integer, "%s + %s", x->string, y->string);
+                range = script_range_create(script, integer, "%s + %s", x->string, y->string);
                 if(!range) {
                     status = panic("failed to range script object");
                 } else if(range_plus(range->range, x->range, y->range)) {
@@ -1018,7 +1011,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                 script_evaluate(script, root->root->next, flag, &y) ) {
                 status = panic("failed to evaluate script object");
             } else {
-                range = script_range(script, integer, "%s - %s", x->string, y->string);
+                range = script_range_create(script, integer, "%s - %s", x->string, y->string);
                 if(!range) {
                     status = panic("failed to range script object");
                 } else if(range_minus(range->range, x->range, y->range)) {
@@ -1033,7 +1026,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                 script_evaluate(script, root->root->next, flag, &y) ) {
                 status = panic("failed to evaluate script object");
             } else {
-                range = script_range(script, integer, "%s * %s", x->string, y->string);
+                range = script_range_create(script, integer, "%s * %s", x->string, y->string);
                 if(!range) {
                     status = panic("failed to range script object");
                 } else if(range_multiply(range->range, x->range, y->range)) {
@@ -1048,7 +1041,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                 script_evaluate(script, root->root->next, flag, &y) ) {
                 status = panic("failed to evaluate script object");
             } else {
-                range = script_range(script, integer, "%s / %s", x->string, y->string);
+                range = script_range_create(script, integer, "%s / %s", x->string, y->string);
                 if(!range) {
                     status = panic("failed to range script object");
                 } else if(range_divide(range->range, x->range, y->range)) {
@@ -1063,7 +1056,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                 script_evaluate(script, root->root->next, flag, &y) ) {
                 status = panic("failed to evaluate script object");
             } else {
-                range = script_range(script, integer, "%s %% %s", x->string, y->string);
+                range = script_range_create(script, integer, "%s %% %s", x->string, y->string);
                 if(!range) {
                     status = panic("failed to range script object");
                 } else if(range_remainder(range->range, x->range, y->range)) {
@@ -1077,7 +1070,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
             if(script_evaluate(script, root->root, flag, &x)) {
                 status = panic("failed to evaluate script object");
             } else {
-                range = script_range(script, integer, "+ %s", x->string);
+                range = script_range_create(script, integer, "+ %s", x->string);
                 if(!range) {
                     status = panic("failed to range script object");
                 } else if(range_plus_unary(range->range, x->range)) {
@@ -1091,7 +1084,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
             if(script_evaluate(script, root->root, flag, &x)) {
                 status = panic("failed to evaluate script object");
             } else {
-                range = script_range(script, integer, "- %s", x->string);
+                range = script_range_create(script, integer, "- %s", x->string);
                 if(!range) {
                     status = panic("failed to range script object");
                 } else if(range_minus_unary(range->range, x->range)) {
@@ -1105,7 +1098,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
             if(script_evaluate(script, root->root, flag, &x)) {
                 status = panic("failed to evaluate script object");
             } else {
-                range = script_range(script, integer, "~ %s", x->string);
+                range = script_range_create(script, integer, "~ %s", x->string);
                 if(!range) {
                     status = panic("failed to range script object");
                 } else if(range_bit_not(range->range, x->range)) {
@@ -1120,7 +1113,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
             if(script_evaluate(script, root->root, flag, &x)) {
                 status = panic("failed to evaluate script object");
             } else {
-                range = script_range(script, integer, "%s ++", x->string);
+                range = script_range_create(script, integer, "%s ++", x->string);
                 if(!range) {
                     status = panic("failed to range script object");
                 } else if(range_increment(range->range, x->range)) {
@@ -1135,7 +1128,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
             if(script_evaluate(script, root->root, flag, &x)) {
                 status = panic("failed to evaluate script object");
             } else {
-                range = script_range(script, integer, "%s --", x->string);
+                range = script_range_create(script, integer, "%s --", x->string);
                 if(!range) {
                     status = panic("failed to range script object");
                 } else if(range_decrement(range->range, x->range)) {
@@ -1164,7 +1157,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
             }
 
             if(!status) {
-                range = script_range(script, integer, "%s || %s", x->string, y->string);
+                range = script_range_create(script, integer, "%s || %s", x->string, y->string);
                 if(!range) {
                     status = panic("failed to range script object");
                 } else if(range_add(range->range, 0, 1)) {
@@ -1193,7 +1186,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
             }
 
             if(!status) {
-                range = script_range(script, integer, "%s && %s", x->string, y->string);
+                range = script_range_create(script, integer, "%s && %s", x->string, y->string);
                 if(!range) {
                     status = panic("failed to range script object");
                 } else if(range_add(range->range, 0, 1)) {
@@ -1218,7 +1211,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
             }
 
             if(!status) {
-                range = script_range(script, integer, "! %s", x->string);
+                range = script_range_create(script, integer, "! %s", x->string);
                 if(!range) {
                     status = panic("failed to range script object");
                 } else if(range_add(range->range, 0, 1)) {
@@ -1235,7 +1228,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
             } else {
                 if(flag & is_logic) {
                     if(x->type == identifier) {
-                        range = script_range(script, identifier, "%s", x->string);
+                        range = script_range_create(script, identifier, "%s", x->string);
                         if(!range) {
                             status = panic("failed to range script object");
                         } else if(range_equal(range->range, x->range, y->range)) {
@@ -1246,7 +1239,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                     }
 
                     if(y->type == identifier && !status) {
-                        range = script_range(script, identifier, "%s", y->string);
+                        range = script_range_create(script, identifier, "%s", y->string);
                         if(!range) {
                             status = panic("failed to range script object");
                         } else if(range_equal(range->range, y->range, x->range)) {
@@ -1258,7 +1251,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                 }
 
                 if(!status) {
-                    range = script_range(script, integer, "%s == %s", x->string, y->string);
+                    range = script_range_create(script, integer, "%s == %s", x->string, y->string);
                     if(!range) {
                         status = panic("failed to range script object");
                     } else if(range_add(range->range, 0, 1)) {
@@ -1276,7 +1269,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
             } else {
                 if(flag & is_logic) {
                     if(x->type == identifier) {
-                        range = script_range(script, identifier, "%s", x->string);
+                        range = script_range_create(script, identifier, "%s", x->string);
                         if(!range) {
                             status = panic("failed to range script object");
                         } else if(range_not_equal(range->range, x->range, y->range)) {
@@ -1287,7 +1280,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                     }
 
                     if(y->type == identifier && !status) {
-                        range = script_range(script, identifier, "%s", y->string);
+                        range = script_range_create(script, identifier, "%s", y->string);
                         if(!range) {
                             status = panic("failed to range script object");
                         } else if(range_not_equal(range->range, y->range, x->range)) {
@@ -1299,7 +1292,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                 }
 
                 if(!status) {
-                    range = script_range(script, integer, "%s != %s", x->string, y->string);
+                    range = script_range_create(script, integer, "%s != %s", x->string, y->string);
                     if(!range) {
                         status = panic("failed to range script object");
                     } else if(range_add(range->range, 0, 1)) {
@@ -1317,7 +1310,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
             } else {
                 if(flag & is_logic) {
                     if(x->type == identifier) {
-                        range = script_range(script, identifier, "%s", x->string);
+                        range = script_range_create(script, identifier, "%s", x->string);
                         if(!range) {
                             status = panic("failed to range script object");
                         } else if(range_lesser(range->range, x->range, y->range)) {
@@ -1328,7 +1321,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                     }
 
                     if(y->type == identifier && !status) {
-                        range = script_range(script, identifier, "%s", y->string);
+                        range = script_range_create(script, identifier, "%s", y->string);
                         if(!range) {
                             status = panic("failed to range script object");
                         } else if(range_greater(range->range, y->range, x->range)) {
@@ -1340,7 +1333,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                 }
 
                 if(!status) {
-                    range = script_range(script, integer, "%s < %s", x->string, y->string);
+                    range = script_range_create(script, integer, "%s < %s", x->string, y->string);
                     if(!range) {
                         status = panic("failed to range script object");
                     } else if(range_add(range->range, 0, 1)) {
@@ -1358,7 +1351,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
             } else {
                 if(flag & is_logic) {
                     if(x->type == identifier) {
-                        range = script_range(script, identifier, "%s", x->string);
+                        range = script_range_create(script, identifier, "%s", x->string);
                         if(!range) {
                             status = panic("failed to range script object");
                         } else if(range_lesser_equal(range->range, x->range, y->range)) {
@@ -1369,7 +1362,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                     }
 
                     if(y->type == identifier && !status) {
-                        range = script_range(script, identifier, "%s", y->string);
+                        range = script_range_create(script, identifier, "%s", y->string);
                         if(!range) {
                             status = panic("failed to range script object");
                         } else if(range_greater_equal(range->range, y->range, x->range)) {
@@ -1381,7 +1374,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                 }
 
                 if(!status) {
-                    range = script_range(script, integer, "%s <= %s", x->string, y->string);
+                    range = script_range_create(script, integer, "%s <= %s", x->string, y->string);
                     if(!range) {
                         status = panic("failed to range script object");
                     } else if(range_add(range->range, 0, 1)) {
@@ -1399,7 +1392,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
             } else {
                 if(flag & is_logic) {
                     if(x->type == identifier) {
-                        range = script_range(script, identifier, "%s", x->string);
+                        range = script_range_create(script, identifier, "%s", x->string);
                         if(!range) {
                             status = panic("failed to range script object");
                         } else if(range_greater(range->range, x->range, y->range)) {
@@ -1410,7 +1403,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                     }
 
                     if(y->type == identifier && !status) {
-                        range = script_range(script, identifier, "%s", y->string);
+                        range = script_range_create(script, identifier, "%s", y->string);
                         if(!range) {
                             status = panic("failed to range script object");
                         } else if(range_lesser(range->range, y->range, x->range)) {
@@ -1422,7 +1415,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                 }
 
                 if(!status) {
-                    range = script_range(script, integer, "%s > %s", x->string, y->string);
+                    range = script_range_create(script, integer, "%s > %s", x->string, y->string);
                     if(!range) {
                         status = panic("failed to range script object");
                     } else if(range_add(range->range, 0, 1)) {
@@ -1440,7 +1433,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
             } else {
                 if(flag & is_logic) {
                     if(x->type == identifier) {
-                        range = script_range(script, identifier, "%s", x->string);
+                        range = script_range_create(script, identifier, "%s", x->string);
                         if(!range) {
                             status = panic("failed to range script object");
                         } else if(range_greater_equal(range->range, x->range, y->range)) {
@@ -1451,7 +1444,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                     }
 
                     if(y->type == identifier && !status) {
-                        range = script_range(script, identifier, "%s", y->string);
+                        range = script_range_create(script, identifier, "%s", y->string);
                         if(!range) {
                             status = panic("failed to range script object");
                         } else if(range_lesser_equal(range->range, y->range, x->range)) {
@@ -1463,7 +1456,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                 }
 
                 if(!status) {
-                    range = script_range(script, integer, "%s >= %s", x->string, y->string);
+                    range = script_range_create(script, integer, "%s >= %s", x->string, y->string);
                     if(!range) {
                         status = panic("failed to range script object");
                     } else if(range_add(range->range, 0, 1)) {
@@ -1538,7 +1531,7 @@ struct script_range * function_set(struct script * script, struct script_array *
         if(!y) {
             status = panic("invalid expression");
         } else {
-            range = script_range(script, identifier, "%s", x->string);
+            range = script_range_create(script, identifier, "%s", x->string);
             if(!range) {
                 status = panic("failed to range script object");
             } else if(range_assign(range->range, y->range)) {
@@ -1566,7 +1559,7 @@ struct script_range * function_min(struct script * script, struct script_array *
         if(!y) {
             status = panic("invalid max");
         } else {
-            range = script_range(script, integer, "min(%s,%s)", x->string, y->string);
+            range = script_range_create(script, integer, "min(%s,%s)", x->string, y->string);
             if(!range) {
                 status = panic("failed to range script object");
             } else if(range_min(range->range, x->range, y->range)) {
@@ -1592,7 +1585,7 @@ struct script_range * function_max(struct script * script, struct script_array *
         if(!y) {
             status = panic("invalid max");
         } else {
-            range = script_range(script, integer, "max(%s,%s)", x->string, y->string);
+            range = script_range_create(script, integer, "max(%s,%s)", x->string, y->string);
             if(!range) {
                 status = panic("failed to range script object");
             } else if(range_max(range->range, x->range, y->range)) {
@@ -1618,7 +1611,7 @@ struct script_range * function_pow(struct script * script, struct script_array *
         if(!y) {
             status = panic("invalid power");
         } else {
-            range = script_range(script, integer, "pow(%s,%s)", x->string, y->string);
+            range = script_range_create(script, integer, "pow(%s,%s)", x->string, y->string);
             if(!range) {
                 status = panic("failed to range script object");
             } else if(range_pow(range->range, x->range, y->range)) {
@@ -1642,14 +1635,14 @@ struct script_range * function_rand(struct script * script, struct script_array 
     } else {
         y = script_array_get(array, 1);
         if(!y) {
-            range = script_range(script, integer, "rand(%s)", x->string);
+            range = script_range_create(script, integer, "rand(%s)", x->string);
             if(!range) {
                 status = panic("failed to range script object");
             } else if(range_add(range->range, 0, x->range->max - 1)) {
                 status = panic("failed to add range object");
             }
         } else {
-            range = script_range(script, integer, "rand(%s,%s)", x->string, y->string);
+            range = script_range_create(script, integer, "rand(%s,%s)", x->string, y->string);
             if(!range) {
                 status = panic("failed to range script object");
             } else if(range_add(range->range, x->range->min, y->range->max)) {
