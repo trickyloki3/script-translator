@@ -27,9 +27,8 @@ struct script_range {
 #define ARRAY_TOTAL 32
 
 struct script_array {
-    void ** array;
+    void * array[ARRAY_TOTAL];
     size_t count;
-    size_t total;
 };
 
 struct script_buffer {

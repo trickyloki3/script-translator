@@ -523,13 +523,11 @@ struct script_array * script_array(struct script * script) {
     int status = 0;
     struct script_array * array;
 
-    array = store_malloc(&script->store, sizeof(*array) + sizeof(*array->array) * ARRAY_TOTAL);
+    array = store_malloc(&script->store, sizeof(*array));
     if(!array) {
         status = panic("failed to object store object");
     } else {
-        array->array = (void **) (array + 1);
         array->count = 0;
-        array->total = ARRAY_TOTAL;
     }
 
     return status ? NULL : array;
@@ -538,7 +536,7 @@ struct script_array * script_array(struct script * script) {
 int script_array_add(struct script_array * array, struct script_range * range) {
     int status = 0;
 
-    if(array->count >= array->total) {
+    if(array->count >= ARRAY_TOTAL) {
         status = panic("out of memory");
     } else {
         array->array[array->count] = range;
