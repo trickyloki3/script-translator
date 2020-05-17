@@ -31,6 +31,9 @@ struct script_array {
     size_t count;
 };
 
+int script_array_add(struct script_array *, struct script_range *);
+struct script_range * script_array_get(struct script_array *, size_t);
+
 struct script_buffer {
     size_t size;
     struct pool * pool;
@@ -62,7 +65,7 @@ struct script {
     struct stack map_stack;
     struct stack logic_stack;
     struct stack range;
-    struct stack array;
+    struct stack array_stack;
     struct map function;
     struct map argument;
     struct script_buffer buffer;
@@ -70,6 +73,7 @@ struct script {
     struct script_node * root;
     struct map * map;
     struct logic * logic;
+    struct script_array * array;
 };
 
 int script_create(struct script *, size_t, struct heap *, struct table *);
