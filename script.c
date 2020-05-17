@@ -42,7 +42,7 @@ typedef struct script_range * (*function_cb) (struct script *, struct script_arr
 struct function_entry {
     char * identifier;
     function_cb function;
-} function_array[] = {
+} function_list[] = {
     { "set", function_set },
     { "min", function_min },
     { "max", function_max },
@@ -52,15 +52,14 @@ struct function_entry {
 };
 
 int argument_write(struct script *, struct script_array *, struct strbuf *, char *);
-int argument_list(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
+int argument_description(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
 int argument_sign(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
 int argument_zero(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
-int argument_type(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
+int argument_array(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
 int argument_integer(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
 int argument_string(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
 int argument_second(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
 int argument_millisecond(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
-
 int argument_item(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
 int argument_skill(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
 int argument_mob(struct script *, struct script_array *, struct argument_node *, struct strbuf *);
@@ -71,11 +70,11 @@ typedef int (*argument_cb) (struct script *, struct script_array *, struct argum
 struct argument_entry {
     char * identifier;
     argument_cb argument;
-} argument_array[] = {
-    { "list", argument_list },
+} argument_list[] = {
+    { "description", argument_description },
     { "sign", argument_sign },
     { "zero", argument_zero },
-    { "type", argument_type },
+    { "array", argument_array },
     { "integer", argument_integer },
     { "string", argument_string },
     { "second", argument_second },
@@ -285,7 +284,7 @@ int script_create(struct script * script, size_t size, struct heap * heap, struc
                     status = panic("failed to create script undef object");
                     goto undef_fail;
                 } else {
-                    function = function_array;
+                    function = function_list;
                     while(function->identifier && !status) {
                         if(map_insert(&script->function, function->identifier, function->function)) {
                             status = panic("failed to insert map object");
@@ -294,7 +293,7 @@ int script_create(struct script * script, size_t size, struct heap * heap, struc
                         }
                     }
 
-                    argument = argument_array;
+                    argument = argument_list;
                     while(argument->identifier && !status) {
                         if(map_insert(&script->argument, argument->identifier, argument->argument)) {
                             status = panic("failed to insert map object");
@@ -1748,7 +1747,7 @@ int argument_write(struct script * script, struct script_array * array, struct s
     return status;
 }
 
-int argument_list(struct script * script, struct script_array * array, struct argument_node * argument, struct strbuf * strbuf) {
+int argument_description(struct script * script, struct script_array * array, struct argument_node * argument, struct strbuf * strbuf) {
     int status = 0;
     struct print_node * print;
 
@@ -1807,7 +1806,7 @@ int argument_zero(struct script * script, struct script_array * array, struct ar
     return status;
 }
 
-int argument_type(struct script * script, struct script_array * array, struct argument_node * argument, struct strbuf * strbuf) {
+int argument_array(struct script * script, struct script_array * array, struct argument_node * argument, struct strbuf * strbuf) {
     int status = 0;
 
     size_t i;
