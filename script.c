@@ -16,8 +16,6 @@ struct script_range * script_range_create(struct script *, enum script_type, cha
 struct script_range * script_range_argument(struct script *, struct argument_node *);
 struct script_range * script_range_constant(struct script *, struct constant_node *);
 
-char * script_store_strbuf(struct script *, struct strbuf *);
-
 enum script_flag {
     is_logic = 0x1,
     is_array = 0x2
@@ -536,24 +534,6 @@ struct script_range * script_range_constant(struct script * script, struct const
     }
 
     return status ? NULL : range;
-}
-
-char * script_store_strbuf(struct script * script, struct strbuf * strbuf) {
-    int status = 0;
-
-    char * result;
-    struct string * string;
-
-    string = strbuf_string(strbuf);
-    if(!string) {
-        status = panic("failed to string strbuf object");
-    } else {
-        result = store_strcpy(&script->store, string->string, string->length);
-        if(!result)
-            status = panic("failed to strcpy store object");
-    }
-
-    return status ? NULL : result;
 }
 
 int script_parse(struct script * script, char * string) {
@@ -1456,6 +1436,7 @@ struct script_range * script_execute(struct script * script, struct script_array
     int status = 0;
     argument_cb handler;
     struct strbuf * strbuf;
+    struct string * string;
     struct script_range * range;
 
     if(!argument->handler) {
@@ -1481,9 +1462,14 @@ struct script_range * script_execute(struct script * script, struct script_array
                     if(handler(script, array, argument, strbuf)) {
                         status = panic("failed to execute argument object");
                     } else {
-                        range->string = script_store_strbuf(script, strbuf);
-                        if(!range->string)
-                            status = panic("failed to range string script object");
+                        string = strbuf_string(strbuf);
+                        if(!string) {
+                            status = panic("failed to string strbuf object");
+                        } else {
+                            range->string = store_strcpy(&script->store, string->string, string->length);
+                            if(!range->string)
+                                status = panic("failed to strcpy store object");
+                        }
                     }
                     script_buffer_put(&script->buffer, strbuf);
                 }
