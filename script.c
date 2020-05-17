@@ -18,14 +18,12 @@ struct script_range * script_range_constant(struct script *, struct constant_nod
 
 char * script_store_strbuf(struct script *, struct strbuf *);
 
-int script_parse(struct script *, char *);
-int script_parse_loop(struct script *, struct string *);
-
 enum script_flag {
     is_logic = 0x1,
     is_array = 0x2
 };
 
+int script_parse(struct script *, char *);
 int script_translate(struct script *, struct script_node *);
 int script_evaluate(struct script *, struct script_node *, int, struct script_range **);
 struct script_range * script_execute(struct script *, struct script_array *, struct argument_node *);
@@ -560,57 +558,38 @@ char * script_store_strbuf(struct script * script, struct strbuf * strbuf) {
 
 int script_parse(struct script * script, char * string) {
     int status = 0;
-    struct strbuf * strbuf;
-    struct string * buffer;
 
-    strbuf = script_buffer_get(&script->buffer);
-    if(!strbuf) {
-        status = panic("failed to get script buffer object");
-    } else {
-        if(strbuf_printf(strbuf, "%s", string)) {
-            status = panic("failed to printf strbuf object");
-        } else if(strbuf_putcn(strbuf, '\0', 2)) {
-            status = panic("failed to putcn strbuf object");
-        } else {
-            buffer = strbuf_string(strbuf);
-            if(!buffer) {
-                status = panic("failed to string strbuf object");
-            } else if(script_parse_loop(script, buffer)) {
-                status = panic("failed to parse loop script object");
-            }
-        }
-        script_buffer_put(&script->buffer, strbuf);
-    }
+    size_t length;
+    char * source;
 
-    return status;
-}
-
-int script_parse_loop(struct script * script, struct string * string) {
-    int status = 0;
-
-    yyscan_t scanner = script->scanner;
-    scriptpstate * parser = script->parser;
-
-    YY_BUFFER_STATE buffer;
     SCRIPTSTYPE value;
     int token;
     int state = YYPUSH_MORE;
 
-    buffer = script_scan_buffer(string->string, string->length, scanner);
-    if(!buffer) {
-        status = panic("failed to scan buffer scanner object");
+    length = strlen(string);
+    source = store_malloc(&script->store, length + 2);
+    if(!source) {
+        status = panic("failed to malloc store object");
     } else {
-        while(state == YYPUSH_MORE && !status) {
-            token = scriptlex(&value, scanner);
-            if(token < 0) {
-                status = panic("failed to get the next token");
-            } else {
-                state = scriptpush_parse(parser, token, &value, script);
-                if(state && state != YYPUSH_MORE)
-                    status = panic("failed to parse the current token");
+        memcpy(source, string, length);
+        source[length] = 0;
+        source[length + 1] = 0;
+
+        if(!script_scan_buffer(source, length + 2, script->scanner)) {
+            status = panic("failed to scan buffer scanner object");
+        } else {
+            while(state == YYPUSH_MORE && !status) {
+                token = scriptlex(&value, script->scanner);
+                if(token < 0) {
+                    status = panic("failed to get the next token");
+                } else {
+                    state = scriptpush_parse(script->parser, token, &value, script);
+                    if(state && state != YYPUSH_MORE)
+                        status = panic("failed to parse the current token");
+                }
             }
+            scriptpop_buffer_state(script->scanner);
         }
-        scriptpop_buffer_state(scanner);
     }
 
     return status;
@@ -721,37 +700,35 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                 } else {
                     if(script_evaluate(script, root->root, flag | is_array, &x)) {
                         status = panic("failed to evaluate script object");
+                    } else if(!script->array->count && script_array_add(script->array, x)) {
+                        status = panic("failed to add script array object");
                     } else {
-                        if(!script_array_get(script->array, 0) && script_array_add(script->array, x)) {
-                            status = panic("failed to add script array object");
+                        function = map_search(&script->function, root->identifier);
+                        if(function) {
+                            range = function(script, script->array);
+                            if(!range) {
+                                status = panic("failed to function range script object");
+                            } else {
+                                *result = range;
+                            }
                         } else {
-                            function = map_search(&script->function, root->identifier);
-                            if(function) {
-                                range = function(script, script->array);
+                            argument = argument_identifier(script->table, root->identifier);
+                            if(argument) {
+                                range = script_execute(script, script->array, argument);
                                 if(!range) {
-                                    status = panic("failed to function range script object");
+                                    status = panic("failed to execute script object");
                                 } else {
                                     *result = range;
                                 }
                             } else {
-                                argument = argument_identifier(script->table, root->identifier);
-                                if(argument) {
-                                    range = script_execute(script, script->array, argument);
+                                if(script_undef_add(&script->undef, "%s", root->identifier)) {
+                                    status = panic("failed to add script undef object");
+                                } else {
+                                    range = script_range_create(script, identifier, "%s", root->identifier);
                                     if(!range) {
-                                        status = panic("failed to execute script object");
+                                        status = panic("failed to range script object");
                                     } else {
                                         *result = range;
-                                    }
-                                } else {
-                                    if(script_undef_add(&script->undef, "%s", root->identifier)) {
-                                        status = panic("failed to add script undef object");
-                                    } else {
-                                        range = script_range_create(script, identifier, "%s", root->identifier);
-                                        if(!range) {
-                                            status = panic("failed to range script object");
-                                        } else {
-                                            *result = range;
-                                        }
                                     }
                                 }
                             }
