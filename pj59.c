@@ -53,9 +53,7 @@ int main(int argc, char ** argv) {
                         }
                     }
 
-                    fprintf(stdout, "undefined: ");
                     undefined_print(&script.undefined);
-                    fprintf(stdout, "\n");
 
                     script_destroy(&script);
                 }

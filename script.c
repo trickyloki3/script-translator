@@ -223,11 +223,13 @@ int undefined_add(struct undefined * undef, char * format, ...) {
 void undefined_print(struct undefined * undef) {
     struct map_kv kv;
 
+    fprintf(stdout, "undefined: ");
     kv = map_start(&undef->map);
     while(kv.key) {
         fprintf(stdout, "%s ", (char *) kv.key);
         kv = map_next(&undef->map);
     }
+    fprintf(stdout, "\n");
 }
 
 int script_create(struct script * script, size_t size, struct heap * heap, struct table * table) {
