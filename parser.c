@@ -42,12 +42,8 @@ struct schema_node * schema_node_create(struct schema * schema, enum schema_type
     } else {
         node->type = type;
         node->mark = mark;
-        node->map = store_malloc(&schema->store, sizeof(*node->map));
-        if(!node->map) {
-            status = panic("failed to malloc store object");
-        } else if(map_create(node->map, (map_compare_cb) strcmp, &schema->pool)) {
+        if(map_create(&node->map, (map_compare_cb) strcmp, &schema->pool))
             status = panic("failed to create map object");
-        }
     }
 
     return status ? NULL : node;
@@ -59,13 +55,13 @@ void schema_node_destroy(struct schema * schema, struct schema_node * node) {
     if(node->list)
         schema_node_destroy(schema, node->list);
 
-    kv = map_start(node->map);
+    kv = map_start(&node->map);
     while(kv.key) {
         schema_node_destroy(schema, kv.value);
-        kv = map_next(node->map);
+        kv = map_next(&node->map);
     }
 
-    map_destroy(node->map);
+    map_destroy(&node->map);
 }
 
 void schema_node_print(struct schema_node * node, int indent, char * key) {
@@ -105,10 +101,10 @@ void schema_node_print(struct schema_node * node, int indent, char * key) {
     fprintf(stdout, "[%d]\n", node->mark);
 
     if(node->type & schema_map) {
-        kv = map_start(node->map);
+        kv = map_start(&node->map);
         while(kv.key) {
             schema_node_print(kv.value, indent + 1, kv.key);
-            kv = map_next(node->map);
+            kv = map_next(&node->map);
         }
     }
 
@@ -175,7 +171,7 @@ struct schema_node * schema_add(struct schema * schema, struct schema_node * roo
 
     if(key) {
         if(root->type & schema_map) {
-            node = map_search(root->map, key);
+            node = map_search(&root->map, key);
             if(node) {
                 node->type |= type;
             } else {
@@ -186,7 +182,7 @@ struct schema_node * schema_add(struct schema * schema, struct schema_node * roo
                     key = store_strcpy(&schema->store, key, strlen(key));
                     if(!key) {
                         status = panic("failed to strcpy store object");
-                    } else if(map_insert(root->map, key, node)) {
+                    } else if(map_insert(&root->map, key, node)) {
                         status = panic("failed to insert map object");
                     }
                     if(status)
@@ -223,7 +219,7 @@ struct schema_node * schema_get(struct schema_node * root, char * key) {
 
     if(key) {
         if(root->type & schema_map) {
-            node = map_search(root->map, key);
+            node = map_search(&root->map, key);
             if(!node)
                 status = panic("invalid key - %s", key);
         } else {

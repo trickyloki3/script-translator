@@ -16,7 +16,7 @@ struct schema_node {
     int state;
     int type;
     int mark;
-    struct map * map;
+    struct map map;
     struct schema_node * list;
     struct schema_node * next;
 };
