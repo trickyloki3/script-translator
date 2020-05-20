@@ -505,7 +505,7 @@ struct script_range * script_range_constant(struct script * script, struct const
     struct script_range * range;
     struct range_node * node;
 
-    range = script_range_create(script, integer, "%s", constant->tag ? constant->tag : constant->identifier);
+    range = script_range_create(script, integer, "%s", constant->identifier);
     if(!range) {
         status = panic("failed to range script object");
     } else {
