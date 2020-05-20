@@ -15,6 +15,8 @@ struct stack {
     struct pool * pool;
     struct stack_node * root;
     struct stack_node * last;
+    size_t index;
+    struct stack_node * entry;
 };
 
 int stack_create(struct stack *, struct pool *);
@@ -24,5 +26,7 @@ int stack_push(struct stack *, void *);
 void * stack_pop(struct stack *);
 void * stack_top(struct stack *);
 void * stack_get(struct stack *, size_t);
+void * stack_start(struct stack *);
+void * stack_next(struct stack *);
 
 #endif

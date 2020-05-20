@@ -102,3 +102,25 @@ void * stack_get(struct stack * stack, size_t index) {
 
     return node ? node->array[index] : NULL;
 }
+
+void * stack_start(struct stack * stack) {
+    stack->index = 0;
+    stack->entry = stack->root;
+    return stack_next(stack);
+}
+
+void * stack_next(struct stack * stack) {
+    void * object = NULL;
+    struct stack_node * node;
+
+    node = stack->entry;
+    if(node) {
+        object = node->array[stack->index++];
+        if(stack->index >= node->count) {
+            stack->index = 0;
+            stack->entry = node->next;
+        }
+    }
+
+    return object;
+}
