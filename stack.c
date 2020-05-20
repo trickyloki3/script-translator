@@ -90,3 +90,15 @@ void * stack_top(struct stack * stack) {
 
     return node ? node->array[node->count - 1] : NULL;
 }
+
+void * stack_get(struct stack * stack, size_t index) {
+    struct stack_node * node;
+
+    node = stack->root;
+    while(node && node->count <= index) {
+        index -= node->count;
+        node = node->next;
+    }
+
+    return node ? node->array[index] : NULL;
+}

@@ -23,5 +23,6 @@ void stack_clear(struct stack *);
 int stack_push(struct stack *, void *);
 void * stack_pop(struct stack *);
 void * stack_top(struct stack *);
+void * stack_get(struct stack *, size_t);
 
 #endif
