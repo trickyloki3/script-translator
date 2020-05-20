@@ -148,7 +148,7 @@ int heap_create(struct heap * heap, size_t size) {
     if(pool_map_create(&heap->pool_map, size)) {
         status = panic("failed to create pool map object");
     } else {
-        heap->stack_pool = heap_pool(heap, sizeof(struct stack_node));
+        heap->stack_pool = heap_pool(heap, size);
         if(!heap->stack_pool) {
             status = panic("failed to pool heap object");
         } else {

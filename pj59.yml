@@ -3,7 +3,7 @@ source: |
   pool.h      ; memory
   store.h     ; memory
   array.h     ; memory
-  stack.h     ; container ; singly linked list
+  stack.h     ; container ; doubly linked list (non-circular)
   map.h       ; container ; red black tree
   range.h     ; container
   logic.h     ; container ; disjunctive normal form

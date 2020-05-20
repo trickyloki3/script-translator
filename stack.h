@@ -4,13 +4,17 @@
 #include "pool.h"
 
 struct stack_node {
-    void * object;
+    void ** array;
+    size_t count;
     struct stack_node * next;
+    struct stack_node * prev;
 };
 
 struct stack {
+    size_t total;
     struct pool * pool;
     struct stack_node * root;
+    struct stack_node * last;
 };
 
 int stack_create(struct stack *, struct pool *);
