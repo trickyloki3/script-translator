@@ -1699,62 +1699,58 @@ int argument_write(struct script * script, struct stack * stack, struct strbuf *
 }
 
 int argument_description(struct script * script, struct stack * stack, struct argument_node * argument, struct strbuf * strbuf) {
-    int status = 0;
     struct print_node * print;
 
     print = argument->print;
-    while(print && !status) {
+    while(print) {
         if(argument_write(script, stack, strbuf, print->string)) {
-            status = panic("failed to parse argument object");
+            return panic("failed to parse argument object");
         } else if(argument->newline && strbuf_putcn(strbuf, '\n', argument->newline)) {
-            status = panic("failed to putcn strbuf object");
-        } else {
-            print = print->next;
+            return panic("failed to putcn strbuf object");
         }
+        print = print->next;
     }
 
-    return status;
+    return 0;
 }
 
 int argument_sign(struct script * script, struct stack * stack, struct argument_node * argument, struct strbuf * strbuf) {
-    int status = 0;
     struct print_node * print;
     struct script_range * range;
 
     range = stack_get(stack, 0);
     if(!range) {
-        status = panic("failed to get stack object");
+        return panic("failed to get stack object");
     } else {
         print = argument->print;
         if(range->range->max < 0)
             print = print->next;
 
         if(argument_write(script, stack, strbuf, print->string)) {
-            status = panic("failed to write argument object");
+            return panic("failed to write argument object");
         } else if(argument->newline && strbuf_putcn(strbuf, '\n', argument->newline)) {
-            status = panic("failed to putcn strbuf object");
+            return panic("failed to putcn strbuf object");
         }
     }
 
-    return status;
+    return 0;
 }
 
 int argument_zero(struct script * script, struct stack * stack, struct argument_node * argument, struct strbuf * strbuf) {
-    int status = 0;
     struct script_range * range;
 
     range = stack_get(stack, 0);
     if(!range) {
-        status = panic("failed to get stack object");
+        return panic("failed to get stack object");
     } else if(range->range->min && range->range->max) {
         if(argument_write(script, stack, strbuf, argument->print->string)) {
-            status = panic("failed to write argument object");
+            return panic("failed to write argument object");
         } else if(argument->newline && strbuf_putcn(strbuf, '\n', argument->newline)) {
-            status = panic("failed to putcn strbuf object");
+            return panic("failed to putcn strbuf object");
         }
     }
 
-    return status;
+    return 0;
 }
 
 int argument_array(struct script * script, struct stack * stack, struct argument_node * argument, struct strbuf * strbuf) {
@@ -1771,7 +1767,7 @@ int argument_array(struct script * script, struct stack * stack, struct argument
                 string = map_search(argument->array, &i);
                 if(!string) {
                     return panic("invalid index - %ld", i);
-                } else if(strbuf_printf(strbuf, ", %s", string)) {
+                } else if(strbuf_printf(strbuf, "%s, ", string)) {
                     return panic("failed to printf strbuf object");
                 }
             }
@@ -1784,8 +1780,6 @@ int argument_array(struct script * script, struct stack * stack, struct argument
 }
 
 int argument_integer(struct script * script, struct stack * stack, struct argument_node * argument, struct strbuf * strbuf) {
-    int status = 0;
-
     long min;
     long max;
 
@@ -1796,7 +1790,7 @@ int argument_integer(struct script * script, struct stack * stack, struct argume
 
     range = stack_get(stack, 0);
     if(!range) {
-        status = panic("failed to get stack object");
+        return panic("failed to get stack object");
     } else {
         if(argument->integer) {
             flag = argument->integer->flag;
@@ -1821,55 +1815,53 @@ int argument_integer(struct script * script, struct stack * stack, struct argume
 
         if(flag & integer_sign)
             if(min < 0 ? strbuf_putc(strbuf, '-') : strbuf_putc(strbuf, '+'))
-                status = panic("failed to putc strbuf object");
+                return panic("failed to putc strbuf object");
 
         if(strbuf_printf(strbuf, "%ld", min))
-            status = panic("failed to printf strbuf object");
+            return panic("failed to printf strbuf object");
 
         if(flag & integer_percent)
             if(strbuf_putc(strbuf, '%'))
-                status = panic("failed to putc strbuf object");
+                return panic("failed to putc strbuf object");
 
         if(min != max) {
             if(strbuf_printf(strbuf, " ~ "))
-                status = panic("failed to printf strbuf object");
+                return panic("failed to printf strbuf object");
 
             if(flag & integer_sign)
                 if(max < 0 ? strbuf_putc(strbuf, '-') : strbuf_putc(strbuf, '+'))
-                    status = panic("failed to putc strbuf object");
+                    return panic("failed to putc strbuf object");
 
             if(strbuf_printf(strbuf, "%ld", max))
-                status = panic("failed to printf strbuf object");
+                return panic("failed to printf strbuf object");
 
             if(flag & integer_percent)
                 if(strbuf_putc(strbuf, '%'))
-                    status = panic("failed to putc strbuf object");
+                    return panic("failed to putc strbuf object");
 
             if(flag & integer_string)
                 if(strbuf_printf(strbuf, "(%s)", range->string))
-                    status = panic("failed to printf strbuf object");
+                    return panic("failed to printf strbuf object");
         }
     }
 
-    return status;
+    return 0;
 }
 
 int argument_string(struct script * script, struct stack * stack, struct argument_node * argument, struct strbuf * strbuf) {
-    int status = 0;
     struct script_range * range;
 
     range = stack_get(stack, 0);
     if(!range) {
-        status = panic("failed to get stack object");
+        return panic("failed to get stack object");
     } else if(strbuf_printf(strbuf, "%s", range->string)) {
-        status = panic("failed to printf strbuf object");
+        return panic("failed to printf strbuf object");
     }
 
-    return status;
+    return 0;
 }
 
 int argument_second(struct script * script, struct stack * stack, struct argument_node * argument, struct strbuf * strbuf) {
-    int status = 0;
     struct script_range * range;
 
     long min;
@@ -1878,7 +1870,7 @@ int argument_second(struct script * script, struct stack * stack, struct argumen
 
     range = stack_get(stack, 0);
     if(!range) {
-        status = panic("failed to get stack object");
+        return panic("failed to get stack object");
     } else {
         min = labs(range->range->min);
         max = labs(range->range->max);
@@ -1904,18 +1896,17 @@ int argument_second(struct script * script, struct stack * stack, struct argumen
 
         if(min == max) {
             if(strbuf_printf(strbuf, "%ld %s", min, print->string))
-                status = panic("failed to printf strbuf object");
+                return panic("failed to printf strbuf object");
         } else {
             if(strbuf_printf(strbuf, "%ld ~ %ld %s", min, max, print->string))
-                status = panic("failed to printf strbuf object");
+                return panic("failed to printf strbuf object");
         }
     }
 
-    return status;
+    return 0;
 }
 
 int argument_millisecond(struct script * script, struct stack * stack, struct argument_node * argument, struct strbuf * strbuf) {
-    int status = 0;
     struct script_range * range;
 
     long min;
@@ -1924,7 +1915,7 @@ int argument_millisecond(struct script * script, struct stack * stack, struct ar
 
     range = stack_get(stack, 0);
     if(!range) {
-        status = panic("failed to get stack object");
+        return panic("failed to get stack object");
     } else {
         min = labs(range->range->min);
         max = labs(range->range->max);
@@ -1956,14 +1947,14 @@ int argument_millisecond(struct script * script, struct stack * stack, struct ar
 
         if(min == max) {
             if(strbuf_printf(strbuf, "%ld %s", min, print->string))
-                status = panic("failed to printf strbuf object");
+                return panic("failed to printf strbuf object");
         } else {
             if(strbuf_printf(strbuf, "%ld ~ %ld %s", min, max, print->string))
-                status = panic("failed to printf strbuf object");
+                return panic("failed to printf strbuf object");
         }
     }
 
-    return status;
+    return 0;
 }
 
 int argument_item(struct script * script, struct stack * stack, struct argument_node * argument, struct strbuf * strbuf) {
