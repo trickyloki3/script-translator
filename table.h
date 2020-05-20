@@ -2,6 +2,7 @@
 #define table_h
 
 #include "heap.h"
+#include "csv.h"
 #include "parser.h"
 
 struct item_node {
