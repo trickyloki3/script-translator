@@ -54,6 +54,20 @@ int strbuf_putcn(struct strbuf * strbuf, char c, size_t n) {
     return status;
 }
 
+int strbuf_unputn(struct strbuf * strbuf, size_t n) {
+    int status = 0;
+    size_t i;
+
+    if(strbuf->pos - strbuf->str < n) {
+        status = panic("invalid size");
+    } else {
+        for(i = 0; i < n; i++)
+            *--strbuf->pos = 0;
+    }
+
+    return status;
+}
+
 int strbuf_strcpy(struct strbuf * strbuf, char * string, size_t length) {
     int status = 0;
 

@@ -1757,7 +1757,7 @@ int argument_array(struct script * script, struct stack * stack, struct argument
     long i;
     struct script_range * range;
     struct range_node * node;
-    char * string;
+    char * string = NULL;
 
     range = stack_start(stack);
     while(range) {
@@ -1775,6 +1775,9 @@ int argument_array(struct script * script, struct stack * stack, struct argument
         }
         range = stack_next(stack);
     }
+
+    if(string && strbuf_unputn(strbuf, 2))
+        return panic("failed to unputn strbuf object");
 
     return 0;
 }
@@ -1961,7 +1964,7 @@ int argument_item(struct script * script, struct stack * stack, struct argument_
     long i;
     struct script_range * range;
     struct range_node * node;
-    struct item_node * item;
+    struct item_node * item = NULL;
 
     range = stack_start(stack);
     while(range) {
@@ -1986,6 +1989,8 @@ int argument_item(struct script * script, struct stack * stack, struct argument_
         range = stack_next(stack);
     }
 
+    if(item && strbuf_unputn(strbuf, 2))
+        return panic("failed to unputn strbuf object");
 
     return 0;
 }
@@ -1994,7 +1999,7 @@ int argument_skill(struct script * script, struct stack * stack, struct argument
     size_t i;
     struct script_range * range;
     struct range_node * node;
-    struct skill_node * skill;
+    struct skill_node * skill = NULL;
 
     range = stack_start(stack);
     while(range) {
@@ -2019,6 +2024,9 @@ int argument_skill(struct script * script, struct stack * stack, struct argument
         range = stack_next(stack);
     }
 
+    if(skill && strbuf_unputn(strbuf, 2))
+        return panic("failed to unputn strbuf object");
+
     return 0;
 }
 
@@ -2026,7 +2034,7 @@ int argument_mob(struct script * script, struct stack * stack, struct argument_n
     long i;
     struct script_range * range;
     struct range_node * node;
-    struct mob_node * mob;
+    struct mob_node * mob = NULL;
 
     range = stack_start(stack);
     while(range) {
@@ -2051,6 +2059,9 @@ int argument_mob(struct script * script, struct stack * stack, struct argument_n
         range = stack_next(stack);
     }
 
+    if(mob && strbuf_unputn(strbuf, 2))
+        return panic("failed to unputn strbuf object");
+
     return 0;
 }
 
@@ -2058,7 +2069,7 @@ int argument_mercenary(struct script * script, struct stack * stack, struct argu
     long i;
     struct script_range * range;
     struct range_node * node;
-    struct mercenary_node * mercenary;
+    struct mercenary_node * mercenary = NULL;
 
     range = stack_start(stack);
     while(range) {
@@ -2076,6 +2087,9 @@ int argument_mercenary(struct script * script, struct stack * stack, struct argu
         }
         range = stack_next(stack);
     }
+
+    if(mercenary && strbuf_unputn(strbuf, 2))
+        return panic("failed to unputn strbuf object");
 
     return 0;
 }
