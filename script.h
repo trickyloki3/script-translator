@@ -25,16 +25,6 @@ struct script_range {
     struct script_range * next;
 };
 
-#define ARRAY_TOTAL 32
-
-struct array {
-    void * array[ARRAY_TOTAL];
-    size_t count;
-};
-
-int array_add(struct array *, struct script_range *);
-struct script_range * array_get(struct array *, size_t);
-
 struct script_buffer {
     size_t size;
     struct pool * pool;
@@ -65,7 +55,7 @@ struct script {
     struct store store;
     struct stack map_stack;
     struct stack logic_stack;
-    struct stack array_stack;
+    struct stack stack_stack;
     struct map function;
     struct map argument;
     struct script_buffer buffer;
@@ -73,7 +63,7 @@ struct script {
     struct script_node * root;
     struct map * map;
     struct logic * logic;
-    struct array * array;
+    struct stack * stack;
     struct script_range * range;
 };
 
