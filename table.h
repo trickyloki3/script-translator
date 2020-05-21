@@ -122,7 +122,6 @@ struct argument_node {
     struct range_node * range;
     struct map * array;
     struct integer_node * integer;
-    long index;
 };
 
 struct argument {

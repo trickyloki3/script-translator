@@ -49,7 +49,6 @@ struct schema_markup argument_markup[] = {
     {4, schema_string, 18, "percent"},
     {4, schema_string, 19, "absolute"},
     {4, schema_string, 20, "divide"},
-    {3, schema_string, 21, "index"},
     {0, 0, 0},
 };
 
@@ -571,7 +570,6 @@ int argument_parse(enum parser_type type, int mark, struct string * string, void
                 argument->integer->flag |= integer_absolute;
             break;
         case 20: status = string_long(string, &argument->integer->divide); break;
-        case 21: status = string_long(string, &argument->argument->index); break;
     }
 
     return status;

@@ -55,6 +55,7 @@ int argument_integer(struct script *, struct stack *, struct argument_node *, st
 int argument_string(struct script *, struct stack *, struct argument_node *, struct strbuf *);
 int argument_second(struct script *, struct stack *, struct argument_node *, struct strbuf *);
 int argument_millisecond(struct script *, struct stack *, struct argument_node *, struct strbuf *);
+int argument_constant(struct script *, struct stack *, struct argument_node *, struct strbuf *);
 int argument_item(struct script *, struct stack *, struct argument_node *, struct strbuf *);
 int argument_skill(struct script *, struct stack *, struct argument_node *, struct strbuf *);
 int argument_mob(struct script *, struct stack *, struct argument_node *, struct strbuf *);
@@ -74,6 +75,7 @@ struct argument_entry {
     { "string", argument_string },
     { "second", argument_second },
     { "millisecond", argument_millisecond },
+    { "constant", argument_constant },
     { "item", argument_item },
     { "skill", argument_skill },
     { "mob", argument_mob },
@@ -1430,40 +1432,31 @@ struct script_range * script_execute(struct script * script, struct stack * stac
     struct string * string;
     struct script_range * range;
 
-    if(!argument->handler) {
-        range = stack_get(stack, argument->index);
-        if(!range) {
-            status = panic("failed to get stack object");
-        } else {
-            range->type = identifier;
-        }
+    handler = map_search(&script->argument, argument->handler);
+    if(!handler) {
+        status = panic("invalid argument - %s", argument->handler);
     } else {
-        handler = map_search(&script->argument, argument->handler);
-        if(!handler) {
-            status = panic("invalid argument - %s", argument->handler);
+        range = script_range_argument(script, argument);
+        if(!range) {
+            status = panic("failed to range argument script object");
         } else {
-            range = script_range_argument(script, argument);
-            if(!range) {
-                status = panic("failed to range argument script object");
+            strbuf = script_buffer_get(&script->buffer);
+            if(!strbuf) {
+                status = panic("failed to get script buffer object");
             } else {
-                strbuf = script_buffer_get(&script->buffer);
-                if(!strbuf) {
-                    status = panic("failed to get script buffer object");
+                if(handler(script, stack, argument, strbuf)) {
+                    status = panic("failed to execute argument object");
                 } else {
-                    if(handler(script, stack, argument, strbuf)) {
-                        status = panic("failed to execute argument object");
+                    string = strbuf_string(strbuf);
+                    if(!string) {
+                        status = panic("failed to string strbuf object");
                     } else {
-                        string = strbuf_string(strbuf);
-                        if(!string) {
-                            status = panic("failed to string strbuf object");
-                        } else {
-                            range->string = store_strcpy(&script->store, string->string, string->length);
-                            if(!range->string)
-                                status = panic("failed to strcpy store object");
-                        }
+                        range->string = store_strcpy(&script->store, string->string, string->length);
+                        if(!range->string)
+                            status = panic("failed to strcpy store object");
                     }
-                    script_buffer_put(&script->buffer, strbuf);
                 }
+                script_buffer_put(&script->buffer, strbuf);
             }
         }
     }
@@ -1956,6 +1949,24 @@ int argument_millisecond(struct script * script, struct stack * stack, struct ar
                 return panic("failed to printf strbuf object");
         }
     }
+
+    return 0;
+}
+
+int argument_constant(struct script * script, struct stack * stack, struct argument_node * argument, struct strbuf * strbuf) {
+    struct script_range * range;
+    struct constant_node * constant;
+
+    range = stack_get(stack, 0);
+    if(!range)
+        return panic("failed to get stack object");
+
+    constant = constant_identifier(script->table, range->string);
+    if(!constant)
+        return panic("invalid constant - %s", range->string);
+
+    if(strbuf_printf(strbuf, "%s", constant->tag ? constant->tag : constant->identifier))
+        return panic("failed to printf strbuf object");
 
     return 0;
 }
