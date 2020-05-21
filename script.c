@@ -1958,15 +1958,16 @@ int argument_constant(struct script * script, struct stack * stack, struct argum
     struct constant_node * constant;
 
     range = stack_get(stack, 0);
-    if(!range)
+    if(!range) {
         return panic("failed to get stack object");
-
-    constant = constant_identifier(script->table, range->string);
-    if(!constant)
-        return panic("invalid constant - %s", range->string);
-
-    if(strbuf_printf(strbuf, "%s", constant->tag ? constant->tag : constant->identifier))
-        return panic("failed to printf strbuf object");
+    } else {
+        constant = constant_identifier(script->table, range->string);
+        if(!constant) {
+            return panic("invalid constant - %s", range->string);
+        } else if(strbuf_printf(strbuf, "%s", constant->tag ? constant->tag : constant->identifier)) {
+            return panic("failed to printf strbuf object");
+        }
+    }
 
     return 0;
 }
