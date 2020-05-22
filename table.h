@@ -120,13 +120,13 @@ struct argument_node {
     long newline;
     struct print_node * print;
     struct range_node * range;
-    struct map * array;
+    struct map * map;
     struct integer_node * integer;
+    struct argument_node * next;
 };
 
 struct argument {
     struct store store;
-    struct stack stack;
     struct map identifier;
     struct argument_node * argument;
     struct print_node * print;
@@ -137,7 +137,6 @@ struct argument {
 
 int argument_create(struct argument *, size_t, struct heap *);
 void argument_destroy(struct argument *);
-int argument_map(struct argument *, struct map **);
 int argument_parse(enum parser_type, int, struct string *, void *);
 
 struct table {

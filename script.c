@@ -1757,7 +1757,7 @@ int argument_array(struct script * script, struct stack * stack, struct argument
         node = range->range->root;
         while(node) {
             for(i = node->min; i <= node->max; i++) {
-                string = map_search(argument->array, &i);
+                string = map_search(argument->map, &i);
                 if(!string) {
                     return panic("invalid index - %ld", i);
                 } else if(strbuf_printf(strbuf, "%s, ", string)) {
