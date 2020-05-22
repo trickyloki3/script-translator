@@ -137,7 +137,6 @@ struct argument {
 
 int argument_create(struct argument *, size_t, struct heap *);
 void argument_destroy(struct argument *);
-int argument_print(struct argument *, struct string *, struct print_node **);
 int argument_map(struct argument *, struct map **);
 int argument_parse(enum parser_type, int, struct string *, void *);
 

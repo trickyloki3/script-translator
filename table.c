@@ -433,24 +433,6 @@ void argument_destroy(struct argument * argument) {
     store_destroy(&argument->store);
 }
 
-int argument_print(struct argument * argument, struct string * string, struct print_node ** result) {
-    int status = 0;
-    struct print_node * print;
-
-    print = store_calloc(&argument->store, sizeof(*print));
-    if(!print) {
-        status = panic("failed to calloc store object");
-    } else {
-        if(string_store(string, &argument->store, &print->string)) {
-            status = panic("failed to store string object");
-        } else {
-            *result = print;
-        }
-    }
-
-    return status;
-}
-
 int argument_map(struct argument * argument, struct map ** result) {
     int status = 0;
     struct map * map;
@@ -477,7 +459,10 @@ int argument_map(struct argument * argument, struct map ** result) {
 
 int argument_parse(enum parser_type type, int mark, struct string * string, void * context) {
     int status = 0;
-    struct argument * argument = context;
+    struct print_node * print;
+    struct argument * argument;
+
+    argument = context;
 
     switch(mark) {
         case 1:
@@ -501,18 +486,18 @@ int argument_parse(enum parser_type type, int mark, struct string * string, void
                 argument->print = NULL;
             break;
         case 6:
-            if(argument->print) {
-                if(argument_print(argument, string, &argument->print->next)) {
-                    status = panic("failed to print argument object");
-                } else {
-                    argument->print = argument->print->next;
-                }
+            print = store_calloc(&argument->store, sizeof(*print));
+            if(!print) {
+                status = panic("failed to malloc store object");
+            } else if(string_store(string, &argument->store, &print->string)) {
+                status = panic("failed to store string object");
             } else {
-                if(argument_print(argument, string, &argument->argument->print)) {
-                    status = panic("failed to print argument object");
+                if(argument->print) {
+                    argument->print->next = print;
                 } else {
-                    argument->print = argument->argument->print;
+                    argument->argument->print = print;
                 }
+                argument->print = print;
             }
             break;
         case 8:
