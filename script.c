@@ -50,7 +50,7 @@ int entry_node_load(struct entry_node *, struct stack *, struct stack *);
 int entry_node_call(struct entry_node *, struct script *, struct stack *, struct strbuf *);
 int print_node_write(struct print_node *, struct script *, struct stack *, struct strbuf *);
 
-int argument_description(struct script *, struct stack *, struct argument_node *, struct strbuf *);
+int argument_print(struct script *, struct stack *, struct argument_node *, struct strbuf *);
 int argument_prefix(struct script *, struct stack *, struct argument_node *, struct strbuf *);
 int argument_zero(struct script *, struct stack *, struct argument_node *, struct strbuf *);
 int argument_array(struct script *, struct stack *, struct argument_node *, struct strbuf *);
@@ -70,7 +70,7 @@ struct argument_entry {
     char * identifier;
     argument_cb argument;
 } argument_list[] = {
-    { "description", argument_description },
+    { "print", argument_print },
     { "prefix", argument_prefix },
     { "zero", argument_zero },
     { "array", argument_array },
@@ -1679,7 +1679,7 @@ int print_node_write(struct print_node * print, struct script * script, struct s
     return status;
 }
 
-int argument_description(struct script * script, struct stack * stack, struct argument_node * argument, struct strbuf * strbuf) {
+int argument_print(struct script * script, struct stack * stack, struct argument_node * argument, struct strbuf * strbuf) {
     struct print_node * print;
 
     print = argument->print;
