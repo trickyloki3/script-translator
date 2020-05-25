@@ -1723,7 +1723,7 @@ int argument_zero(struct script * script, struct stack * stack, struct argument_
     range = stack_get(stack, 0);
     if(!range) {
         return panic("failed to get stack object");
-    } else if(range->range->min && range->range->max) {
+    } else if(range->range->min || range->range->max) {
         if(print_node_write(argument->print, script, stack, strbuf)) {
             return panic("failed to write argument object");
         } else if(argument->newline && strbuf_putcn(strbuf, '\n', argument->newline)) {
