@@ -13,7 +13,7 @@ int script_stack_push(struct script *, struct stack *);
 void script_stack_pop(struct script *);
 
 struct script_range * script_range_create(struct script *, enum script_type, char *, ...);
-struct script_range * script_range_argument(struct script *, struct argument_node *);
+struct script_range * script_range_argument(struct script *, struct argument_node *, struct string *);
 struct script_range * script_range_constant(struct script *, struct constant_node *);
 
 enum script_flag {
@@ -483,12 +483,12 @@ struct script_range * script_range_create(struct script * script, enum script_ty
     return status ? NULL : range;
 }
 
-struct script_range * script_range_argument(struct script * script, struct argument_node * argument) {
+struct script_range * script_range_argument(struct script * script, struct argument_node * argument, struct string * string) {
     int status = 0;
     struct script_range * range;
     struct range_node * node;
 
-    range = script_range_create(script, identifier, "%s", argument->identifier);
+    range = script_range_create(script, identifier, "%s", string->string);
     if(!range) {
         status = panic("failed to range script object");
     } else if(argument->range) {
@@ -1439,28 +1439,23 @@ struct script_range * script_execute(struct script * script, struct stack * stac
     if(!handler) {
         status = panic("invalid argument - %s", argument->handler);
     } else {
-        range = script_range_argument(script, argument);
-        if(!range) {
-            status = panic("failed to range argument script object");
+        strbuf = script_buffer_get(&script->buffer);
+        if(!strbuf) {
+            status = panic("failed to get script buffer object");
         } else {
-            strbuf = script_buffer_get(&script->buffer);
-            if(!strbuf) {
-                status = panic("failed to get script buffer object");
+            if(handler(script, stack, argument, strbuf)) {
+                status = panic("failed to execute argument object");
             } else {
-                if(handler(script, stack, argument, strbuf)) {
-                    status = panic("failed to execute argument object");
+                string = strbuf_string(strbuf);
+                if(!string) {
+                    status = panic("failed to string strbuf object");
                 } else {
-                    string = strbuf_string(strbuf);
-                    if(!string) {
-                        status = panic("failed to string strbuf object");
-                    } else {
-                        range->string = store_strcpy(&script->store, string->string, string->length);
-                        if(!range->string)
-                            status = panic("failed to strcpy store object");
-                    }
+                    range = script_range_argument(script, argument, string);
+                    if(!range)
+                        status = panic("failed to range argument script object");
                 }
-                script_buffer_put(&script->buffer, strbuf);
             }
+            script_buffer_put(&script->buffer, strbuf);
         }
     }
 
