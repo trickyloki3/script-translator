@@ -1684,11 +1684,8 @@ int argument_description(struct script * script, struct stack * stack, struct ar
 
     print = argument->print;
     while(print) {
-        if(print_node_write(print, script, stack, strbuf)) {
+        if(print_node_write(print, script, stack, strbuf))
             return panic("failed to parse argument object");
-        } else if(argument->newline && strbuf_putcn(strbuf, '\n', argument->newline)) {
-            return panic("failed to putcn strbuf object");
-        }
         print = print->next;
     }
 
