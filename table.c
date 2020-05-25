@@ -465,9 +465,7 @@ int argument_parse(enum parser_type type, int mark, struct string * string, void
         case 6:
             print = store_calloc(&argument->store, sizeof(*print));
             if(!print) {
-                status = panic("failed to malloc store object");
-            } else if(string_store(string, &argument->store, &print->string)) {
-                status = panic("failed to store string object");
+                status = panic("failed to calloc store object");
             } else {
                 if(argument->print) {
                     argument->print->next = print;
@@ -475,6 +473,9 @@ int argument_parse(enum parser_type type, int mark, struct string * string, void
                     argument->argument->print = print;
                 }
                 argument->print = print;
+
+                if(argument_entry_parse(argument, string->string, string->length))
+                    status = panic("failed toi entry push argument object");
             }
             break;
         case 8:
@@ -539,6 +540,76 @@ int argument_parse(enum parser_type type, int mark, struct string * string, void
                 argument->integer->flag |= integer_absolute;
             break;
         case 20: status = string_long(string, &argument->integer->divide); break;
+    }
+
+    return status;
+}
+
+int argument_entry_parse(struct argument * argument, char * string, size_t length) {
+    char * anchor;
+    char * cursor;
+    struct entry_node * entry;
+
+    argument->entry = NULL;
+
+    anchor = string;
+    cursor = strchr(anchor, '{');
+    while(cursor) {
+        if(argument_entry_create(argument, anchor, cursor - anchor))
+            return panic("failed to entry push argument object");
+
+        entry = argument->entry;
+
+        if(cursor[1] == '*') {
+            cursor += 2;
+        } else {
+            entry->array[entry->count++] = strtol(cursor + 1, &cursor, 10);
+            while(cursor[0] == ',' && entry->count < ENTRY_MAX)
+                entry->array[entry->count++] = strtol(cursor + 1, &cursor, 10);
+        }
+
+        if(cursor[0] != '|')
+            return panic("expected vertical bar");
+
+        anchor = cursor + 1;
+        cursor = strchr(anchor, '}');
+        if(!cursor)
+            return panic("expected curly close");
+
+        entry->identifier = store_strcpy(&argument->store, anchor, cursor - anchor);
+        if(!entry->identifier)
+            return panic("failed to strcpy store object");
+
+        anchor = cursor + 1;
+        cursor = strchr(anchor, '{');
+    }
+
+    if(argument_entry_create(argument, anchor, (string + length) - anchor))
+        return panic("failed to entry push argument object");
+
+    return 0;
+}
+
+int argument_entry_create(struct argument * argument, char * string, size_t length) {
+    int status = 0;
+    struct entry_node * entry;
+
+    entry = store_calloc(&argument->store, sizeof(*entry));
+    if(!entry) {
+        status = panic("failed to calloc store object");
+    } else {
+        entry->length = length;
+        entry->string = store_strcpy(&argument->store, string, length);
+        if(!entry->string) {
+            status = panic("failed to strcpy store object");
+        } else {
+            if(argument->entry) {
+                argument->entry->next = entry;
+            } else {
+                argument->print->entry = entry;
+            }
+            argument->entry = entry;
+        }
     }
 
     return status;

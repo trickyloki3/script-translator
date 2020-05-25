@@ -109,8 +109,19 @@ struct array_node {
     char * string;
 };
 
-struct print_node {
+#define ENTRY_MAX 16
+
+struct entry_node {
+    long array[ENTRY_MAX];
+    size_t count;
+    char * identifier;
+    size_t length;
     char * string;
+    struct entry_node * next;
+};
+
+struct print_node {
+    struct entry_node * entry;
     struct print_node * next;
 };
 
@@ -129,6 +140,7 @@ struct argument {
     struct store store;
     struct map identifier;
     struct argument_node * argument;
+    struct entry_node * entry;
     struct print_node * print;
     struct range_node * range;
     struct array_node * array;
@@ -138,6 +150,8 @@ struct argument {
 int argument_create(struct argument *, size_t, struct heap *);
 void argument_destroy(struct argument *);
 int argument_parse(enum parser_type, int, struct string *, void *);
+int argument_entry_parse(struct argument *, char *, size_t);
+int argument_entry_create(struct argument *, char *, size_t);
 
 struct table {
     struct parser parser;
