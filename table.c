@@ -27,6 +27,14 @@ struct schema_markup constant_markup[] = {
     {0, 0, 0},
 };
 
+struct schema_markup constant_group_markup[] = {
+    {1, schema_list, 0, NULL},
+    {2, schema_map, 1, NULL},
+    {3, schema_list, 2, "group"},
+    {4, schema_string, 3, NULL},
+    {3, schema_string, 4, "identifier"},
+};
+
 struct schema_markup argument_markup[] = {
     {1, schema_list, 0, NULL},
     {2, schema_map, 1, NULL},
@@ -430,8 +438,17 @@ int constant_create(struct constant * constant, size_t size, struct heap * heap)
     if(store_create(&constant->store, size)) {
         status = panic("failed to create store object");
     } else {
-        if(map_create(&constant->identifier, (map_compare_cb) strcmp, heap->map_pool))
+        if(map_create(&constant->identifier, (map_compare_cb) strcmp, heap->map_pool)) {
             status = panic("failed to create map object");
+        } else {
+            if(map_create(&constant->group, (map_compare_cb) strcmp, heap->map_pool)) {
+                status = panic("failed to create map object");
+            } else {
+                constant->constant_group = NULL;
+            }
+            if(status)
+                map_destroy(&constant->identifier);
+        }
         if(status)
             store_destroy(&constant->store);
     }
@@ -440,6 +457,15 @@ int constant_create(struct constant * constant, size_t size, struct heap * heap)
 }
 
 void constant_destroy(struct constant * constant) {
+    struct constant_group_node * group;
+
+    group = constant->constant_group;
+    while(group) {
+        map_destroy(&group->map);
+        group = group->next;
+    }
+
+    map_destroy(&constant->group);
     map_destroy(&constant->identifier);
     store_destroy(&constant->store);
 }
@@ -480,6 +506,47 @@ int constant_parse(enum parser_type type, int mark, struct string * string, void
     }
 
     return status;
+}
+
+int constant_group_parse(enum parser_type type, int mark, struct string * string, void * context) {
+    struct constant * constant;
+    struct constant_node * node;
+    struct constant_group_node * group;
+
+    constant = context;
+    group = constant->constant_group;
+
+    switch(mark) {
+        case 1:
+            group = store_calloc(&constant->store, sizeof(*group));
+            if(!group) {
+                return panic("failed to calloc store object");
+            } else if(map_create(&group->map, (map_compare_cb) strcmp, constant->identifier.pool)) {
+                return panic("failed to create map object");
+            } else {
+                group->next = constant->constant_group;
+                constant->constant_group = group;
+            }
+            break;
+        case 3:
+            node = map_search(&constant->identifier, string->string);
+            if(!node) {
+                return panic("invalid constant - %s", string->string);
+            } else if(map_insert(&group->map, node->identifier, node)) {
+                return panic("failed to insert map object");
+            }
+            break;
+        case 4:
+            group->identifier = store_strcpy(&constant->store, string->string, string->length);
+            if(!group->identifier) {
+                return panic("failed to strcpy store object");
+            } else if(map_insert(&constant->group, group->identifier, &group->map)) {
+                return panic("failed to insert map object");
+            }
+            break;
+    }
+
+    return 0;
 }
 
 int argument_create(struct argument * argument, size_t size, struct heap * heap) {
@@ -782,6 +849,10 @@ int table_constant_parse(struct table * table, char * path) {
     return parser_file(&table->parser, constant_markup, path, constant_parse, &table->constant);
 }
 
+int table_constant_group_parse(struct table * table, char * path) {
+    return parser_file(&table->parser, constant_group_markup, path, constant_group_parse, &table->constant);
+}
+
 int table_argument_parse(struct table * table, char * path) {
     return parser_file(&table->parser, argument_markup, path, argument_parse, &table->argument);
 }
@@ -828,6 +899,10 @@ struct mercenary_node * mercenary_id(struct table * table, long id) {
 
 struct constant_node * constant_identifier(struct table * table, char * identifier) {
     return map_search(&table->constant.identifier, identifier);
+}
+
+struct map * constant_group_identifier(struct table * table, char * identifier) {
+    return map_search(&table->constant.group, identifier);
 }
 
 struct argument_node * argument_identifier(struct table * table, char * identifier) {

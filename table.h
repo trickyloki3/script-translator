@@ -91,16 +91,25 @@ struct constant_node {
     struct range_node * range;
 };
 
+struct constant_group_node {
+    char * identifier;
+    struct map map;
+    struct constant_group_node * next;
+};
+
 struct constant {
     struct store store;
     struct map identifier;
+    struct map group;
     struct constant_node * constant;
     struct range_node * range;
+    struct constant_group_node * constant_group;
 };
 
 int constant_create(struct constant *, size_t, struct heap *);
 void constant_destroy(struct constant *);
 int constant_parse(enum parser_type, int, struct string *, void *);
+int constant_group_parse(enum parser_type, int, struct string *, void *);
 
 enum integer_flag {
     integer_sign = 1 << 0,
@@ -181,6 +190,7 @@ int table_skill_parse(struct table *, char *);
 int table_mob_parse(struct table *, char *);
 int table_mercenary_parse(struct table *, char *);
 int table_constant_parse(struct table *, char *);
+int table_constant_group_parse(struct table *, char *);
 int table_argument_parse(struct table *, char *);
 int table_bonus_parse(struct table *, char *);
 
@@ -198,6 +208,7 @@ struct mob_node * mob_sprite(struct table *, char *);
 struct mercenary_node * mercenary_id(struct table *, long);
 
 struct constant_node * constant_identifier(struct table *, char *);
+struct map * constant_group_identifier(struct table *, char *);
 struct argument_node * argument_identifier(struct table *, char *);
 struct argument_node * bonus_identifier(struct table *, char *);
 
