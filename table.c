@@ -32,7 +32,6 @@ struct schema_markup argument_markup[] = {
     {2, schema_map, 1, NULL},
     {3, schema_string, 2, "identifier"},
     {3, schema_string, 3, "handler"},
-    {3, schema_string, 4, "newline"},
     {3, schema_list, 5, "print"},
     {4, schema_string, 6, NULL},
     {3, schema_list, 7, "range"},
@@ -457,7 +456,6 @@ int argument_parse(enum parser_type type, int mark, struct string * string, void
             break;
         case 2: status = string_store(string, &argument->store, &argument->argument->identifier); break;
         case 3: status = string_store(string, &argument->store, &argument->argument->handler); break;
-        case 4: status = string_long(string, &argument->argument->newline); break;
         case 5:
             if(type == parser_start)
                 argument->print = NULL;

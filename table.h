@@ -128,7 +128,6 @@ struct print_node {
 struct argument_node {
     char * identifier;
     char * handler;
-    long newline;
     struct print_node * print;
     struct range_node * range;
     struct map * map;

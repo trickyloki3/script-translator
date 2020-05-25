@@ -1718,11 +1718,8 @@ int argument_zero(struct script * script, struct stack * stack, struct argument_
     if(!range) {
         return panic("failed to get stack object");
     } else if(range->range->min || range->range->max) {
-        if(print_node_write(argument->print, script, stack, strbuf)) {
+        if(print_node_write(argument->print, script, stack, strbuf))
             return panic("failed to write argument object");
-        } else if(argument->newline && strbuf_putcn(strbuf, '\n', argument->newline)) {
-            return panic("failed to putcn strbuf object");
-        }
     }
 
     return 0;
