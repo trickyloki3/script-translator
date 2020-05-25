@@ -19,6 +19,8 @@ int main(int argc, char ** argv) {
         } else {
             if(table_item_parse(&table, "item_db.txt")) {
                 status = panic("failed to item parse table object");
+            } else if(table_item_combo_parse(&table, "item_combo_db.txt")) {
+                status = panic("failed to item parse table object");
             } else if (table_skill_parse(&table, "skill_db.yml")) {
                 status = panic("failed to skill parse table object");
             } else if (table_mob_parse(&table, "mob_db.txt")) {

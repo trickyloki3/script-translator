@@ -5,16 +5,25 @@
 #include "csv.h"
 #include "parser.h"
 
+struct item_combo_node {
+    char * combo;
+    char * bonus;
+    struct item_combo_node * next;
+};
+
 struct item_node {
     long id;
     char * name;
     char * bonus;
     char * equip;
     char * unequip;
+    struct item_combo_node * combo;
 };
 
 struct item {
     struct store store;
+    struct stack stack;
+    struct strbuf strbuf;
     struct map id;
     struct map name;
     struct item_node * item;
@@ -24,6 +33,7 @@ int item_create(struct item *, size_t, struct heap *);
 void item_destroy(struct item *);
 int item_parse(enum parser_type, int, struct string *, void *);
 int item_script_parse(struct item *, char *);
+int item_combo_parse(enum parser_type, int, struct string *, void *);
 
 struct skill_node {
     long id;
@@ -166,6 +176,7 @@ struct table {
 int table_create(struct table *, size_t, struct heap *);
 void table_destroy(struct table *);
 int table_item_parse(struct table *, char *);
+int table_item_combo_parse(struct table *, char *);
 int table_skill_parse(struct table *, char *);
 int table_mob_parse(struct table *, char *);
 int table_mercenary_parse(struct table *, char *);

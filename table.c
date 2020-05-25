@@ -92,18 +92,30 @@ int item_create(struct item * item, size_t size, struct heap * heap) {
 
     if(store_create(&item->store, size)) {
         status = panic("failed to create store object");
-    } else {
-        if(map_create(&item->id, long_compare, heap->map_pool)) {
-            status = panic("failed to create map object");
-        } else {
-            if(map_create(&item->name, (map_compare_cb) strcmp, heap->map_pool))
-                status = panic("failed to create map object");
-            if(status)
-                map_destroy(&item->id);
-        }
-        if(status)
-            store_destroy(&item->store);
+    } else if(stack_create(&item->stack, heap->stack_pool)) {
+        status = panic("failed to create stack object");
+        goto stack_fail;
+    } else if(strbuf_create(&item->strbuf, size)) {
+        status = panic("failed to create strbuf object");
+        goto strbuf_fail;
+    } else if(map_create(&item->id, long_compare, heap->map_pool)) {
+        status = panic("failed to create map object");
+        goto id_fail;
+    } else if(map_create(&item->name, (map_compare_cb) strcmp, heap->map_pool)) {
+        status = panic("failed to create map object");
+        goto name_fail;
     }
+
+    return status;
+
+name_fail:
+    map_destroy(&item->id);
+id_fail:
+    strbuf_destroy(&item->strbuf);
+strbuf_fail:
+    stack_destroy(&item->stack);
+stack_fail:
+    store_destroy(&item->store);
 
     return status;
 }
@@ -111,6 +123,8 @@ int item_create(struct item * item, size_t size, struct heap * heap) {
 void item_destroy(struct item * item) {
     map_destroy(&item->name);
     map_destroy(&item->id);
+    strbuf_destroy(&item->strbuf);
+    stack_destroy(&item->stack);
     store_destroy(&item->store);
 }
 
@@ -187,6 +201,77 @@ int item_script_parse(struct item * item, char * string) {
     }
 
     return status;
+}
+
+int item_combo_parse(enum parser_type type, int mark, struct string * string, void * context) {
+    struct item * item = context;
+
+    char * cursor;
+    long id;
+    struct item_node * item_node;
+
+    char * bonus;
+    char * combo;
+    struct item_combo_node * combo_node;
+
+    switch(mark) {
+        case 1:
+            strbuf_clear(&item->strbuf);
+            stack_clear(&item->stack);
+
+            id = strtol(string->string, &cursor, 10);
+            while(cursor[0] == ':') {
+                item_node = map_search(&item->id, &id);
+                if(!item_node) {
+                    return panic("invalid item id - %ld", id);
+                } else if(stack_push(&item->stack, item_node)) {
+                    return panic("failed to push stack object");
+                } else if(strbuf_printf(&item->strbuf, "%s, ", item_node->name)) {
+                    return panic("failed to printf strbuf object");
+                } else {
+                    id = strtol(cursor + 1, &cursor, 10);
+                }
+            }
+
+            item_node = map_search(&item->id, &id);
+            if(!item_node) {
+                return panic("invalid item id - %ld", id);
+            } else if(stack_push(&item->stack, item_node)) {
+                return panic("failed to push stack object");
+            } else if(strbuf_printf(&item->strbuf, "%s", item_node->name)) {
+                return panic("failed to printf strbuf object");
+            }
+            break;
+        case 2:
+            bonus = store_strcpy(&item->store, string->string, string->length);
+            if(!bonus)
+                return panic("failed to strcpy store object");
+
+            string = strbuf_string(&item->strbuf);
+            if(!string)
+                return panic("failed to string strbuf object");
+
+            combo = store_strcpy(&item->store, string->string, string->length);
+            if(!combo)
+                return panic("failed to strcpy store object");
+
+            item_node = stack_start(&item->stack);
+            while(item_node) {
+                combo_node = store_malloc(&item->store, sizeof(*combo_node));
+                if(!combo_node) {
+                    return panic("failed to malloc store object");
+                } else {
+                    combo_node->combo = combo;
+                    combo_node->bonus = bonus;
+                    combo_node->next = item_node->combo;
+                    item_node->combo = combo_node;
+                }
+                item_node = stack_next(&item->stack);
+            }
+            break;
+    }
+
+    return 0;
 }
 
 int skill_create(struct skill * skill, size_t size, struct heap * heap) {
@@ -675,6 +760,10 @@ void table_destroy(struct table * table) {
 
 int table_item_parse(struct table * table, char * path) {
     return csv_parse(path, item_parse, &table->item);
+}
+
+int table_item_combo_parse(struct table * table, char * path) {
+    return csv_parse(path, item_combo_parse, &table->item);
 }
 
 int table_skill_parse(struct table * table, char * path) {
