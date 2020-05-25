@@ -51,7 +51,7 @@ int entry_node_call(struct entry_node *, struct script *, struct stack *, struct
 int print_node_write(struct print_node *, struct script *, struct stack *, struct strbuf *);
 
 int argument_description(struct script *, struct stack *, struct argument_node *, struct strbuf *);
-int argument_sign(struct script *, struct stack *, struct argument_node *, struct strbuf *);
+int argument_prefix(struct script *, struct stack *, struct argument_node *, struct strbuf *);
 int argument_zero(struct script *, struct stack *, struct argument_node *, struct strbuf *);
 int argument_array(struct script *, struct stack *, struct argument_node *, struct strbuf *);
 int argument_integer(struct script *, struct stack *, struct argument_node *, struct strbuf *);
@@ -71,7 +71,7 @@ struct argument_entry {
     argument_cb argument;
 } argument_list[] = {
     { "description", argument_description },
-    { "sign", argument_sign },
+    { "prefix", argument_prefix },
     { "zero", argument_zero },
     { "array", argument_array },
     { "integer", argument_integer },
@@ -1695,7 +1695,7 @@ int argument_description(struct script * script, struct stack * stack, struct ar
     return 0;
 }
 
-int argument_sign(struct script * script, struct stack * stack, struct argument_node * argument, struct strbuf * strbuf) {
+int argument_prefix(struct script * script, struct stack * stack, struct argument_node * argument, struct strbuf * strbuf) {
     struct print_node * print;
     struct script_range * range;
 
@@ -1707,11 +1707,8 @@ int argument_sign(struct script * script, struct stack * stack, struct argument_
         if(range->range->max < 0)
             print = print->next;
 
-        if(print_node_write(print, script, stack, strbuf)) {
+        if(print_node_write(print, script, stack, strbuf))
             return panic("failed to write argument object");
-        } else if(argument->newline && strbuf_putcn(strbuf, '\n', argument->newline)) {
-            return panic("failed to putcn strbuf object");
-        }
     }
 
     return 0;
