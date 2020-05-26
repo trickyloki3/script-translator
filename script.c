@@ -715,7 +715,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                                     *result = range;
                                 }
                             } else {
-                                if(undefined_add(&script->undefined, "%s", root->identifier)) {
+                                if(undefined_add(&script->undefined, "statement.%s", root->identifier)) {
                                     status = panic("failed to add undefined object");
                                 } else {
                                     range = script_range_create(script, identifier, "%s", root->identifier);
