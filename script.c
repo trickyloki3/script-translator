@@ -31,6 +31,7 @@ struct script_range * function_min(struct script *, struct stack *);
 struct script_range * function_max(struct script *, struct stack *);
 struct script_range * function_pow(struct script *, struct stack *);
 struct script_range * function_rand(struct script *, struct stack *);
+struct script_range * function_bonus(struct script *, struct stack *);
 
 typedef struct script_range * (*function_cb) (struct script *, struct stack *);
 
@@ -43,6 +44,7 @@ struct function_entry {
     { "max", function_max },
     { "pow", function_pow },
     { "rand", function_rand },
+    { "bonus", function_bonus },
     { NULL, NULL}
 };
 
@@ -1615,6 +1617,29 @@ struct script_range * function_rand(struct script * script, struct stack * stack
     return status ? NULL : range;
 }
 
+struct script_range * function_bonus(struct script * script, struct stack * stack) {
+    int status = 0;
+    struct script_range * range;
+    struct argument_node * argument;
+
+    range = stack_get(stack, 0);
+    if(!range) {
+        status = panic("invalid bonus");
+    } else {
+        argument = bonus_identifier(script->table, range->string);
+        if(!argument) {
+            if(undefined_add(&script->undefined, "bonus.%s", range->string))
+                status = panic("failed to add undefined object");
+        } else {
+            range = script_execute(script, stack, argument);
+            if(!range)
+                status = panic("failed to execute script object");
+        }
+    }
+
+    return status ? NULL : range;
+}
+
 int entry_node_load(struct entry_node * entry, struct stack * result, struct stack * source) {
     size_t i;
     struct script_range * range;
@@ -1834,7 +1859,7 @@ int argument_integer(struct script * script, struct stack * stack, struct argume
                     return panic("failed to putc strbuf object");
 
             if(flag & integer_string)
-                if(strbuf_printf(strbuf, "(%s)", range->string))
+                if(strbuf_printf(strbuf, " (%s)", range->string))
                     return panic("failed to printf strbuf object");
         }
     }
