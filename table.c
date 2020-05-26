@@ -532,6 +532,8 @@ int constant_group_parse(enum parser_type type, int mark, struct string * string
             node = map_search(&constant->identifier, string->string);
             if(!node) {
                 return panic("invalid constant - %s", string->string);
+            } else if(!node->tag) {
+                return panic("invalid tag - %s", node->identifier);
             } else if(map_insert(&group->map, node->identifier, node)) {
                 return panic("failed to insert map object");
             }
