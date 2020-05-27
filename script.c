@@ -1833,7 +1833,7 @@ int argument_integer(struct script * script, struct stack * stack, struct argume
         }
 
         if(flag & integer_sign)
-            if(min < 0 ? strbuf_putc(strbuf, '-') : strbuf_putc(strbuf, '+'))
+            if(max >= 0 && strbuf_putc(strbuf, '+'))
                 return panic("failed to putc strbuf object");
 
         if(strbuf_printf(strbuf, "%ld", min))
@@ -1848,7 +1848,7 @@ int argument_integer(struct script * script, struct stack * stack, struct argume
                 return panic("failed to printf strbuf object");
 
             if(flag & integer_sign)
-                if(max < 0 ? strbuf_putc(strbuf, '-') : strbuf_putc(strbuf, '+'))
+                if(max >= 0 && strbuf_putc(strbuf, '+'))
                     return panic("failed to putc strbuf object");
 
             if(strbuf_printf(strbuf, "%ld", max))
