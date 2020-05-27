@@ -438,10 +438,10 @@ int constant_create(struct constant * constant, size_t size, struct heap * heap)
     if(store_create(&constant->store, size)) {
         status = panic("failed to create store object");
     } else {
-        if(map_create(&constant->identifier, (map_compare_cb) strcmp, heap->map_pool)) {
+        if(map_create(&constant->identifier, (map_compare_cb) strcasecmp, heap->map_pool)) {
             status = panic("failed to create map object");
         } else {
-            if(map_create(&constant->group, (map_compare_cb) strcmp, heap->map_pool)) {
+            if(map_create(&constant->group, (map_compare_cb) strcasecmp, heap->map_pool)) {
                 status = panic("failed to create map object");
             } else {
                 constant->constant_group = NULL;
@@ -521,7 +521,7 @@ int constant_group_parse(enum parser_type type, int mark, struct string * string
             group = store_calloc(&constant->store, sizeof(*group));
             if(!group) {
                 return panic("failed to calloc store object");
-            } else if(map_create(&group->map, (map_compare_cb) strcmp, constant->identifier.pool)) {
+            } else if(map_create(&group->map, (map_compare_cb) strcasecmp, constant->identifier.pool)) {
                 return panic("failed to create map object");
             } else {
                 group->next = constant->constant_group;
