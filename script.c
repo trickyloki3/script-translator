@@ -3,6 +3,25 @@
 #include "script_parser.h"
 #include "script_scanner.h"
 
+long BF_SHORT;
+long BF_LONG;
+long BF_WEAPON;
+long BF_MAGIC;
+long BF_MISC;
+long BF_NORMAL;
+long BF_SKILL;
+
+long ATF_LONG;
+long ATF_MAGIC;
+long ATF_MISC;
+long ATF_SELF;
+long ATF_SHORT;
+long ATF_SKILL;
+long ATF_TARGET;
+long ATF_WEAPON;
+
+int table_set_constant(struct table *, char *, long *);
+
 int script_map_push(struct script *, struct map *);
 void script_map_pop(struct script *);
 
@@ -304,6 +323,23 @@ int script_create(struct script * script, size_t size, struct heap * heap, struc
                         }
                     }
 
+                    if( table_set_constant(table, "BF_SHORT", &BF_SHORT) ||
+                        table_set_constant(table, "BF_LONG", &BF_LONG) ||
+                        table_set_constant(table, "BF_WEAPON", &BF_WEAPON) ||
+                        table_set_constant(table, "BF_MAGIC", &BF_MAGIC) ||
+                        table_set_constant(table, "BF_MISC", &BF_MISC) ||
+                        table_set_constant(table, "BF_NORMAL", &BF_NORMAL) ||
+                        table_set_constant(table, "BF_SKILL", &BF_SKILL) ||
+                        table_set_constant(table, "ATF_LONG", &ATF_LONG) ||
+                        table_set_constant(table, "ATF_MAGIC", &ATF_MAGIC) ||
+                        table_set_constant(table, "ATF_MISC", &ATF_MISC) ||
+                        table_set_constant(table, "ATF_SELF", &ATF_SELF) ||
+                        table_set_constant(table, "ATF_SHORT", &ATF_SHORT) ||
+                        table_set_constant(table, "ATF_SKILL", &ATF_SKILL) ||
+                        table_set_constant(table, "ATF_TARGET", &ATF_TARGET) ||
+                        table_set_constant(table, "ATF_WEAPON", &ATF_WEAPON) )
+                        status = panic("failed to set constant table object");
+
                     if(status)
                         goto script_fail;
                 }
@@ -373,6 +409,18 @@ int script_compile(struct script * script, char * string) {
     store_clear(&script->store);
 
     return status;
+}
+
+int table_set_constant(struct table * table, char * identifier, long * result) {
+    struct constant_node * constant;
+
+    constant = constant_identifier(table, identifier);
+    if(!constant)
+        return panic("invalid constant - %s", identifier);
+
+    *result = constant->value;
+
+    return 0;
 }
 
 int script_map_push(struct script * script, struct map * map) {
