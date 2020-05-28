@@ -259,6 +259,29 @@ void undefined_print(struct undefined * undef) {
     fprintf(stdout, "\n");
 }
 
+int script_setup(struct table * table) {
+    int status = 0;
+
+    if( table_set_constant(table, "BF_SHORT", &BF_SHORT) ||
+        table_set_constant(table, "BF_LONG", &BF_LONG) ||
+        table_set_constant(table, "BF_WEAPON", &BF_WEAPON) ||
+        table_set_constant(table, "BF_MAGIC", &BF_MAGIC) ||
+        table_set_constant(table, "BF_MISC", &BF_MISC) ||
+        table_set_constant(table, "BF_NORMAL", &BF_NORMAL) ||
+        table_set_constant(table, "BF_SKILL", &BF_SKILL) ||
+        table_set_constant(table, "ATF_LONG", &ATF_LONG) ||
+        table_set_constant(table, "ATF_MAGIC", &ATF_MAGIC) ||
+        table_set_constant(table, "ATF_MISC", &ATF_MISC) ||
+        table_set_constant(table, "ATF_SELF", &ATF_SELF) ||
+        table_set_constant(table, "ATF_SHORT", &ATF_SHORT) ||
+        table_set_constant(table, "ATF_SKILL", &ATF_SKILL) ||
+        table_set_constant(table, "ATF_TARGET", &ATF_TARGET) ||
+        table_set_constant(table, "ATF_WEAPON", &ATF_WEAPON) )
+        status = panic("failed to set constant table object");
+
+    return status;
+}
+
 int script_create(struct script * script, size_t size, struct heap * heap, struct table * table) {
     int status = 0;
 
@@ -322,23 +345,6 @@ int script_create(struct script * script, size_t size, struct heap * heap, struc
                             argument++;
                         }
                     }
-
-                    if( table_set_constant(table, "BF_SHORT", &BF_SHORT) ||
-                        table_set_constant(table, "BF_LONG", &BF_LONG) ||
-                        table_set_constant(table, "BF_WEAPON", &BF_WEAPON) ||
-                        table_set_constant(table, "BF_MAGIC", &BF_MAGIC) ||
-                        table_set_constant(table, "BF_MISC", &BF_MISC) ||
-                        table_set_constant(table, "BF_NORMAL", &BF_NORMAL) ||
-                        table_set_constant(table, "BF_SKILL", &BF_SKILL) ||
-                        table_set_constant(table, "ATF_LONG", &ATF_LONG) ||
-                        table_set_constant(table, "ATF_MAGIC", &ATF_MAGIC) ||
-                        table_set_constant(table, "ATF_MISC", &ATF_MISC) ||
-                        table_set_constant(table, "ATF_SELF", &ATF_SELF) ||
-                        table_set_constant(table, "ATF_SHORT", &ATF_SHORT) ||
-                        table_set_constant(table, "ATF_SKILL", &ATF_SKILL) ||
-                        table_set_constant(table, "ATF_TARGET", &ATF_TARGET) ||
-                        table_set_constant(table, "ATF_WEAPON", &ATF_WEAPON) )
-                        status = panic("failed to set constant table object");
 
                     if(status)
                         goto script_fail;

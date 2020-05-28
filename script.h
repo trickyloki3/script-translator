@@ -67,6 +67,7 @@ struct script {
     struct script_range * range;
 };
 
+int script_setup(struct table *);
 int script_create(struct script *, size_t, struct heap *, struct table *);
 void script_destroy(struct script *);
 int script_compile(struct script *, char *);
