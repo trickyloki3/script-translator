@@ -180,6 +180,7 @@ struct table {
     struct constant constant;
     struct argument argument;
     struct argument bonus;
+    struct argument bonus2;
 };
 
 int table_create(struct table *, size_t, struct heap *);
@@ -193,6 +194,7 @@ int table_constant_parse(struct table *, char *);
 int table_constant_group_parse(struct table *, char *);
 int table_argument_parse(struct table *, char *);
 int table_bonus_parse(struct table *, char *);
+int table_bonus2_parse(struct table *, char *);
 
 struct item_node * item_start(struct table *);
 struct item_node * item_next(struct table *);
@@ -211,5 +213,6 @@ struct constant_node * constant_identifier(struct table *, char *);
 struct map * constant_group_identifier(struct table *, char *);
 struct argument_node * argument_identifier(struct table *, char *);
 struct argument_node * bonus_identifier(struct table *, char *);
+struct argument_node * bonus2_identifier(struct table *, char *);
 
 #endif
