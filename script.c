@@ -1882,6 +1882,7 @@ int argument_array(struct script * script, struct stack * stack, struct argument
 int argument_integer(struct script * script, struct stack * stack, struct argument_node * argument, struct strbuf * strbuf) {
     long min;
     long max;
+    long tmp;
 
     long flag;
     long divide;
@@ -1909,8 +1910,14 @@ int argument_integer(struct script * script, struct stack * stack, struct argume
         }
 
         if(flag & integer_absolute) {
-            min = labs(min);
-            max = labs(max);
+            if(min < 0 && max < 0) {
+                min *= -1;
+                max *= -1;
+
+                tmp = min;
+                min = max;
+                max = tmp;
+            }
         }
 
         if(flag & integer_sign)
