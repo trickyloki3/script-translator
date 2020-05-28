@@ -74,6 +74,7 @@ int argument_race(struct script *, struct stack *, struct argument_node *, struc
 int argument_mob_race(struct script *, struct stack *, struct argument_node *, struct strbuf *);
 int argument_effect(struct script *, struct stack *, struct argument_node *, struct strbuf *);
 int argument_class(struct script *, struct stack *, struct argument_node *, struct strbuf *);
+int argument_splash(struct script *, struct stack *, struct argument_node *, struct strbuf *);
 
 typedef int (*argument_cb) (struct script *, struct stack *, struct argument_node *, struct strbuf *);
 
@@ -101,6 +102,7 @@ struct argument_entry {
     { "mob_race", argument_mob_race },
     { "effect", argument_effect },
     { "class", argument_class },
+    { "splash", argument_splash },
     { NULL, NULL }
 };
 
@@ -2190,4 +2192,26 @@ int argument_effect(struct script * script, struct stack * stack, struct argumen
 
 int argument_class(struct script * script, struct stack * stack, struct argument_node * argument, struct strbuf * strbuf) {
     return argument_group(script, stack, strbuf, "class");
+}
+
+int argument_splash(struct script * script, struct stack * stack, struct argument_node * argument, struct strbuf * strbuf) {
+    struct script_range * range;
+
+    long min;
+    long max;
+
+    range = stack_get(stack, 0);
+    if(!range)
+        return panic("failed to get stack object");
+
+    min = range->range->min * 2 + 1;
+    max = range->range->max * 2 + 1;
+
+    if(strbuf_printf(strbuf, "[%ld x %ld]", min, min))
+        return panic("failed to printf strbuf object");
+
+    if(min != max && strbuf_printf(strbuf, " ~ [%ld x %ld]", max, max))
+        return panic("failed to printf strbuf object");
+
+    return 0;
 }
