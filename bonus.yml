@@ -166,13 +166,13 @@
 # BF_SHORT (bShortAtkRate) / BF_LONG (bLongAtkRate)
 
 - identifier: bShortAtkRate
-  print: {1|increase} meelee damage by {1|int/s%a}.
+  print: {1|int/+s%} meelee damage
 
 - identifier: bLongAtkRate
-  print: {1|increase} ranged damage by {1|int/s%a}.
+  print: {1|int/+s%} ranged damage
 
 - identifier: bCritAtkRate
-  print: {1|increase} critical damage by {1|int/s%a}.
+  print: {1|int/+s%} critical damage
 
 - identifier: bCriticalDef
   print: {1|decrease} enemy's critical hit chance by {1|int/s%a}.
@@ -180,28 +180,28 @@
 # b(Near/Long/Magic/Misc)AtkDef applies during battle_calc_cardfix
 
 - identifier: bNearAtkDef
-  print: {1|increase} meelee damage reduction by {1|int/s%a}.
+  print: {1|int/+s%} meelee resistance
 
 - identifier: bLongAtkDef
-  print: {1|increase} ranged damage reduction by {1|int/s%a}.
+  print: {1|int/+s%} ranged resistance
 
 - identifier: bMagicAtkDef
-  print: {1|increase} magical damage reduction by {1|int/s%a}.
+  print: {1|int/+s%} magic resistance
 
 - identifier: bMiscAtkDef
-  print: {1|increase} misc damage reduction by {1|int/s%a}.
+  print: {1|int/+s%} misc resistance
 
 # BF_WEAPON (bNoWeaponDamage), BF_MAGIC(bNoWeaponDamage), &
 # BF_MISC (bNoMiscDamage) applies during battle_calc_damage
 
 - identifier: bNoWeaponDamage
-  print: Decrease physical damage by {1|int/s%}.
+  print: {1|int/+s%} physical resistance
 
 - identifier: bNoMagicDamage
-  print: Decrease magical damage by {1|int/s%}.
+  print: {1|int/+s%} magic resistance
 
 - identifier: bNoMiscDamage
-  print: Decrease misc damage by {1|int/s%}.
+  print: {1|int/+s%} misc resistance
 
 - identifier: bHealPower
   print: {1|increase} heal amount of all skills by {1|int/s%a}.
@@ -237,7 +237,7 @@
   print: {1|increase} after cast delay of all skills by {1|int/s%a}.
 
 - identifier: bNoSizeFix
-  print: Increase damage by ignoring the enemy's size.
+  print: Increase damage against enemies by ignoring their size.
 
 - identifier: bAbsorbDmgMaxHP
   print: Reduce damage by {1|int/s%} of Max HP when total damage received is over {1|int/s%} of Max HP.
@@ -249,28 +249,28 @@
   print: Armor is enchanted with {1|element} property.
 
 - identifier: bDefRatioAtkRace
-  print: Increase damage against {1|race} enemies by scaling the damage with their defense.
+  print: Increase damage against {1|race} enemies by scaling the damage with their DEF.
 
 - identifier: bDefRatioAtkEle
-  print: Increase damage against {1|element} enemies by scaling the damage with their defense.
+  print: Increase damage against {1|element} enemies by scaling the damage with their DEF.
 
 - identifier: bDefRatioAtkClass
-  print: Increase damage against {1|class} enemies by scaling the damage with their defense.
+  print: Increase damage against {1|class} enemies by scaling the damage with their DEF.
 
 - identifier: bIgnoreDefEle
-  print: Increase damage against {1|element} enemies by ignoring their defense.
+  print: Increase physical damage against {1|element} enemies by ignoring their DEF.
 
 - identifier: bIgnoreDefRace
-  print: Increase damage against {1|race} enemies by ignoring their defense.
+  print: Increase physical damage against {1|race} enemies by ignoring their DEF.
 
 - identifier: bIgnoreDefClass
-  print: Increase damage against {1|class} enemies by ignoring their defense.
+  print: Increase physical damage against {1|class} enemies by ignoring their DEF.
 
 - identifier: bIgnoreMDefRace
-  print: Increase magical damage against {1|race} enemies by ignoring their magical defense.
+  print: Increase magical damage against {1|race} enemies by ignoring their MDEF.
 
 - identifier: bIgnoreMDefEle
-  print: Increase magical damage against {1|element} enemies by ignoring their magical defense.
+  print: Increase magical damage against {1|element} enemies by ignoring their MDEF.
 
 # bHPDrainValue and bSPDrainValue is applied in battle_drain
 #  * battle_weapon_attack checks BF_WEAPON
@@ -349,7 +349,7 @@
   print: Shoe cannot be broken.
 
 - identifier: bUnbreakable
-  print: {1|increase} break chance reduction of all equipment by {1|int/s%a}.
+  print: {1|increase} break chance resistance of all equipment by {1|int/s%a}.
 
 - identifier: bBreakWeaponRate
   print: Add {1|int/s%100} chance of breaking an enemy's weapon for each meelee attack.
