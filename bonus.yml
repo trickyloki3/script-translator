@@ -109,7 +109,7 @@
   print: Critical {1|int/+s}
 
 - identifier: bCriticalLong
-  print: {1|increase} critical chance by {1|int/s%a} when using a ranged attack.
+  print: {1|int/+s%} Ranged Critical Chance
 
 - identifier: bCriticalRate
   print: Critical {1|int/+s%}
@@ -151,28 +151,28 @@
   print: Max Weight {1|int/+s10}
 
 - identifier: bHPrecovRate
-  print: {1|increase} natural HP recovery by {1|int/s%a}.
+  print: {1|int/+s%} Natural HP Regeneration
 
 - identifier: bSPrecovRate
-  print: {1|increase} natural SP recovery by {1|int/s%a}.
+  print: {1|int/+s%} Natural SP Regeneration
 
 - identifier: bNoRegen
-  print: Stop natural {1|regen} recovery.
+  print: Stop Natural {1|regen} Regeneration.
 
 - identifier: bUseSPrate
-  print: {1|increase} SP cost of all skills by {1|int/s%a}.
+  print: {1|int/+s%} SP cost per skill
 
 # battle_range_type determines whether the range is
 # BF_SHORT (bShortAtkRate) / BF_LONG (bLongAtkRate)
 
 - identifier: bShortAtkRate
-  print: {1|int/+s%} meelee damage
+  print: {1|int/+s%} Meelee Damage
 
 - identifier: bLongAtkRate
-  print: {1|int/+s%} ranged damage
+  print: {1|int/+s%} Ranged Damage
 
 - identifier: bCritAtkRate
-  print: {1|int/+s%} critical damage
+  print: {1|int/+s%} Critical Damage
 
 - identifier: bCriticalDef
   print: {1|decrease} enemy's critical hit chance by {1|int/s%a}.
@@ -180,28 +180,28 @@
 # b(Near/Long/Magic/Misc)AtkDef applies during battle_calc_cardfix
 
 - identifier: bNearAtkDef
-  print: {1|int/+s%} meelee resistance
+  print: {1|int/+s%} Meelee Resistance
 
 - identifier: bLongAtkDef
-  print: {1|int/+s%} ranged resistance
+  print: {1|int/+s%} Ranged Resistance
 
 - identifier: bMagicAtkDef
-  print: {1|int/+s%} magic resistance
+  print: {1|int/+s%} Magic Resistance
 
 - identifier: bMiscAtkDef
-  print: {1|int/+s%} misc resistance
+  print: {1|int/+s%} Misc Resistance
 
 # BF_WEAPON (bNoWeaponDamage), BF_MAGIC(bNoWeaponDamage), &
 # BF_MISC (bNoMiscDamage) applies during battle_calc_damage
 
 - identifier: bNoWeaponDamage
-  print: {1|int/+s%} physical resistance
+  print: {1|int/+s%} Physical Resistance
 
 - identifier: bNoMagicDamage
-  print: {1|int/+s%} magic resistance
+  print: {1|int/+s%} Magic Resistance
 
 - identifier: bNoMiscDamage
-  print: {1|int/+s%} misc resistance
+  print: {1|int/+s%} Misc Resistance
 
 - identifier: bHealPower
   print: {1|increase} heal amount of all skills by {1|int/s%a}.
@@ -228,59 +228,61 @@
   print: {1|increase} variable cast time of all skills by {1|time/ms}.
 
 - identifier: bNoCastCancel
-  print: Ability to cast spells without being interrupted outside of WoE.
+  print: Ability to cast spells without being interrupted (exclude GvG).
 
 - identifier: bNoCastCancel2
   print: Ability to cast spells without being interrupted.
 
 - identifier: bDelayrate
-  print: {1|increase} after cast delay of all skills by {1|int/s%a}.
+  print: {1|int/s%} Skill Delay
 
 - identifier: bNoSizeFix
-  print: Increase damage against enemies by ignoring their size.
+  print: Ignore size vs. all enemies.
 
 - identifier: bAbsorbDmgMaxHP
-  print: Reduce damage by {1|int/s%} of Max HP when total damage received is over {1|int/s%} of Max HP.
+  print: >
+    If the damage received is over {1|int/s%} of Max HP,
+    then reduce damage received by {1|int/s%} of Max HP.
 
 - identifier: bAtkEle
-  print: Weapon is enchanted with {1|element} property.
+  print: Weapon endowed with {1|element} property.
 
 - identifier: bDefEle
-  print: Armor is enchanted with {1|element} property.
+  print: Armor endowed with {1|element} property.
 
 - identifier: bDefRatioAtkRace
-  print: Increase damage against {1|race} enemies by scaling the damage with their DEF.
+  print: Scale damage with enemy's DEF vs. {1|race} enemies.
 
 - identifier: bDefRatioAtkEle
-  print: Increase damage against {1|element} enemies by scaling the damage with their DEF.
+  print: Scale damage with enemy's DEF vs. {1|element} enemies.
 
 - identifier: bDefRatioAtkClass
-  print: Increase damage against {1|class} enemies by scaling the damage with their DEF.
+  print: Scale damage with enemy's DEF vs. {1|class} enemies.
 
 - identifier: bIgnoreDefEle
-  print: Increase physical damage against {1|element} enemies by ignoring their DEF.
+  print: Ignore DEF vs. {1|element} enemies.
 
 - identifier: bIgnoreDefRace
-  print: Increase physical damage against {1|race} enemies by ignoring their DEF.
+  print: Ignore DEF vs. {1|race} enemies.
 
 - identifier: bIgnoreDefClass
-  print: Increase physical damage against {1|class} enemies by ignoring their DEF.
+  print: Ignore DEF vs. {1|class} enemies.
 
 - identifier: bIgnoreMDefRace
-  print: Increase magical damage against {1|race} enemies by ignoring their MDEF.
+  print: Ignore MDEF vs. {1|race} enemies.
 
 - identifier: bIgnoreMDefEle
-  print: Increase magical damage against {1|element} enemies by ignoring their MDEF.
+  print: Ignore MDEF vs. {1|element} enemies.
 
 # bHPDrainValue and bSPDrainValue is applied in battle_drain
 #  * battle_weapon_attack checks BF_WEAPON
 #  * zero and negative values are ignored
 
 - identifier: bHPDrainValue
-  print: Heal {1|int/s} HP per hit when using a weapon attack.
+  print: Heal {1|int/s} HP per hit with a weapon attack.
 
 - identifier: bSPDrainValue
-  print: Heal {1|int/s} SP per hit when using a weapon attack.
+  print: Heal {1|int/s} SP per hit with a weapon attack.
 
 # b*GainValue is applied in skill_counter_additional_effect
 #  * b*GainValue checks BF_WEAPON | BF_SHORT (meelee)
@@ -289,22 +291,22 @@
 #  * zero and negative values are ignored
 
 - identifier: bHPGainValue
-  print: Heal {1|int/s} HP per kill when using a meelee attack.
+  print: Heal {1|int/s} HP per kill with a meelee attack.
 
 - identifier: bSPGainValue
-  print: Heal {1|int/s} SP per kill when using a meelee attack.
+  print: Heal {1|int/s} SP per kill with a meelee attack.
 
 - identifier: bLongHPGainValue
-  print: Heal {1|int/s} HP per kill when using a ranged attack.
+  print: Heal {1|int/s} HP per kill with a ranged attack.
 
 - identifier: bLongSPGainValue
-  print: Heal {1|int/s} SP per kill when using a ranged attack.
+  print: Heal {1|int/s} SP per kill with a ranged attack.
 
 - identifier: bMagicHPGainValue
-  print: Heal {1|int/s} HP per kill when using a magical attack.
+  print: Heal {1|int/s} HP per kill with a magical attack.
 
 - identifier: bMagicSPGainValue
-  print: Heal {1|int/s} SP per kill when using a magical attack.
+  print: Heal {1|int/s} SP per kill with a magical attack.
 
 - identifier: bShortWeaponDamageReturn
   print: Reflect meelee damage by {1|int/s%}.
@@ -349,7 +351,7 @@
   print: Shoe cannot be broken.
 
 - identifier: bUnbreakable
-  print: {1|increase} break chance resistance of all equipment by {1|int/s%a}.
+  print: {1|int/+s%} Equipment Break Resistance
 
 - identifier: bBreakWeaponRate
   print: Add {1|int/s%100} chance of breaking an enemy's weapon for each meelee attack.
@@ -388,7 +390,7 @@
   print: Add {1|int/s%100} chance of transforming a monster for each meelee attack.
 
 - identifier: bAddStealRate
-  print: {1|increase} success rate of steal by {1|int/s%100a}
+  print: {1|int/+s%100} Steal Success Rate
 
 - identifier: bNoMadoFuel
   print: Ability to use any skill without consuming any magic gear fuel.
