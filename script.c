@@ -1973,14 +1973,24 @@ int argument_second(struct script * script, struct stack * stack, struct argumen
 
     long min;
     long max;
+    long tmp;
     struct print_node * print;
 
     range = stack_get(stack, 0);
     if(!range) {
         return panic("failed to get stack object");
     } else {
-        min = labs(range->range->min);
-        max = labs(range->range->max);
+        min = range->range->min;
+        max = range->range->max;
+        if(min < 0 && max < 0) {
+            min *= -1;
+            max *= -1;
+
+            tmp = min;
+            min = max;
+            max = tmp;
+        }
+
         print = argument->print;
         if(min / 86400 > 0) {
             min /= 86400;
@@ -2024,14 +2034,24 @@ int argument_millisecond(struct script * script, struct stack * stack, struct ar
 
     long min;
     long max;
+    long tmp;
     struct print_node * print;
 
     range = stack_get(stack, 0);
     if(!range) {
         return panic("failed to get stack object");
     } else {
-        min = labs(range->range->min);
-        max = labs(range->range->max);
+        min = range->range->min;
+        max = range->range->max;
+        if(min < 0 && max < 0) {
+            min *= -1;
+            max *= -1;
+
+            tmp = min;
+            min = max;
+            max = tmp;
+        }
+
         print = argument->print;
         if(min / 86400000 > 0) {
             min /= 86400000;
