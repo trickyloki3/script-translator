@@ -1,0 +1,397 @@
+# bonus descriptions are based rAthena in renewal mode
+
+- identifier: bStr
+  print: STR {1|int/+s}
+
+- identifier: bAgi
+  print: AGI {1|int/+s}
+
+- identifier: bVit
+  print: VIT {1|int/+s}
+
+- identifier: bInt
+  print: INT {1|int/+s}
+
+- identifier: bDex
+  print: DEX {1|int/+s}
+
+- identifier: bLuk
+  print: LUK {1|int/+s}
+
+- identifier: bAllStats
+  print: All Stats {1|int/+s}
+
+- identifier: bAgiVit
+  print: |
+    AGI {1|int/+s}
+    VIT {1|int/+s}
+
+- identifier: bAgiDexStr
+  print: |
+    STR {1|int/+s}
+    AGI {1|int/+s}
+    DEX {1|int/+s}
+
+- identifier: bMaxHP
+  print: Max HP {1|int/+s}
+
+- identifier: bMaxHPrate
+  print: Max HP {1|int/+s%}
+
+- identifier: bMaxSP
+  print: Max SP {1|int/+s}
+
+- identifier: bMaxSPrate
+  print: Max SP {1|int/+s%}
+
+# bBaseAtk is used in battle_calc_equip_attack to calculate equipment attack
+#
+# bAtk, bAtk2, bAtkRate, and bWeaponAtkRate is used
+# in  status_weapon_atk  to calculate weapon attack
+
+- identifier: bBaseAtk
+  print: Base ATK {1|int/+s}
+
+- identifier: bAtk
+  print: ATK {1|int/+s}
+
+- identifier: bAtk2
+  print: ATK2 {1|int/+s}
+
+- identifier: bAtkRate
+  print: ATK {1|int/+s%}
+
+- identifier: bWeaponAtkRate
+  print: ATK {1|int/+s%}
+
+- identifier: bMatk
+  print: MATK {1|int/+s}
+
+- identifier: bMatkRate
+  print: MATK {1|int/+s%}
+
+- identifier: bWeaponMatkRate
+  print: MATK {1|int/+s%}
+
+- identifier: bDef
+  print: DEF {1|int/+s}
+
+- identifier: bDefRate
+  print: DEF {1|int/+s%}
+
+- identifier: bDef2
+  print: DEF2 {1|int/+s}
+
+- identifier: bDef2Rate
+  print: DEF2 {1|int/+s%}
+
+- identifier: bMdef
+  print: MDEF {1|int/+s}
+
+- identifier: bMdefRate
+  print: MDEF {1|int/+s%}
+
+- identifier: bMdef2
+  print: MDEF2 {1|int/+s}
+
+- identifier: bMdef2Rate
+  print: MDEF2 {1|int/+s%}
+
+- identifier: bHit
+  print: HIT {1|int/+s}
+
+- identifier: bHitRate
+  print: HIT {1|int/+s%}
+
+# bCritical* applied in is_attack_critical
+
+- identifier: bCritical
+  print: Critical {1|int/+s}
+
+- identifier: bCriticalLong
+  print: {1|increase} critical chance by {1|int/s%a} when using a ranged attack.
+
+- identifier: bCriticalRate
+  print: Critical {1|int/+s%}
+
+- identifier: bFlee
+  print: FLEE {1|int/+s}
+
+- identifier: bFleeRate
+  print: FLEE {1|int/+s%}
+
+- identifier: bFlee2
+  print: Perfect Dodge {1|int/+s}
+
+- identifier: bFlee2Rate
+  print: Perfect Dodge {1|int/+s%}
+
+- identifier: bPerfectHitRate
+  print: Add {1|int/s%} chance of a perfect hit.
+
+- identifier: bPerfectHitAddRate
+  print: Add {1|int/s%} chance of a perfect hit.
+
+- identifier: bSpeedRate
+  print: Movement Speed {1|int/+s%}
+
+- identifier: bSpeedAddRate
+  print: Movement Speed {1|int/+s%}
+
+- identifier: bAspd
+  print: ASPD {1|int/+s}
+
+- identifier: bAspdRate
+  print: ASPD {1|int/+s%}
+
+- identifier: bAtkRange
+  print: Weapon Range {1|int/+s}
+
+- identifier: bAddMaxWeight
+  print: Max Weight {1|int/+s10}
+
+- identifier: bHPrecovRate
+  print: {1|increase} natural HP recovery by {1|int/s%a}.
+
+- identifier: bSPrecovRate
+  print: {1|increase} natural SP recovery by {1|int/s%a}.
+
+- identifier: bNoRegen
+  print: Stop natural {1|regen} recovery.
+
+- identifier: bUseSPrate
+  print: {1|increase} SP cost of all skills by {1|int/s%a}.
+
+# battle_range_type determines whether the range is
+# BF_SHORT (bShortAtkRate) / BF_LONG (bLongAtkRate)
+
+- identifier: bShortAtkRate
+  print: {1|increase} meelee damage by {1|int/s%a}.
+
+- identifier: bLongAtkRate
+  print: {1|increase} ranged damage by {1|int/s%a}.
+
+- identifier: bCritAtkRate
+  print: {1|increase} critical damage by {1|int/s%a}.
+
+- identifier: bCriticalDef
+  print: {1|decrease} enemy's critical hit chance by {1|int/s%a}.
+
+# b(Near/Long/Magic/Misc)AtkDef applies during battle_calc_cardfix
+
+- identifier: bNearAtkDef
+  print: {1|increase} meelee damage reduction by {1|int/s%a}.
+
+- identifier: bLongAtkDef
+  print: {1|increase} ranged damage reduction by {1|int/s%a}.
+
+- identifier: bMagicAtkDef
+  print: {1|increase} magical damage reduction by {1|int/s%a}.
+
+- identifier: bMiscAtkDef
+  print: {1|increase} misc damage reduction by {1|int/s%a}.
+
+# BF_WEAPON (bNoWeaponDamage), BF_MAGIC(bNoWeaponDamage), &
+# BF_MISC (bNoMiscDamage) applies during battle_calc_damage
+
+- identifier: bNoWeaponDamage
+  print: Decrease physical damage by {1|int/s%}.
+
+- identifier: bNoMagicDamage
+  print: Decrease magical damage by {1|int/s%}.
+
+- identifier: bNoMiscDamage
+  print: Decrease misc damage by {1|int/s%}.
+
+- identifier: bHealPower
+  print: {1|increase} heal amount of all skills by {1|int/s%a}.
+
+- identifier: bHealPower2
+  print: {1|increase} heal amount from all skills by {1|int/s%a}.
+
+- identifier: bAddItemHealRate
+  print: {1|increase} heal amount of all items by {1|int/s%a}.
+
+- identifier: bCastrate
+  print: {1|increase} variable cast time of all skills by {1|int/s%a}.
+
+- identifier: bFixedCastrate
+  print: {1|increase} fixed cast time of all skills by {1|int/s%a}.
+
+- identifier: bVariableCastrate
+  print: {1|increase} variable cast time of all skills by {1|int/s%a}.
+
+- identifier: bFixedCast
+  print: {1|increase} fixed cast time of all skills by {1|time/ms}.
+
+- identifier: bVariableCast
+  print: {1|increase} variable cast time of all skills by {1|time/ms}.
+
+- identifier: bNoCastCancel
+  print: Ability to cast spells without being interrupted outside of WoE.
+
+- identifier: bNoCastCancel2
+  print: Ability to cast spells without being interrupted.
+
+- identifier: bDelayrate
+  print: {1|increase} after cast delay of all skills by {1|int/s%a}.
+
+- identifier: bNoSizeFix
+  print: Increase damage by ignoring the enemy's size.
+
+- identifier: bAbsorbDmgMaxHP
+  print: Reduce damage by {1|int/s%} of Max HP when total damage received is over {1|int/s%} of Max HP.
+
+- identifier: bAtkEle
+  print: Weapon is enchanted with {1|element} property.
+
+- identifier: bDefEle
+  print: Armor is enchanted with {1|element} property.
+
+- identifier: bDefRatioAtkRace
+  print: Increase damage against {1|race} enemies by scaling the damage with their defense.
+
+- identifier: bDefRatioAtkEle
+  print: Increase damage against {1|element} enemies by scaling the damage with their defense.
+
+- identifier: bDefRatioAtkClass
+  print: Increase damage against {1|class} enemies by scaling the damage with their defense.
+
+- identifier: bIgnoreDefEle
+  print: Increase damage against {1|element} enemies by ignoring their defense.
+
+- identifier: bIgnoreDefRace
+  print: Increase damage against {1|race} enemies by ignoring their defense.
+
+- identifier: bIgnoreDefClass
+  print: Increase damage against {1|class} enemies by ignoring their defense.
+
+- identifier: bIgnoreMDefRace
+  print: Increase magical damage against {1|race} enemies by ignoring their magical defense.
+
+- identifier: bIgnoreMDefEle
+  print: Increase magical damage against {1|element} enemies by ignoring their magical defense.
+
+# bHPDrainValue and bSPDrainValue is applied in battle_drain
+#  * battle_weapon_attack checks BF_WEAPON
+#  * zero and negative values are ignored
+
+- identifier: bHPDrainValue
+  print: Heal {1|int/s} HP per hit when using a weapon attack.
+
+- identifier: bSPDrainValue
+  print: Heal {1|int/s} SP per hit when using a weapon attack.
+
+# b*GainValue is applied in skill_counter_additional_effect
+#  * b*GainValue checks BF_WEAPON | BF_SHORT (meelee)
+#  * bLong*GainValue checks BF_WEAPON | BF_LONG (ranged)
+#  * bMagic*GainValue checks BF_MAGIC (magical)
+#  * zero and negative values are ignored
+
+- identifier: bHPGainValue
+  print: Heal {1|int/s} HP per kill when using a meelee attack.
+
+- identifier: bSPGainValue
+  print: Heal {1|int/s} SP per kill when using a meelee attack.
+
+- identifier: bLongHPGainValue
+  print: Heal {1|int/s} HP per kill when using a ranged attack.
+
+- identifier: bLongSPGainValue
+  print: Heal {1|int/s} SP per kill when using a ranged attack.
+
+- identifier: bMagicHPGainValue
+  print: Heal {1|int/s} HP per kill when using a magical attack.
+
+- identifier: bMagicSPGainValue
+  print: Heal {1|int/s} SP per kill when using a magical attack.
+
+- identifier: bShortWeaponDamageReturn
+  print: Reflect meelee damage by {1|int/s%}.
+
+- identifier: bLongWeaponDamageReturn
+  print: Reflect ranged damage by {1|int/s%}.
+
+- identifier: bMagicDamageReturn
+  print: Add {1|int/s%} chance to reflect each magic spell.
+
+- identifier: bUnstripableWeapon
+  print: Weapon cannot be stripped.
+
+- identifier: bUnstripableArmor
+  print: Armor cannot be stripped.
+
+- identifier: bUnstripableHelm
+  print: Helm cannot be stripped.
+
+- identifier: bUnstripableShield
+  print: Shield cannot be stripped.
+
+- identifier: bUnstripable
+  print: All equipment cannot be stripped.
+
+- identifier: bUnbreakableGarment
+  print: Garment cannot be broken.
+
+- identifier: bUnbreakableWeapon
+  print: Weapon cannot be broken.
+
+- identifier: bUnbreakableArmor
+  print: Armor cannot be broken.
+
+- identifier: bUnbreakableHelm
+  print: Helm cannot be broken.
+
+- identifier: bUnbreakableShield
+  print: Shield cannot be broken.
+
+- identifier: bUnbreakableShoes
+  print: Shoe cannot be broken.
+
+- identifier: bUnbreakable
+  print: {1|increase} break chance reduction of all equipment by {1|int/s%a}.
+
+- identifier: bBreakWeaponRate
+  print: Add {1|int/s%100} chance of breaking an enemy's weapon for each meelee attack.
+
+- identifier: bBreakArmorRate
+  print: Add {1|int/s%100} chance of breaking an enemy's armor for each meelee attack.
+
+- identifier: bDoubleRate
+  print: Add {1|int/s%} chance to double attack.
+
+- identifier: bDoubleAddRate
+  print: Add {1|int/s%} chance to double attack.
+
+- identifier: bSplashRange
+  print: Each meelee attack deals AoE damage to a {1|splash} grid.
+
+- identifier: bSplashAddRange
+  print: Each meelee attack deals AoE damage to a {1|splash} grid.
+
+- identifier: bNoKnockback
+  print: Ability to prevent knockback.
+
+- identifier: bNoGemStone
+  print: Ability to use any skill without consuming any gemstone.
+
+- identifier: bIntravision
+  print: Ability to detect cloaking or hiding enemies.
+
+- identifier: bPerfectHide
+  print: Ability to perfectly hide from monsters.
+
+- identifier: bRestartFullRecover
+  print: Ability to revive with full HP and SP.
+
+- identifier: bClassChange
+  print: Add {1|int/s%100} chance of transforming a monster for each meelee attack.
+
+- identifier: bAddStealRate
+  print: {1|increase} success rate of steal by {1|int/s%100a}
+
+- identifier: bNoMadoFuel
+  print: Ability to use any skill without consuming any magic gear fuel.
+
+- identifier: bNoWalkDelay
+  print: Infinite endure.
