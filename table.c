@@ -54,8 +54,9 @@ struct schema_markup argument_markup[] = {
     {4, schema_string, 16, "sign"},
     {4, schema_string, 17, "string"},
     {4, schema_string, 18, "percent"},
-    {4, schema_string, 19, "absolute"},
-    {4, schema_string, 20, "divide"},
+    {4, schema_string, 19, "inverse"},
+    {4, schema_string, 20, "absolute"},
+    {4, schema_string, 21, "divide"},
     {0, 0, 0},
 };
 
@@ -690,9 +691,13 @@ int argument_parse(enum parser_type type, int mark, struct string * string, void
             break;
         case 19:
             if(!strcmp("true", string->string))
+                argument->integer->flag |= integer_inverse;
+            break;
+        case 20:
+            if(!strcmp("true", string->string))
                 argument->integer->flag |= integer_absolute;
             break;
-        case 20: status = string_long(string, &argument->integer->divide); break;
+        case 21: status = string_long(string, &argument->integer->divide); break;
     }
 
     return status;

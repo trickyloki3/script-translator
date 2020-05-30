@@ -115,7 +115,8 @@ enum integer_flag {
     integer_sign = 1 << 0,
     integer_string = 1 << 1,
     integer_percent = 1 << 2,
-    integer_absolute = 1 << 3
+    integer_inverse = 1 << 3,
+    integer_absolute = 1 << 4
 };
 
 struct integer_node {

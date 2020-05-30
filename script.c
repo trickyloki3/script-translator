@@ -1920,6 +1920,15 @@ int argument_integer(struct script * script, struct stack * stack, struct argume
             }
         }
 
+        if(flag & integer_inverse) {
+            min *= -1;
+            max *= -1;
+
+            tmp = min;
+            min = max;
+            max = tmp;
+        }
+
         if(flag & integer_sign)
             if(min >= 0 && strbuf_putc(strbuf, '+'))
                 return panic("failed to putc strbuf object");
