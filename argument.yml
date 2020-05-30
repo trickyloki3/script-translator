@@ -76,25 +76,33 @@
 - identifier: time/s
   handler: second
   print:
-    - days
-    - hours
-    - minutes
-    - seconds
+    - Days
+    - Hours
+    - Minutes
+    - Seconds
 
 - identifier: time/ms
   handler: millisecond
   print:
-    - days
-    - hours
-    - minutes
-    - seconds
-    - milliseconds
+    - Days
+    - Hours
+    - Minutes
+    - Seconds
+    - Milliseconds
 
 - identifier: recover
   handler: prefix
   print:
     - Heal
     - Lose
+
+- identifier: sign
+  handler: prefix
+  print:
+    - >
+      +
+    - >
+      -
 
 - identifier: increase
   handler: prefix
