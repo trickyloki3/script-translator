@@ -59,6 +59,13 @@
     sign: true
     string: true
 
+- identifier: int/-s
+  handler: integer
+  integer:
+    sign: true
+    string: true
+    inverse: true
+
 - identifier: int/+s10
   handler: integer
   integer:
@@ -72,6 +79,14 @@
     sign: true
     string: true
     percent: true
+
+- identifier: int/-s%
+  handler: integer
+  integer:
+    sign: true
+    string: true
+    percent: true
+    inverse: true
 
 - identifier: time/s
   handler: second
@@ -128,67 +143,67 @@
   handler: array
   array:
     - index: 0
-      string: bare fist
+      string: Bare Fist
     - index: 1
-      string: dagger
+      string: Dagger
     - index: 2
-      string: one-handed sword
+      string: One-handed Sword
     - index: 3
-      string: two-handed sword
+      string: Two-handed Sword
     - index: 4
-      string: one-handed spear
+      string: One-handed Spear
     - index: 5
-      string: two-handed spear
+      string: Two-handed Spear
     - index: 6
-      string: one-handed axe
+      string: One-handed Axe
     - index: 7
-      string: two-handed axe
+      string: Two-handed Axe
     - index: 8
-      string: mace
+      string: Mace
     - index: 9
-      string: unused
+      string: Unused
     - index: 10
-      string: stave
+      string: Stave
     - index: 11
-      string: bow
+      string: Bow
     - index: 12
-      string: knuckle
+      string: Knuckle
     - index: 13
-      string: musical instrument
+      string: Musical Instrument
     - index: 14
-      string: whip
+      string: Whip
     - index: 15
-      string: book
+      string: Book
     - index: 16
-      string: katar
+      string: Katar
     - index: 17
-      string: revolver
+      string: Revolver
     - index: 18
-      string: rifle
+      string: Rifle
     - index: 19
-      string: gatling gun
+      string: Gatling Gun
     - index: 20
-      string: shotgun
+      string: Shotgun
     - index: 21
-      string: grenade launcher
+      string: Grenade Launcher
     - index: 22
-      string: fuuma shuriken
+      string: Fuuma Shuriken
     - index: 23
-      string: two-handed stave
+      string: Two-handed Stave
     - index: 24
-      string: max type
+      string: Max Type
     - index: 25
-      string: dual-wield dagger
+      string: Dual-wield Dagger
     - index: 26
-      string: dual-wield sword
+      string: Dual-wield Sword
     - index: 27
-      string: dual-wield axe
+      string: Dual-wield Axe
     - index: 28
-      string: dagger + sword
+      string: Dagger + Sword
     - index: 29
-      string: dagger + axe
+      string: Dagger + Axe
     - index: 30
-      string: sword + axe
+      string: Sword + Axe
 
 # statement
 

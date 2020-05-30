@@ -204,13 +204,13 @@
   print: {1|int/+s%} Misc Resistance
 
 - identifier: bHealPower
-  print: {1|int/+s%} Skill Heal Amount
+  print: {1|int/+s%} Skill Recovery Amount
 
 - identifier: bHealPower2
-  print: {1|int/+s%} Heal Amount From Skills
+  print: {1|int/+s%} Recovery Amount From Skills
 
 - identifier: bAddItemHealRate
-  print: {1|int/+s%} Heal Amount From Items
+  print: {1|int/+s%} Recovery Amount From Items
 
 - identifier: bCastrate
   print: {1|int/+s%} Skill Variable Cast Time
