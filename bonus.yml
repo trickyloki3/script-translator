@@ -354,10 +354,10 @@
   print: {1|int/+s%} Equipment Break Resistance
 
 - identifier: bBreakWeaponRate
-  print: Add {1|int/s%100} chance of breaking an enemy's weapon for each meelee attack.
+  print: Add {1|int/s%100} chance of breaking an enemy's weapon for each weapon attack.
 
 - identifier: bBreakArmorRate
-  print: Add {1|int/s%100} chance of breaking an enemy's armor for each meelee attack.
+  print: Add {1|int/s%100} chance of breaking an enemy's armor for each weapon attack.
 
 - identifier: bDoubleRate
   print: Add {1|int/s%} chance to double attack.
@@ -387,7 +387,7 @@
   print: Ability to revive with full HP and SP.
 
 - identifier: bClassChange
-  print: Add {1|int/s%100} chance of transforming a monster for each meelee attack.
+  print: Add {1|int/s%100} chance of transforming a monster for each weapon attack.
 
 - identifier: bAddStealRate
   print: {1|int/+s%100} Steal Success Rate
