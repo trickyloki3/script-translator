@@ -99,14 +99,14 @@
 - identifier: increase
   handler: prefix
   print:
-      - Increase
-      - Decrease
+    - Increase
+    - Decrease
 
 - identifier: decrease
   handler: prefix
   print:
-      - Decrease
-      - Increase
+    - Decrease
+    - Increase
 
 - identifier: regen
   handler: array
