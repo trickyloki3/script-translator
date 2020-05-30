@@ -275,7 +275,8 @@
   print: Ignore MDEF vs. {1|element} enemies.
 
 # bHPDrainValue and bSPDrainValue is applied in battle_drain
-#  * battle_weapon_attack checks BF_WEAPON
+#  * battle_weapon_attack and skill_attack checks
+#    BF_WEAPON flag before calling battle_drain
 #  * zero and negative values are ignored
 
 - identifier: bHPDrainValue
@@ -287,7 +288,7 @@
 # b*GainValue is applied in skill_counter_additional_effect
 #  * b*GainValue checks BF_WEAPON | BF_SHORT (meelee)
 #  * bLong*GainValue checks BF_WEAPON | BF_LONG (ranged)
-#  * bMagic*GainValue checks BF_MAGIC (magical)
+#  * bMagic*GainValue checks BF_MAGIC (magic)
 #  * zero and negative values are ignored
 
 - identifier: bHPGainValue
@@ -303,10 +304,10 @@
   print: Heal {1|int/s} SP per kill with a ranged attack.
 
 - identifier: bMagicHPGainValue
-  print: Heal {1|int/s} HP per kill with a magical attack.
+  print: Heal {1|int/s} HP per kill with a magic attack.
 
 - identifier: bMagicSPGainValue
-  print: Heal {1|int/s} SP per kill with a magical attack.
+  print: Heal {1|int/s} SP per kill with a magic attack.
 
 - identifier: bShortWeaponDamageReturn
   print: Reflect meelee damage by {1|int/s%}.
@@ -353,6 +354,8 @@
 - identifier: bUnbreakable
   print: {1|int/+s%} Equipment Break Resistance
 
+# bBreak*Rate is applied in skill_additional_effect on BF_WEAPON
+
 - identifier: bBreakWeaponRate
   print: Add {1|int/s%100} chance of breaking an enemy's weapon for each weapon attack.
 
@@ -366,10 +369,10 @@
   print: Add {1|int/s%} chance to double attack.
 
 - identifier: bSplashRange
-  print: Each meelee attack deals AoE damage to a {1|splash} grid.
+  print: Each weapon attack deals AoE damage to a {1|splash} grid.
 
 - identifier: bSplashAddRange
-  print: Each meelee attack deals AoE damage to a {1|splash} grid.
+  print: Each weapon attack deals AoE damage to a {1|splash} grid.
 
 - identifier: bNoKnockback
   print: Ability to prevent knockback.
@@ -385,6 +388,8 @@
 
 - identifier: bRestartFullRecover
   print: Ability to revive with full HP and SP.
+
+# bClassChange is applied in skill_additional_effect on BF_WEAPON
 
 - identifier: bClassChange
   print: Add {1|int/s%100} chance of transforming a monster for each weapon attack.

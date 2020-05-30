@@ -46,6 +46,13 @@
     absolute: true
     divide: 100
 
+- identifier: int/s%10
+  handler: integer
+  integer:
+    string: true
+    percent: true
+    divide: 10
+
 - identifier: int/s%100
   handler: integer
   integer:
@@ -79,6 +86,14 @@
     sign: true
     string: true
     percent: true
+
+- identifier: int/+s%100
+  handler: integer
+  integer:
+    sign: true
+    string: true
+    percent: true
+    divide: 100
 
 - identifier: int/-s%
   handler: integer
