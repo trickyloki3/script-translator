@@ -1,0 +1,245 @@
+# bonus descriptions are based rAthena in renewal mode
+
+- identifier: bCriticalAddRace
+  print: {2|int/+s%} Critical Chance vs. {1|race}.
+
+# pc_regen and pc_bleeding; checks hp > 0 and sp > 0
+# if the value is negative, then the regen and bleed
+# is ignored
+
+- identifier: bHPRegenRate
+  print: Heal {1|int/s} HP every {2|time/ms}.
+
+- identifier: bHPLossRate
+  print: Lose {1|int/s} HP every {2|time/ms}.
+
+- identifier: bSPRegenRate
+  print: Heal {1|int/s} SP every {2|time/ms}.
+
+- identifier: bSPLossRate
+  print: Lose {1|int/s} SP every {2|time/ms}.
+
+- identifier: bRegenPercentHP
+  print: Heal {1|int/s%} of max HP every {2|time/ms}.
+
+- identifier: bRegenPercentSP
+  print: Heal {1|int/s%} of max SP every {2|time/ms}.
+
+- identifier: bSkillUseSP
+  print: {2|int/-s} SP cost of {1|skill}.
+
+- identifier: bSkillUseSPrate
+  print: {2|int/-s%} SP cost of {1|skill}.
+
+- identifier: bSkillAtk
+  print: {2|int/+s%} {1|skill} Damage
+
+- identifier: bWeaponAtk
+  print: ATK {2|int/+s} when {1|weapon} is equipped.
+
+- identifier: bWeaponDamageRate
+  print: {2|int/+s%} {1|weapon} Damage
+
+- identifier: bSkillHeal
+  print: {2|int/+s%} {1|skill} Recovery Amount
+
+- identifier: bSkillHeal2
+  print: {2|int/+s%} Recovery Amount From {1|skill}
+
+- identifier: bAddItemHealRate
+  print: {2|int/+s%} Recovery Amount From {1|item}
+
+- identifier: bAddItemGroupHealRate
+  print: {2|int/+s%} Recovery Amount From Any Item In {1|constant}
+
+- identifier: bCastrate
+  print: {2|int/+s%} {1|skill} Variable Cast Time
+
+- identifier: bFixedCastrate
+  print: {2|int/+s%} {1|skill} Fixed Cast Time
+
+- identifier: bVariableCastrate
+  print: {2|int/+s%} {1|skill} Variable Cast Time
+
+- identifier: bSkillFixedCast
+  print: {2|sign}{2|time/ms} {1|skill} Fixed Cast Time
+
+- identifier: bSkillVariableCast
+  print: {2|sign}{2|time/ms} {1|skill} Variable Cast Time
+
+- identifier: bSkillDelay
+  print: {2|sign}{2|time/ms} {1|skill} Delay
+
+- identifier: bSkillCooldown
+  print: {2|sign}{2|time/ms} {1|skill} Cooldown
+
+# bAddEle is applied in battle_calc_cardfix under BF_WEAPON
+
+- identifier: bAddEle
+  print: {2|int/+s%} Physical Damage vs. {1|element} enemies.
+
+- identifier: bMagicAddEle
+  print: {2|int/+s%} Magical Damage vs. {1|element} enemies.
+
+- identifier: bSubEle
+  print: {2|int/+s%} {1|element} Resistance
+
+- identifier: bSubDefEle
+  print: {2|int/+s%} Resistance vs. {1|element} enemies.
+
+- identifier: bAddRace
+  print: {2|int/+s%} Physical Damage vs. {1|race} enemies.
+
+- identifier: bMagicAddRace
+  print: {2|int/+s%} Magical Damage vs. {1|race} enemies.
+
+- identifier: bSubRace
+  print: {2|int/+s%} {1|race} Resistance
+
+- identifier: bAddClass
+  print: {2|int/+s%} Physical Damage vs. {1|class} enemies.
+
+- identifier: bMagicAddClass
+  print: {2|int/+s%} Magical Damage vs. {1|class} enemies.
+
+- identifier: bSubClass
+  print: {2|int/+s%} {1|class} Resistance
+
+- identifier: bAddSize
+  print: {2|int/+s%} Physical Damage vs. {1|size} enemies.
+
+- identifier: bMagicAddSize
+  print: {2|int/+s%} Magical Damage vs. {1|size} enemies.
+
+- identifier: bSubSize
+  print: {2|int/+s%} {1|size} Resistance
+
+- identifier: bAddDamageClass
+  print: {2|int/+s%} Physical Damage vs. {1|mob}.
+
+- identifier: bAddMagicDamageClass
+  print: {2|int/+s%} Magical Damage vs. {1|mob}.
+
+- identifier: bAddDefMonster
+  print: {2|int/+s%} Physical Resistance vs. {1|mob}.
+
+- identifier: bAddMDefMonster
+  print: {2|int/+s%} Magic Resistance vs. {1|mob}.
+
+- identifier: bAddRace2
+  print: {2|int/+s%} Physical Damage vs. {1|mob_race}.
+
+- identifier: bSubRace2
+  print: {2|int/+s%} Resistance vs. {1|mob_race}.
+
+- identifier: bMagicAddRace2
+  print: {2|int/+s%} Magical Damage vs. {1|mob_race}.
+
+- identifier: bSubSkill
+  print: {2|int/+s%} {1|skill} Resistance
+
+- identifier: bMagicAtkEle
+  print: {2|int/+s%} {1|element} Magical Damage
+
+- identifier: bIgnoreDefRaceRate
+  print: Ignore {2|int/s%} DEF vs. {1|race} enemies.
+
+- identifier: bIgnoreMdefRaceRate
+  print: Ignore {2|int/s%} MDEF vs. {1|race} enemies.
+
+- identifier: bIgnoreMdefRace2Rate
+  print: Ignore {2|int/s%} MDEF vs. {1|mob_race} enemies.
+
+- identifier: bIgnoreDefClassRate
+  print: Ignore {2|int/s%} DEF vs. {1|class} enemies.
+
+- identifier: bIgnoreMdefClassRate
+  print: Ignore {2|int/s%} MDEF vs. {1|class} enemies.
+
+- identifier: bExpAddRace
+  print: {2|int/+s%} EXP vs. {1|race} enemies.
+
+- identifier: bExpAddClass
+  print: {2|int/+s%} EXP vs. {1|class} enemies.
+
+# bAddEff  is applied with  pc_bonus_addeff using default
+# ATF flag ATF_SHORT | ATF_LONG | ATF_TARGET | ATF_WEAPON
+
+- identifier: bAddEff
+  print: Add {2|int/s%100} chance to inflict {1|effect} on enemy for each weapon attack.
+
+- identifier: bAddEff2
+  print: Add {2|int/s%100} chance to inflict {1|effect} on self for each weapon attack.
+
+- identifier: bAddEffWhenHit
+  print: Add {2|int/s%100} chance to inflict {1|effect} on enemy when hit with a weapon attack.
+
+- identifier: bResEff
+  print: {2|int/+s%100} {1|effect} Resistance
+
+# bComa* is applied in skill_additional_effect
+
+- identifier: bComaClass
+  print: Add {2|int/s%100} chance to inflict Coma vs. {1|class} enemies for each attack.
+
+- identifier: bComaRace
+  print: Add {2|int/s%100} chance to inflict Coma vs. {1|race} enemies for each attack.
+
+# bWeaponComa* is applied in skill_additional_effect on BF_WEAPON
+
+- identifier: bWeaponComaEle
+  print: Add {2|int/s%100} chance to inflict Coma vs. {1|element} enemies for each weapon attack.
+
+- identifier: bWeaponComaClass
+  print: Add {2|int/s%100} chance to inflict Coma vs. {1|class} enemies for each weapon attack.
+
+- identifier: bWeaponComaRace
+  print: Add {2|int/s%100} chance to inflict Coma vs. {1|race} enemies for each weapon attack.
+
+- identifier: bHPDrainValueRace
+  print: Heal {2|int/s} HP per hit with a weapon attack vs. {1|race} enemies.
+
+- identifier: bHpDrainValueClass
+  print: Heal {2|int/s} HP per hit with a weapon attack vs. {1|class} enemies.
+
+- identifier: bSPDrainValueRace
+  print: Heal {2|int/s} SP per hit with a weapon attack vs. {1|race} enemies.
+
+- identifier: bSpDrainValueClass
+  print: Heal {2|int/s} SP per hit with a weapon attack vs. {1|class} enemies.
+
+- identifier: bHPDrainRate
+  print: Add {1|int/s%10} chance to heal HP by {2|int/s%} of damage for each weapon attack.
+
+- identifier: bSPDrainRate
+  print: Add {1|int/s%10} chance to heal SP by {2|int/s%} of damage for each weapon attack.
+
+- identifier: bHPVanishRate
+  print: Add {1|int/s%10} chance to damage enemy's HP by {2|int/s%} for each weapon attack.
+
+- identifier: bSPVanishRate
+  print: Add {1|int/s%10} chance to damage enemy's SP by {2|int/s%} for each weapon attack.
+
+- identifier: bSPGainRace
+  print: Heal {2|int/s} SP per kill vs. {1|race} with a meelee attack.
+
+- identifier: bDropAddRace
+  print: {2|int/+s%} Drop Rate vs. {1|race} enemies.
+
+- identifier: bDropAddClass
+  print: {2|int/+s%} Drop Rate vs. {1|class} enemies.
+
+- identifier: bAddMonsterDropItem
+  print: Add {2|int/s%100} chance to drop {1|item} per kill.
+
+- identifier: bAddMonsterDropItemGroup
+  print: Add {2|int/s%100} chance to drop an item from {1|constant} per kill.
+
+- identifier: bGetZenyNum
+  print: Add {2|int/s%} chance of gaining {1|int/s} zeny per kill.
+
+- identifier: bAddGetZenyNum
+  print: Add {2|int/s%} chance of gaining {1|int/s} zeny per kill.
+
+- identifier: bAddSkillBlow
+  print: Knockback an enemy by {2|int/s} cells when using {1|skill}.

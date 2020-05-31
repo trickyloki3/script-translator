@@ -103,7 +103,7 @@
 - identifier: bHitRate
   print: HIT {1|int/+s%}
 
-# bCritical* applied in is_attack_critical
+# bCritical* is applied in is_attack_critical
 
 - identifier: bCritical
   print: Critical {1|int/+s}
