@@ -37,6 +37,8 @@ int main(int argc, char ** argv) {
                 status = panic("failed to bonus parse table object");
             } else if (table_bonus2_parse(&table, "bonus2.yml")) {
                 status = panic("failed to bonus2 parse table object");
+            } else if (table_bonus3_parse(&table, "bonus3.yml")) {
+                status = panic("failed to bonus3 parse table object");
             } else {
                 if(script_setup(&table)) {
                     status = panic("failed to setup script object");

@@ -802,10 +802,15 @@ int table_create(struct table * table, size_t size, struct heap * heap) {
     } else if(argument_create(&table->bonus2, size, heap)) {
         status = panic("failed to create argument object");
         goto bonus2_fail;
+    } else if(argument_create(&table->bonus3, size, heap)) {
+        status = panic("failed to create argument object");
+        goto bonus3_fail;
     }
 
     return status;
 
+bonus3_fail:
+    argument_destroy(&table->bonus2);
 bonus2_fail:
     argument_destroy(&table->bonus);
 bonus_fail:
@@ -827,6 +832,7 @@ item_fail:
 }
 
 void table_destroy(struct table * table) {
+    argument_destroy(&table->bonus3);
     argument_destroy(&table->bonus2);
     argument_destroy(&table->bonus);
     argument_destroy(&table->argument);
@@ -876,6 +882,10 @@ int table_bonus_parse(struct table * table, char * path) {
 
 int table_bonus2_parse(struct table * table, char * path) {
     return parser_file(&table->parser, argument_markup, path, argument_parse, &table->bonus2);
+}
+
+int table_bonus3_parse(struct table * table, char * path) {
+    return parser_file(&table->parser, argument_markup, path, argument_parse, &table->bonus3);
 }
 
 struct item_node * item_start(struct table * table) {
@@ -932,4 +942,8 @@ struct argument_node * bonus_identifier(struct table * table, char * identifier)
 
 struct argument_node * bonus2_identifier(struct table * table, char * identifier) {
     return map_search(&table->bonus2.identifier, identifier);
+}
+
+struct argument_node * bonus3_identifier(struct table * table, char * identifier) {
+    return map_search(&table->bonus3.identifier, identifier);
 }
