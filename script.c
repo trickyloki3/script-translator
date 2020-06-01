@@ -98,6 +98,7 @@ int argument_mob_race(struct script *, struct stack *, struct argument_node *, s
 int argument_effect(struct script *, struct stack *, struct argument_node *, struct strbuf *);
 int argument_class(struct script *, struct stack *, struct argument_node *, struct strbuf *);
 int argument_splash(struct script *, struct stack *, struct argument_node *, struct strbuf *);
+int argument_bf(struct script *, struct stack *, struct argument_node *, struct strbuf *);
 
 typedef int (*argument_cb) (struct script *, struct stack *, struct argument_node *, struct strbuf *);
 
@@ -126,6 +127,7 @@ struct argument_entry {
     { "effect", argument_effect },
     { "class", argument_class },
     { "splash", argument_splash },
+    { "bf", argument_bf },
     { NULL, NULL }
 };
 
@@ -2355,3 +2357,72 @@ int argument_splash(struct script * script, struct stack * stack, struct argumen
 
     return 0;
 }
+
+int argument_bf(struct script * script, struct stack * stack, struct argument_node * argument, struct strbuf * strbuf) {
+    long flag;
+    struct print_node * print;
+    struct script_range * range;
+
+    range = stack_get(stack, 0);
+    if(!range)
+        return panic("failed to get stack object");
+
+    flag = range->range->min | range->range->max;
+
+    if(!(flag & (BF_SHORT | BF_LONG)))
+        flag |= BF_SHORT | BF_LONG;
+
+    if(!(flag & (BF_WEAPON | BF_MAGIC | BF_MISC)))
+        flag |= BF_WEAPON;
+
+    print = argument->print;
+
+    if(flag & BF_MAGIC) {
+        if(print_node_write(print, script, stack, strbuf)) {
+            return panic("failed to write print node object");
+        } else if(strbuf_printf(strbuf, ", ")) {
+            return panic("failed to printf strbuf object");
+        }
+    }
+
+    print = print->next;
+
+    if(flag & BF_MISC) {
+        if(print_node_write(print, script, stack, strbuf)) {
+            return panic("failed to write print node object");
+        } else if(strbuf_printf(strbuf, ", ")) {
+            return panic("failed to printf strbuf object");
+        }
+    }
+
+    print = print->next;
+
+    if(flag & BF_WEAPON) {
+        flag = flag & (BF_SHORT | BF_LONG);
+
+        if(flag == BF_SHORT)
+            if(print_node_write(print, script, stack, strbuf))
+                return panic("failed to write print node object");
+
+        print = print->next;
+
+        if(flag == BF_LONG)
+            if(print_node_write(print, script, stack, strbuf))
+                return panic("failed to write print node object");
+
+        print = print->next;
+
+        if(flag == (BF_SHORT | BF_LONG))
+            if(print_node_write(print, script, stack, strbuf))
+                return panic("failed to write print node object");
+
+        if(strbuf_printf(strbuf, ", "))
+            return panic("failed to printf strbuf object");
+    }
+
+    if(strbuf_unputn(strbuf, 2))
+        return panic("failed to unputn strbuf object");
+
+    return 0;
+}
+
