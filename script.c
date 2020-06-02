@@ -99,6 +99,8 @@ int argument_effect(struct script *, struct stack *, struct argument_node *, str
 int argument_class(struct script *, struct stack *, struct argument_node *, struct strbuf *);
 int argument_splash(struct script *, struct stack *, struct argument_node *, struct strbuf *);
 int argument_bf(struct script *, struct stack *, struct argument_node *, struct strbuf *);
+int argument_atf_target(struct script *, struct stack *, struct argument_node *, struct strbuf *);
+int argument_atf_trigger(struct script *, struct stack *, struct argument_node *, struct strbuf *);
 
 typedef int (*argument_cb) (struct script *, struct stack *, struct argument_node *, struct strbuf *);
 
@@ -128,6 +130,8 @@ struct argument_entry {
     { "class", argument_class },
     { "splash", argument_splash },
     { "bf", argument_bf },
+    { "atf_target", argument_atf_target },
+    { "atf_trigger", argument_atf_trigger },
     { NULL, NULL }
 };
 
@@ -2426,3 +2430,113 @@ int argument_bf(struct script * script, struct stack * stack, struct argument_no
     return 0;
 }
 
+int argument_atf_target(struct script * script, struct stack * stack, struct argument_node * argument, struct strbuf * strbuf) {
+    long flag;
+    struct print_node * print;
+    struct script_range * range;
+
+    range = stack_get(stack, 0);
+    if(!range)
+        return panic("failed to get stack object");
+
+    flag = range->range->min | range->range->max;
+
+    if(!(flag & (ATF_SELF | ATF_TARGET)))
+        flag |= ATF_TARGET;
+
+    print = argument->print;
+
+    if(flag & ATF_SELF) {
+        if(print_node_write(print, script, stack, strbuf)) {
+            return panic("failed to write print node object");
+        } else if(strbuf_printf(strbuf, ", ")) {
+            return panic("failed to printf strbuf object");
+        }
+    }
+
+    print = print->next;
+
+    if(flag & ATF_TARGET) {
+        if(print_node_write(print, script, stack, strbuf)) {
+            return panic("failed to write print node object");
+        } else if(strbuf_printf(strbuf, ", ")) {
+            return panic("failed to printf strbuf object");
+        }
+    }
+
+    if(strbuf_unputn(strbuf, 2))
+        return panic("failed to unputn strbuf object");
+
+    return 0;
+}
+
+int argument_atf_trigger(struct script * script, struct stack * stack, struct argument_node * argument, struct strbuf * strbuf) {
+    long flag;
+    struct print_node * print;
+    struct script_range * range;
+
+    range = stack_get(stack, 0);
+    if(!range)
+        return panic("failed to get stack object");
+
+    flag = range->range->min | range->range->max;
+
+    if(!(flag & (ATF_SHORT | ATF_LONG)))
+        flag |= ATF_SHORT | ATF_LONG;
+
+    if(!(flag & (ATF_SKILL | ATF_WEAPON | ATF_MAGIC | ATF_MISC)))
+        flag |= ATF_WEAPON;
+
+    if(flag & ATF_SKILL)
+        flag |= ATF_MAGIC | ATF_MISC;
+
+    print = argument->print;
+
+    if(flag & ATF_MAGIC) {
+        if(print_node_write(print, script, stack, strbuf)) {
+            return panic("failed to write print node object");
+        } else if(strbuf_printf(strbuf, ", ")) {
+            return panic("failed to printf strbuf object");
+        }
+    }
+
+    print = print->next;
+
+    if(flag & ATF_MISC) {
+        if(print_node_write(print, script, stack, strbuf)) {
+            return panic("failed to write print node object");
+        } else if(strbuf_printf(strbuf, ", ")) {
+            return panic("failed to printf strbuf object");
+        }
+    }
+
+    print = print->next;
+
+    if(flag & ATF_WEAPON) {
+        flag = flag & (ATF_SHORT | ATF_LONG);
+
+        if(flag == ATF_SHORT)
+            if(print_node_write(print, script, stack, strbuf))
+                return panic("failed to write print node object");
+
+        print = print->next;
+
+        if(flag == ATF_LONG)
+            if(print_node_write(print, script, stack, strbuf))
+                return panic("failed to write print node object");
+
+        print = print->next;
+
+        if(flag == (ATF_SHORT | ATF_LONG))
+            if(print_node_write(print, script, stack, strbuf))
+                return panic("failed to write print node object");
+
+        if(strbuf_printf(strbuf, ", "))
+            return panic("failed to printf strbuf object");
+    }
+
+    if(strbuf_unputn(strbuf, 2))
+        return panic("failed to unputn strbuf object");
+
+    return 0;
+}
