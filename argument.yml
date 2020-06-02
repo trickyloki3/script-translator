@@ -120,6 +120,30 @@
     - Seconds
     - Milliseconds
 
+- identifier: bf/flag
+  handler: bf
+  print:
+    - magic
+    - misc
+    - meelee
+    - ranged
+    - weapon
+
+- identifier: atf/target
+  handler: atf_target
+  print:
+    - self
+    - enemy
+
+- identifier: atf/trigger
+  handler: atf_trigger
+  print:
+    - magic
+    - misc
+    - meelee
+    - ranged
+    - weapon
+
 - identifier: recover
   handler: prefix
   print:
