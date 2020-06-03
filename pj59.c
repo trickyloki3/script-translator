@@ -31,16 +31,18 @@ int main(int argc, char ** argv) {
                 status = panic("failed to constant parse table object");
             } else if(table_constant_group_parse(&table, "constant_group.yml")) {
                 status = panic("failed to constant group parse table object");
-            } else if (table_argument_parse(&table, "argument.yml")) {
+            } else if(table_argument_parse(&table, "argument.yml")) {
                 status = panic("failed to argument parse table object");
-            } else if (table_bonus_parse(&table, "bonus.yml")) {
+            } else if(table_bonus_parse(&table, "bonus.yml")) {
                 status = panic("failed to bonus parse table object");
-            } else if (table_bonus2_parse(&table, "bonus2.yml")) {
+            } else if(table_bonus2_parse(&table, "bonus2.yml")) {
                 status = panic("failed to bonus2 parse table object");
-            } else if (table_bonus3_parse(&table, "bonus3.yml")) {
+            } else if(table_bonus3_parse(&table, "bonus3.yml")) {
                 status = panic("failed to bonus3 parse table object");
-            } else if (table_bonus4_parse(&table, "bonus4.yml")) {
+            } else if(table_bonus4_parse(&table, "bonus4.yml")) {
                 status = panic("failed to bonus4 parse table object");
+            } else if(table_bonus5_parse(&table, "bonus5.yml")) {
+                status = panic("failed to bonus5 parse table object");
             } else {
                 if(script_setup(&table)) {
                     status = panic("failed to setup script object");
