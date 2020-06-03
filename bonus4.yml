@@ -1,0 +1,25 @@
+# bonus descriptions are based on rAthena in renewal mode
+
+- identifier: bSetDefRace
+  print: Add {2|int/s%100} chance to alter enemy's DEF to {4|int/s} for {3|time/ms} vs. {1|race} enemies for each weapon attack.
+
+- identifier: bSetMDefRace
+  print: Add {2|int/s%100} chance to alter enemy's MDEF to {4|int/s} for {3|time/ms} vs. {1|race} enemies for each weapon attack.
+
+- identifier: bAddEff
+  print: Add {2|int/s%100} chance to inflict {1|effect} for {4|time/ms} on {3|atf/target} for each {3|atf/trigger} attack.
+
+- identifier: bAddEffWhenHit
+  print: Add {2|int/s%100} chance to inflict {1|effect} for {4|time/ms} on {3|atf/target} when hit with a {3|atf/trigger} attack.
+
+- identifier: bAddEffOnSkill
+  print: Add {3|int/s%100} chance to inflict {2|effect} on {4|atf/target} when using {1|skill}.
+
+- identifier: bAutoSpell
+  print: Add {3|int/s%10} chance to cast Level {2|int/s} {1|skill} for each weapon attack.
+
+- identifier: bAutoSpellWhenHit
+  print: Add {3|int/s%10} chance to cast Level {2|int/s} {1|skill} when hit with a weapon attack.
+
+- identifier: bAutoSpellOnSkill
+  print: Add {4|int/s%10} chance to cast Level {3|int/s} {2|skill} when using {1|skill}.
