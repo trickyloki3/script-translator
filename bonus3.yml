@@ -1,0 +1,52 @@
+# bonus descriptions are based on rAthena in renewal mode
+
+- identifier: bAddEle
+  print: {2|int/+s%} Physical Damage vs. {1|element} enemies for each {3|bf/flag} attack.
+
+- identifier: bSubEle
+  print: {2|int/+s%} Resistance vs. {1|element} enemies for each {3|bf/flag} attack.
+
+- identifier: bAddEff
+  print: Add {2|int/s%100} chance to inflict {1|effect} on {3|atf/target} for each {3|atf/trigger} attack.
+
+- identifier: bAddEffWhenHit
+  print: Add {2|int/s%100} chance to inflict {1|effect} on {3|atf/target} when hit with a {3|atf/trigger} attack.
+
+- identifier: bAddEffOnSkill
+  print: Add {3|int/s%100} chance to inflict {2|effect} on enemy when using {1|skill}.
+
+- identifier: bAutoSpell
+  print: Add {3|int/s%10} chance to cast Level {2|int/s} {1|skill} for each weapon attack.
+
+- identifier: bAutoSpellWhenHit
+  print: Add {3|int/s%10} chance to cast Level {2|int/s} {1|skill} when hit with a weapon attack.
+
+- identifier: bHPVanishRaceRate
+  print: Add {2|int/s%10} chance to damage enemy's HP by {3|int/s%} vs. {1|race} for each weapon attack.
+
+- identifier: bHPVanishRate
+  print: Add {1|int/s%10} chance to damage enemy's HP by {2|int/s%} for each {3|bf/flag} attack.
+
+- identifier: bSPVanishRaceRate
+  print: Add {2|int/s%10} chance to damage enemy's SP by {3|int/s%} vs. {1|race} for each weapon attack.
+
+- identifier: bSPVanishRate
+  print: Add {1|int/s%10} chance to damage enemy's SP by {2|int/s%} for each {3|bf/flag} attack.
+
+- identifier: bStateNoRecoverRace
+  print: Add {2|int/s%100} chance to stop natural regeneration for {3|time/ms} vs. {1|race} for each weapon attack.
+
+- identifier: bAddMonsterIdDropItem
+  print: Add {3|int/s%100} chance to drop {1|item} from {2|mob}.
+
+- identifier: bAddMonsterDropItem
+  print: Add {3|int/s%100} chance to drop {1|item} from {2|race} enemies.
+
+- identifier: bAddClassDropItem
+  print: Add {3|int/s%100} chance to drop {1|item} from {2|class} enemies.
+
+- identifier: bAddMonsterDropItemGroup
+  print: Add {3|int/s%100} chance to drop an item from {1|constant} from {2|race} enemeies.
+
+- identifier: bAddMonsterDropItemGroup
+  print: Add {3|int/s%100} chance to drop an item from {1|constant} from {2|class} enemeies.
