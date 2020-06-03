@@ -1,4 +1,4 @@
-# bonus descriptions are based rAthena in renewal mode
+# bonus descriptions are based on rAthena in renewal mode
 
 - identifier: bStr
   print: STR {1|int/+s}
