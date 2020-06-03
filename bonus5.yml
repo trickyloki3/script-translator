@@ -1,0 +1,13 @@
+# bonus descriptions are based on rAthena in renewal mode
+
+- identifier: bAddEffOnSkill
+  print: Add {3|int/s%100} chance to inflict {2|effect} on {4|atf/target} for {5|time/ms} when using {1|skill}.
+
+- identifier: bAutoSpell
+  print: Add {3|int/s%10} chance to cast Level {2|int/s} {1|skill} for each {3|bf/flag} attack.
+
+- identifier: bAutoSpellWhenHit
+  print: Add {3|int/s%10} chance to cast Level {2|int/s} {1|skill} when hit with a {3|bf/flag} attack.
+
+- identifier: bAutoSpellOnSkill
+  print: Add {4|int/s%10} chance to cast Level {3|int/s} {2|skill} when using {1|skill}.
