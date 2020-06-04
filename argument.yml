@@ -158,18 +158,6 @@
     - >
       -
 
-- identifier: increase
-  handler: prefix
-  print:
-    - Increase
-    - Decrease
-
-- identifier: decrease
-  handler: prefix
-  print:
-    - Decrease
-    - Increase
-
 - identifier: regen
   handler: array
   array:
