@@ -45,6 +45,8 @@ int main(int argc, char ** argv) {
                 status = panic("failed to bonus5 parse table object");
             } else if(table_sc_start_parse(&table, "sc_start.yml")) {
                 status = panic("failed to sc_start parse table object");
+            } else if(table_sc_start2_parse(&table, "sc_start2.yml")) {
+                status = panic("failed to sc_start2 parse table object");
             } else {
                 if(script_setup(&table)) {
                     status = panic("failed to setup script object");

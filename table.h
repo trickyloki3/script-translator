@@ -186,6 +186,7 @@ struct table {
     struct argument bonus4;
     struct argument bonus5;
     struct argument sc_start;
+    struct argument sc_start2;
 };
 
 int table_create(struct table *, size_t, struct heap *);
@@ -204,6 +205,7 @@ int table_bonus3_parse(struct table *, char *);
 int table_bonus4_parse(struct table *, char *);
 int table_bonus5_parse(struct table *, char *);
 int table_sc_start_parse(struct table *, char *);
+int table_sc_start2_parse(struct table *, char *);
 
 struct item_node * item_start(struct table *);
 struct item_node * item_next(struct table *);
@@ -227,5 +229,6 @@ struct argument_node * bonus3_identifier(struct table *, char *);
 struct argument_node * bonus4_identifier(struct table *, char *);
 struct argument_node * bonus5_identifier(struct table *, char *);
 struct argument_node * sc_start_identifier(struct table *, char *);
+struct argument_node * sc_start2_identifier(struct table *, char *);
 
 #endif
