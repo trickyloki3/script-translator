@@ -38,6 +38,13 @@
     percent: true
     absolute: true
 
+- identifier: int/s%i
+  handler: integer
+  integer:
+    string: true
+    percent: true
+    inverse: true
+
 - identifier: int/s%a100
   handler: integer
   integer:
@@ -231,6 +238,32 @@
       string: Dagger + Axe
     - index: 30
       string: Sword + Axe
+
+- identifier: energy_drink_research
+  handler: array
+  array:
+    - index: 1
+      string: +0% ~ +10% (BaseLevel)
+    - index: 2
+      string: +0% ~ +15% (BaseLevel)
+    - index: 3
+      string: +0% ~ +20% (BaseLevel)
+
+- identifier: promote_health_research
+  handler: array
+  array:
+    - index: 1
+      string: +500 ~ +1000 (BaseLevel)
+    - index: 2
+      string: +1500 ~ +2000 (BaseLevel)
+    - index: 3
+      string: +2500 ~ +3000 (BaseLevel)
+
+- identifier: lifepotion
+  handler: prefix
+  print:
+    - {0|int/s} HP
+    - {0|int/s%i} of Max HP
 
 # statement
 

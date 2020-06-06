@@ -1,0 +1,63 @@
+# status descriptions are based on rAthena in renewal mode
+
+- identifier: SC_ENERGY_DRINK_RESERCH
+  print: Max SP {3|energy_drink_research}
+
+- identifier: SC_GVG_BLIND
+  print: |
+    Immune to Blind.
+    Lose {1|int/s} HP.
+    Lose {2|int/s} SP.
+
+- identifier: SC_GVG_CURSE
+  print: |
+    Immune to Curse.
+    Lose {1|int/s} HP.
+    Lose {2|int/s} SP.
+
+- identifier: SC_GVG_FREEZ
+  print: |
+    Immune to Freeze.
+    Lose {1|int/s} HP.
+    Lose {2|int/s} SP.
+
+- identifier: SC_GVG_SILENCE
+  print: |
+    Immune to Silence.
+    Lose {1|int/s} HP.
+    Lose {2|int/s} SP.
+
+- identifier: SC_GVG_SLEEP
+  print: |
+    Immune to Sleep.
+    Lose {1|int/s} HP.
+    Lose {2|int/s} SP.
+
+- identifier: SC_GVG_STONE
+  print: |
+    Immune to Stone.
+    Lose {1|int/s} HP.
+    Lose {2|int/s} SP.
+
+- identifier: SC_GVG_STUN
+  print: |
+    Immune to Stun.
+    Lose {1|int/s} HP.
+    Lose {2|int/s} SP.
+
+- identifier: SC_ITEMSCRIPT
+  print: Apply item script of {2|item}.
+
+- identifier: SC_L_LIFEPOTION
+  print: Heal {2|lifepotion} every {3|time/s}.
+
+- identifier: SC_PROMOTE_HEALTH_RESERCH
+  print: Max HP {3|promote_health_research}
+
+- identifier: SC_S_LIFEPOTION
+  print: Heal {2|lifepotion} every {3|time/s}.
+
+- identifier: SC_VITATA_500
+  print: |
+    {2|int/+s%} Natural SP Regeneration
+    Max SP {3|int/+s%}
