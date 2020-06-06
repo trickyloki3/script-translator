@@ -157,10 +157,10 @@
   print: Ignore {2|int/s%} MDEF vs. {1|class} enemies.
 
 - identifier: bExpAddRace
-  print: {2|int/+s%} EXP vs. {1|race} enemies.
+  print: {2|int/+s%} EXP Rate vs. {1|race} enemies.
 
 - identifier: bExpAddClass
-  print: {2|int/+s%} EXP vs. {1|class} enemies.
+  print: {2|int/+s%} EXP Rate vs. {1|class} enemies.
 
 # bAddEff  is applied with  pc_bonus_addeff using default
 # ATF flag ATF_SHORT | ATF_LONG | ATF_TARGET | ATF_WEAPON
