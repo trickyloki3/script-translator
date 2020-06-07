@@ -239,6 +239,8 @@
     - index: 30
       string: Sword + Axe
 
+# status change
+
 - identifier: energy_drink_research
   handler: array
   array:
@@ -264,6 +266,22 @@
   print:
     - {0|int/s} HP
     - {0|int/s%i} of Max HP
+
+- identifier: water_resistance
+  handler: zero
+  print: {0|int/+s%} Water Resistance
+
+- identifier: earth_resistance
+  handler: zero
+  print: {0|int/+s%} Earth Resistance
+
+- identifier: fire_resistance
+  handler: zero
+  print: {0|int/+s%} Fire Resistance
+
+- identifier: wind_resistance
+  handler: zero
+  print: {0|int/+s%} Wind Resistance
 
 # statement
 

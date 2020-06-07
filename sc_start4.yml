@@ -1,0 +1,60 @@
+# status descriptions are based on rAthena in renewal mode
+
+- identifier: SC_ARMOR_ELEMENT_EARTH
+  print: |
+    {2|water_resistance}
+    {3|earth_resistance}
+    {4|fire_resistance}
+    {5|wind_resistance}
+
+- identifier: SC_ARMOR_ELEMENT_FIRE
+  print: |
+    {2|water_resistance}
+    {3|earth_resistance}
+    {4|fire_resistance}
+    {5|wind_resistance}
+
+- identifier: SC_ARMOR_ELEMENT_WATER
+  print: |
+    {2|water_resistance}
+    {3|earth_resistance}
+    {4|fire_resistance}
+    {5|wind_resistance}
+
+- identifier: SC_ARMOR_ELEMENT_WIND
+  print: |
+    {2|water_resistance}
+    {3|earth_resistance}
+    {4|fire_resistance}
+    {5|wind_resistance}
+
+- identifier: SC_ARMOR_RESIST
+  print: |
+    {2|water_resistance}
+    {3|earth_resistance}
+    {4|fire_resistance}
+    {5|wind_resistance}
+
+- identifier: SC_ELEMENTALCHANGE
+  print: Armor endowed with {3|element} property.
+
+- identifier: SC_GVG_GIANT
+  print: |
+    {4|int/+s%} Physical Damage
+    {5|int/+s%} Magical Damage
+    Lose {2|int/s} HP.
+    Lose {3|int/s} SP.
+
+- identifier: SC_GVG_GOLEM
+  print: |
+    {4|int/+s%} Physical Resistance
+    {5|int/+s%} Magic Resistance
+    Lose {2|int/s} HP.
+    Lose {3|int/s} SP.
+
+- identifier: SC_L_LIFEPOTION
+  print: Heal {2|lifepotion} every {3|time/s}.
+
+- identifier: SC_S_LIFEPOTION
+  print: Heal {2|lifepotion} every {3|time/s}.
+
