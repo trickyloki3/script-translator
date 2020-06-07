@@ -2021,11 +2021,8 @@ int argument_zero(struct script * script, struct stack * stack, struct argument_
     if(!range) {
         return panic("failed to get stack object");
     } else if(range->range->min || range->range->max) {
-        if(strbuf->str != strbuf->pos && strbuf_putc(strbuf, '\n')) {
-            return panic("failed to putc strbuf object");
-        } else if(print_node_write(argument->print, script, stack, strbuf)) {
+        if(print_node_write(argument->print, script, stack, strbuf))
             return panic("failed to write argument object");
-        }
     }
 
     return 0;
