@@ -1983,14 +1983,23 @@ int print_node_write(struct print_node * print, struct script * script, struct s
 }
 
 int argument_print(struct script * script, struct stack * stack, struct argument_node * argument, struct strbuf * strbuf) {
+    char * anchor;
     struct print_node * print;
 
+    anchor = strbuf->pos;
     print = argument->print;
     while(print) {
+        if(anchor != strbuf->pos)
+            if(strbuf_putc(strbuf, '\n'))
+                return panic("failed to putc strbuf object");
+        anchor = strbuf->pos;
+
         if(print_node_write(print, script, stack, strbuf))
             return panic("failed to parse argument object");
         print = print->next;
     }
+
+    strbuf_trim(strbuf);
 
     return 0;
 }

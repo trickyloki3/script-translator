@@ -28,6 +28,14 @@ void strbuf_clear(struct strbuf * strbuf) {
     strbuf->str = strbuf->pos = strbuf->buf;
 }
 
+void strbuf_trim(struct strbuf * strbuf) {
+    while(strbuf->pos - strbuf->str && isspace(*strbuf->str))
+        *strbuf->str++ = 0;
+
+    while(strbuf->pos - strbuf->str && isspace(*(strbuf->pos - 1)))
+        *--strbuf->pos = 0;
+}
+
 int strbuf_putc(struct strbuf * strbuf, char c) {
     int status = 0;
 
