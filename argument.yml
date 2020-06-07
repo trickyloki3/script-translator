@@ -283,6 +283,9 @@
   handler: zero
   print: {0|int/+s%} Wind Resistance
 
+- identifier: sc_end
+  print: Cure {0|constant}.
+
 # statement
 
 - identifier: pet
