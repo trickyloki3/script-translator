@@ -782,7 +782,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                                 *result = range;
                             }
                         } else {
-                            argument = argument_identifier(script->table, root->identifier);
+                            argument = statement_identifier(script->table, root->identifier);
                             if(argument) {
                                 range = script_execute(script, script->stack, argument);
                                 if(!range) {

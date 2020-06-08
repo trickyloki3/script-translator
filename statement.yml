@@ -1,0 +1,233 @@
+- identifier: heal
+  print:
+    - {0|hp_integer}
+    - {1|sp_integer}
+
+- identifier: itemheal
+  print:
+    - {0|hp_integer}
+    - {1|sp_integer}
+
+- identifier: percentheal
+  print:
+    - {0|hp_percent}
+    - {1|sp_percent}
+
+- identifier: mercenary_heal
+  print:
+    - {0|hp_merc_integer}
+    - {1|sp_merc_integer}
+
+- identifier: pet
+  print: Tame a {0|mob}.
+
+- identifier: monster
+  print: Summon a random monster.
+
+- identifier: transform
+  print: Transform into a {0|mob} for {1|time/ms}.
+
+- identifier: mercenary_create
+  print: Hire {0|mercenary} for {1|time/ms}.
+
+- identifier: getitem
+  print: Obtain {1|int}x {0|item}.
+
+- identifier: delitem
+  print: Remove {1|int}x {0|item}.
+
+- identifier: rentitem
+  print: Rent a {0|item} for {1|time/s}.
+
+- identifier: countitem
+  print: {0|item} Count
+
+- identifier: getiteminfo
+  handler: array
+  array:
+    - index: 0
+      string: Buy Price
+    - index: 1
+      string: Sell Price
+    - index: 2
+      string: Type
+    - index: 3
+      string: Max Drop Chance
+    - index: 4
+      string: Gender
+    - index: 5
+      string: Location
+    - index: 6
+      string: Weight
+    - index: 7
+      string: Attack
+    - index: 8
+      string: Defense
+    - index: 9
+      string: Range
+    - index: 10
+      string: Slot
+    - index: 11
+      string: View
+    - index: 12
+      string: Equip Level
+    - index: 13
+      string: Weapon Level
+    - index: 14
+      string: Sprite ID
+    - index: 15
+      string: Max Level
+    - index: 16
+      string: Magic Attack
+
+- identifier: getgroupitem
+  print: Obtain an item from {0|string}.
+
+- identifier: getrandgroupitem
+  print: Obtain an item from {0|string}.
+
+- identifier: getskilllv
+  print: {0|skill} Level
+
+- identifier: skill
+  print: Enable Level {1|int} {0|skill}.
+
+- identifier: itemskill
+  print: Cast Level {1|int} {0|skill}.
+
+- identifier: unitskilluseid
+  print: Cast Level {2|int} {1|skill}.
+
+- identifier: getexp2
+  print:
+     - {0|base_exp}
+     - {1|job_exp}
+
+- identifier: guildgetexp
+  print: Gain {0|int} guild experience.
+
+- identifier: getrefine
+  print: Refine Rate
+  range:
+    - min: 0
+      max: 15
+
+- identifier: getequiprefinerycnt
+  print: {0|string} Refine Rate
+  range:
+    - min: 0
+      max: 15
+
+- identifier: getequipweaponlv
+  print: {0|string} Weapon Level
+  range:
+    - min: 0
+      max: 4
+
+- identifier: getequipid
+  print: Equip ID
+
+- identifier: isequipped
+  print: {*|item} Equipped
+
+- identifier: strcharinfo
+  handler: array
+  array:
+    - index: 0
+      string: Character Name
+    - index: 1
+      string: Party Name
+    - index: 2
+      string: Guild Name
+    - index: 3
+      string: Map Name
+
+- identifier: setfalcon
+  print: Summon / Release falcon.
+
+- identifier: setmadogear
+  print: Equip / Unequip mado gear.
+
+- identifier: buyingstore
+  print: Open a buying store with {0|int} slots.
+
+- identifier: searchstores
+  print: Search vending and buying stores up to {0|int} times.
+
+- identifier: warp
+  print: Warp to ({0|string},{1|int},{2|int}).
+
+- identifier: makerune
+  print: Open rune crafting window.
+
+- identifier: produce
+  handler: array
+  array:
+    - index: 1
+      string: Open craft window for Level 1 Weapons.
+    - index: 2
+      string: Open craft window for Level 2 Weapons.
+    - index: 3
+      string: Open craft window for Level 3 Weapons.
+    - index: 21
+      string: Open craft window for Stones and Metals.
+    - index: 22
+      string: Open craft window for Potions, Holy Water, Deadly Poison.
+    - index: 23
+      string: Open craft window for Elemental Converters.
+
+- identifier: cooking
+  handler: array
+  array:
+    - index: 11
+      string: Open cooking window for Level 1 Dishes.
+    - index: 12
+      string: Open cooking window for Level 2 Dishes.
+    - index: 13
+      string: Open cooking window for Level 3 Dishes.
+    - index: 14
+      string: Open cooking window for Level 4 Dishes.
+    - index: 15
+      string: Open cooking window for Level 5 Dishes.
+    - index: 16
+      string: Open cooking window for Level 6 Dishes.
+    - index: 17
+      string: Open cooking window for Level 7 Dishes.
+    - index: 18
+      string: Open cooking window for Level 8 Dishes.
+    - index: 19
+      string: Open cooking window for Level 9 Dishes.
+    - index: 20
+      string: Open cooking window for Level 10 Dishes.
+    - index: 30
+      string: Open cooking window for Novice Dishes.
+
+- identifier: sc_end
+  print: Cure {0|constant}.
+
+- identifier: gettime
+  print: {0|constant}
+
+- identifier: readparam
+  print: {0|constant}
+
+- identifier: vip_status
+  print: {0|constant}
+
+- identifier: checkoption
+  print: {0|constant}
+
+# skip
+
+- identifier: announce
+- identifier: callfunc
+- identifier: hateffect
+- identifier: input
+- identifier: playbgm
+- identifier: setarray
+- identifier: setfont
+- identifier: skilleffect
+- identifier: specialeffect
+- identifier: specialeffect2
+- identifier: showscript
+- identifier: getcharid
