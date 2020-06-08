@@ -1927,6 +1927,8 @@ struct script_range * function_mercenary_sc_start(struct script * script, struct
         if(!argument) {
             if(undefined_add(&script->undefined, "sc_start.%s", range->string))
                 status = panic("failed to add undefined object");
+        } else if(script_default(script, stack, 3, 0, 0)) {
+            status = panic("failed to default script object");
         } else {
             range = script_execute(script, stack, argument);
             if(!range)
