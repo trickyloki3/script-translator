@@ -283,6 +283,11 @@
   handler: zero
   print: {0|int/+s%} Wind Resistance
 
+- identifier: sc_start_rate
+  handler: zero
+  print: >
+    Chance: {0|int/s%100}
+
 - identifier: sc_end
   print: Cure {0|constant}.
 

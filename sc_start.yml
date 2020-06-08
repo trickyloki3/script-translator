@@ -1,302 +1,697 @@
 # status descriptions are based on rAthena in renewal mode
 
 - identifier: SC_2011RWC_SCROLL
-  print: |
-    All Stats {2|int/+s}
-    ATK +30
-    MATK +30
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      All Stats {2|int/+s}
+      ATK +30
+      MATK +30
 
 - identifier: SC_ADRENALINE
-  print: Cast Level {2|int/s} Adrenaline.
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      Cast Level {2|int/s} Adrenaline.
 
 - identifier: SC_AGIFOOD
-  print: AGI {2|int/+s}
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      AGI {2|int/+s}
 
 - identifier: SC_ANCILLA
-  print: Cast Level {2|int/s} Ancilla.
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      Cast Level {2|int/s} Ancilla.
 
 - identifier: SC_ASPDPOTION0
-  print: ASPD {2|int/+s}
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      ASPD {2|int/+s}
 
 - identifier: SC_ASPDPOTION1
-  print: ASPD {2|int/+s}
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      ASPD {2|int/+s}
 
 - identifier: SC_ASPDPOTION2
-  print: ASPD {2|int/+s}
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      ASPD {2|int/+s}
 
 - identifier: SC_ASPDPOTION3
-  print: ASPD {2|int/+s}
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      ASPD {2|int/+s}
 
 - identifier: SC_ASPERSIO
-  print: Cast Level {2|int/s} Asperio.
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      Cast Level {2|int/s} Asperio.
 
 - identifier: SC_ASSUMPTIO
-  print: Cast Level {2|int/s} Assumptio.
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      Cast Level {2|int/s} Assumptio.
 
 - identifier: SC_ATKPOTION
-  print: Base ATK {2|int/+s}
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      Base ATK {2|int/+s}
 
 - identifier: SC_ATTHASTE_CASH
-  print: ASPD {2|int/+s}
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      ASPD {2|int/+s}
 
 - identifier: SC_BATKFOOD
-  print: Base ATK {2|int/+s}
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      Base ATK {2|int/+s}
 
 - identifier: SC_BENEDICTIO
-  print: Cast Level {2|int/s} Benedictio.
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      Cast Level {2|int/s} Benedictio.
 
 - identifier: SC_BLEEDING
-  print: Inflict Bleeding.
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      Inflict Bleeding.
 
 - identifier: SC_BLESSING
-  print: Cast Level {2|int/s} Blessing.
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      Cast Level {2|int/s} Blessing.
 
 - identifier: SC_BLIND
-  print: Inflict Blind.
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      Inflict Blind.
 
 - identifier: SC_BOOST500
-  print: ASPD {2|int/+s}
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      ASPD {2|int/+s}
 
 - identifier: SC_BOSSMAPINFO
-  print: Mark MVP location on minimap.
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      Mark MVP location on minimap.
 
 - identifier: SC_COCKTAIL_WARG_BLOOD
-  print: INT {2|int/+s}
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      INT {2|int/+s}
 
 - identifier: SC_COMMONSC_RESIST
-  print: {2|int/+s%} Stone, Freeze, Stun, Sleep, Poison, Curse, Silence, Confusion, Blind, Bleed, Deathly Poison Resistance
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      {2|int/+s%} Stone, Freeze, Stun, Sleep, Poison, Curse, Silence, Confusion, Blind, Bleed, Deathly Poison Resistance
 
 - identifier: SC_CONFUSION
-  print: Inflict Confusion.
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      Inflict Confusion.
 
 - identifier: SC_CRIFOOD
-  print: Critical {2|int/+s}
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      Critical {2|int/+s}
 
 - identifier: SC_CURSE
-  print: Inflict Curse.
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      Inflict Curse.
 
 - identifier: SC_DEF_RATE
-  print: {2|int/+s%} Physical Resistance
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      {2|int/+s%} Physical Resistance
 
 - identifier: SC_DEXFOOD
-  print: DEX {2|int/+s}
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      DEX {2|int/+s}
 
 - identifier: SC_DORAM_BUF_01
-  print: Heal 10 HP every 10 seconds.
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      Heal 10 HP every 10 seconds.
 
 - identifier: SC_DORAM_BUF_02
-  print: Heal 5 SP every 10 seconds.
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      Heal 5 SP every 10 seconds.
 
 - identifier: SC_DPOISON
-  print: Inflict Deadly Poison
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      Inflict Deadly Poison
 
 - identifier: SC_DRESSUP
-  print: Wear Summer 2 outfit.
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      Wear Summer 2 outfit.
 
 - identifier: SC_DROCERA_HERB_STEAMED
-  print: AGI {2|int/+s}
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      AGI {2|int/+s}
 
 - identifier: SC_EXPBOOST
-  print: {2|int/+s%} EXP
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      {2|int/+s%} EXP
 
 - identifier: SC_EXTRACT_SALAMINE_JUICE
-  print: ASPD {2|int/+s}
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      ASPD {2|int/+s}
 
 - identifier: SC_EXTRACT_WHITE_POTION_Z
-  print: {2|int/+s%} Natural HP Regeneration
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      {2|int/+s%} Natural HP Regeneration
 
 - identifier: SC_FLEEFOOD
-  print: FLEE {2|int/+s}
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      FLEE {2|int/+s}
 
 - identifier: SC_FOOD_AGI_CASH
-  print: AGI {2|int/+s}
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      AGI {2|int/+s}
 
 - identifier: SC_FOOD_DEX_CASH
-  print: DEX {2|int/+s}
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      DEX {2|int/+s}
 
 - identifier: SC_FOOD_INT_CASH
-  print: INT {2|int/+s}
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      INT {2|int/+s}
 
 - identifier: SC_FOOD_LUK_CASH
-  print: LUK {2|int/+s}
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      LUK {2|int/+s}
 
 - identifier: SC_FOOD_STR_CASH
-  print: STR {2|int/+s}
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      STR {2|int/+s}
 
 - identifier: SC_FOOD_VIT_CASH
-  print: VIT {2|int/+s}
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      VIT {2|int/+s}
 
 - identifier: SC_FREEZE
-  print: Inflict Freeze.
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      Inflict Freeze.
 
 - identifier: SC_FULL_SWING_K
-  print: Base ATK {2|int/+s}
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      Base ATK {2|int/+s}
 
 - identifier: SC_HANBOK
-  print: Wear Hanbok outfit.
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      Wear Hanbok outfit.
 
 - identifier: SC_HITFOOD
-  print: HIT {2|int/+s}
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      HIT {2|int/+s}
 
 - identifier: SC_INCAGI
-  print: AGI {2|int/+s}
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      AGI {2|int/+s}
 
 - identifier: SC_INCALLSTATUS
-  print: All Stats {2|int/+s}
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      All Stats {2|int/+s}
 
 - identifier: SC_INCATKRATE
-  print: Base ATK {2|int/+s%}
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      Base ATK {2|int/+s%}
 
 - identifier: SC_INCCRI
-  print: Critical {2|int/+s}
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      Critical {2|int/+s}
 
 - identifier: SC_INCDEX
-  print: DEX {2|int/+s}
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      DEX {2|int/+s}
 
 - identifier: SC_INCFLEE
-  print: FLEE {2|int/+s}
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      FLEE {2|int/+s}
 
 - identifier: SC_INCFLEE2
-  print: Perfect Dodge {2|int/+s}
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      Perfect Dodge {2|int/+s}
 
 - identifier: SC_INCHEALRATE
-  print: {2|int/+s%} HP Recovery Amount
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      {2|int/+s%} HP Recovery Amount
 
 - identifier: SC_INCINT
-  print: INT {2|int/+s}
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      INT {2|int/+s}
 
 - identifier: SC_INCLUK
-  print: LUK {2|int/+s}
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      LUK {2|int/+s}
 
 - identifier: SC_INCMATKRATE
-  print: MATK {2|int/+s%}
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      MATK {2|int/+s%}
 
 - identifier: SC_INCREASEAGI
-  print: Cast Level {2|int/s} Increase AGI.
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      Cast Level {2|int/s} Increase AGI.
 
 - identifier: SC_INCSTR
-  print: STR {2|int/+s}
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      STR {2|int/+s}
 
 - identifier: SC_INCVIT
-  print: VIT {2|int/+s}
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      VIT {2|int/+s}
 
 - identifier: SC_INTFOOD
-  print: INT {2|int/+s}
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      INT {2|int/+s}
 
 - identifier: SC_INTRAVISION
-  print: Ability to detect cloaking or hiding enemies.
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      Ability to detect cloaking or hiding enemies.
 
 - identifier: SC_ITEMBOOST
-  print: {2|int/+s%} Drop Rate
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      {2|int/+s%} Drop Rate
 
 - identifier: SC_JEXPBOOST
-  print: {2|int/+s%} Job EXP Rate
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      {2|int/+s%} Job EXP Rate
 
 - identifier: SC_JP_EVENT04
-  print: {2|int/+s%} EXP Rate vs. Fish enemies.
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      {2|int/+s%} EXP Rate vs. Fish enemies.
 
 - identifier: SC_LIFEINSURANCE
-  print: Remove EXP death penalty.
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      Remove EXP death penalty.
 
 - identifier: SC_LIFE_FORCE_F
-  print: Max SP {2|int/+s%}
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      Max SP {2|int/+s%}
 
 - identifier: SC_LUKFOOD
-  print: LUK {2|int/+s}
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      LUK {2|int/+s}
 
 - identifier: SC_MANA_PLUS
-  print: MATK {2|int/+s}
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      MATK {2|int/+s}
 
 - identifier: SC_MANU_ATK
-  print: {2|int/+s%} Physical Damage vs. Manuk enemies.
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      {2|int/+s%} Physical Damage vs. Manuk enemies.
 
 - identifier: SC_MANU_DEF
-  print: {2|int/+s%} Resistance vs. Manuk enemies.
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      {2|int/+s%} Resistance vs. Manuk enemies.
 
 - identifier: SC_MANU_MATK
-  print: {2|int/+s%} Magical Damage vs. Manuk enemies.
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      {2|int/+s%} Magical Damage vs. Manuk enemies.
 
 - identifier: SC_MATKFOOD
-  print: MATK {2|int/+s}
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      MATK {2|int/+s}
 
 - identifier: SC_MATKPOTION
-  print: MATK {2|int/+s}
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      MATK {2|int/+s}
 
 - identifier: SC_MDEF_RATE
-  print: {2|int/+s%} Magic Resistance
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      {2|int/+s%} Magic Resistance
 
 - identifier: SC_MINOR_BBQ
-  print: VIT {2|int/+s}
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      VIT {2|int/+s}
 
 - identifier: SC_MUSTLE_M
-  print: Max HP {2|int/+s%}
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      Max HP {2|int/+s%}
 
 - identifier: SC_MYSTERIOUS_POWDER
-  print: Max HP {2|int/-s%}
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      Max HP {2|int/-s%}
 
 - identifier: SC_OKTOBERFEST
-  print: Wear Oktoberfest outfit.
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      Wear Oktoberfest outfit.
 
 - identifier: SC_POISON
-  print: Inflict Poison.
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      Inflict Poison.
 
 - identifier: SC_PUTTI_TAILS_NOODLES
-  print: LUK {2|int/+s}
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      LUK {2|int/+s}
 
 - identifier: SC_SAVAGE_STEAK
-  print: STR {2|int/+s}
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      STR {2|int/+s}
 
 - identifier: SC_SILENCE
-  print: Inflict Silence.
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      Inflict Silence.
 
 - identifier: SC_SIROMA_ICE_TEA
-  print: DEX {2|int/+s}
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      DEX {2|int/+s}
 
 - identifier: SC_SLOWDOWN
-  print: Walking Speed {2|int/-s%}
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      Walking Speed {2|int/-s%}
 
 - identifier: SC_SPCOST_RATE
-  print: {2|int/-s%} SP cost per skill
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      {2|int/-s%} SP cost per skill
 
 - identifier: SC_SPEEDUP0
-  print: Walking Speed {2|int/+s%}
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      Walking Speed {2|int/+s%}
 
 - identifier: SC_SPEEDUP1
-  print: Walking Speed {2|int/+s%}
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      Walking Speed {2|int/+s%}
 
 - identifier: SC_SPL_ATK
-  print: {2|int/+s%} Physical Damage vs. Splendide enemies.
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      {2|int/+s%} Physical Damage vs. Splendide enemies.
 
 - identifier: SC_SPL_DEF
-  print: {2|int/+s%} Resistance vs. Splendide enemies.
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      {2|int/+s%} Resistance vs. Splendide enemies.
 
 - identifier: SC_SPL_MATK
-  print: {2|int/+s%} Magical Damage vs. Splendide enemies.
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      {2|int/+s%} Magical Damage vs. Splendide enemies.
 
 - identifier: SC_STOMACHACHE
-  print: All Stats {2|int/-s}
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      All Stats {2|int/-s}
 
 - identifier: SC_STRFOOD
-  print: STR {2|int/+s}
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      STR {2|int/+s}
 
 - identifier: SC_STUN
-  print: Inflict Stun.
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      Inflict Stun.
 
 - identifier: SC_SUMMER
-  print: Wear Summer outfit.
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      Wear Summer outfit.
 
 - identifier: SC_VITFOOD
-  print: VIT {2|int/+s}
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      VIT {2|int/+s}
 
 - identifier: SC_WATERWEAPON
-  print: Weapon endowed with Water property.
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      Weapon endowed with Water property.
 
 - identifier: SC_WEDDING
-  print: Wear Wedding outfit.
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      Wear Wedding outfit.
 
 - identifier: SC_WINDWALK
-  print: Cast Level {2|int/s} Wind Walk.
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      Cast Level {2|int/s} Wind Walk.
 
 - identifier: SC_XMAS
-  print: Wear Xmas outfit.
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      Wear Xmas outfit.
 
