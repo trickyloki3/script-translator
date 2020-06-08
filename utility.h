@@ -2,6 +2,7 @@
 #define utility_h
 
 #include "math.h"
+#include "ctype.h"
 #include "stdio.h"
 #include "stdarg.h"
 #include "stdlib.h"

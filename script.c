@@ -1531,7 +1531,7 @@ struct script_range * script_execute(struct script * script, struct stack * stac
     struct string * string;
     struct script_range * range;
 
-    handler = argument->handler ? map_search(&script->argument, argument->handler) : argument_print;
+    handler = argument->handler ? map_search(&script->argument, argument->handler) : (void *) argument_print;
     if(!handler) {
         status = panic("invalid argument - %s", argument->handler);
     } else {
