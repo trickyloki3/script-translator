@@ -312,67 +312,64 @@ int script_create(struct script * script, size_t size, struct heap * heap, struc
     struct argument_entry * argument;
 
     script->heap = heap;
+    script->table = table;
+
     if(!script->heap) {
         status = panic("invalid heap object");
+    } else if(!script->table) {
+        status = panic("invalid table object");
+    } else if(scriptlex_init_extra(&script->store, &script->scanner)) {
+        status = panic("failed to create scanner object");
     } else {
-        script->table = table;
-        if(!script->table) {
-            status = panic("invalid table object");
+        script->parser = scriptpstate_new();
+        if(!script->parser) {
+            status = panic("failed to create parser object");
+            goto parser_fail;
+        } else if(store_create(&script->store, size)) {
+            status = panic("failed to create store object");
+            goto store_fail;
+        } else if(stack_create(&script->map_stack, heap->stack_pool)) {
+            status = panic("failed to create stack object");
+            goto map_fail;
+        } else if(stack_create(&script->logic_stack, heap->stack_pool)) {
+            status = panic("failed to create stack object");
+            goto logic_fail;
+        } else if(stack_create(&script->stack_stack, heap->stack_pool)) {
+            status = panic("failed to create stack object");
+            goto stack_fail;
+        } else if(map_create(&script->function, (map_compare_cb) strcmp, heap->map_pool)) {
+            status = panic("failed to create map object");
+            goto function_fail;
+        } else if(map_create(&script->argument, (map_compare_cb) strcmp, heap->map_pool)) {
+            status = panic("failed to create map object");
+            goto argument_fail;
+        } else if(script_buffer_create(&script->buffer, size, heap)) {
+            status = panic("failed to create script buffer object");
+            goto buffer_fail;
+        } else if(undefined_create(&script->undefined, size, heap)) {
+            status = panic("failed to create undefined object");
+            goto undef_fail;
         } else {
-            if(scriptlex_init_extra(&script->store, &script->scanner)) {
-                status = panic("failed to create scanner object");
-            } else {
-                script->parser = scriptpstate_new();
-                if(!script->parser) {
-                    status = panic("failed to create parser object");
-                    goto parser_fail;
-                } else if(store_create(&script->store, size)) {
-                    status = panic("failed to create store object");
-                    goto store_fail;
-                } else if(stack_create(&script->map_stack, heap->stack_pool)) {
-                    status = panic("failed to create stack object");
-                    goto map_fail;
-                } else if(stack_create(&script->logic_stack, heap->stack_pool)) {
-                    status = panic("failed to create stack object");
-                    goto logic_fail;
-                } else if(stack_create(&script->stack_stack, heap->stack_pool)) {
-                    status = panic("failed to create stack object");
-                    goto stack_fail;
-                } else if(map_create(&script->function, (map_compare_cb) strcmp, heap->map_pool)) {
-                    status = panic("failed to create map object");
-                    goto function_fail;
-                } else if(map_create(&script->argument, (map_compare_cb) strcmp, heap->map_pool)) {
-                    status = panic("failed to create map object");
-                    goto argument_fail;
-                } else if(script_buffer_create(&script->buffer, size, heap)) {
-                    status = panic("failed to create script buffer object");
-                    goto buffer_fail;
-                } else if(undefined_create(&script->undefined, size, heap)) {
-                    status = panic("failed to create undefined object");
-                    goto undef_fail;
+            function = function_list;
+            while(function->identifier && !status) {
+                if(map_insert(&script->function, function->identifier, function->function)) {
+                    status = panic("failed to insert map object");
                 } else {
-                    function = function_list;
-                    while(function->identifier && !status) {
-                        if(map_insert(&script->function, function->identifier, function->function)) {
-                            status = panic("failed to insert map object");
-                        } else {
-                            function++;
-                        }
-                    }
-
-                    argument = argument_list;
-                    while(argument->identifier && !status) {
-                        if(map_insert(&script->argument, argument->identifier, argument->argument)) {
-                            status = panic("failed to insert map object");
-                        } else {
-                            argument++;
-                        }
-                    }
-
-                    if(status)
-                        goto script_fail;
+                    function++;
                 }
             }
+
+            argument = argument_list;
+            while(argument->identifier && !status) {
+                if(map_insert(&script->argument, argument->identifier, argument->argument)) {
+                    status = panic("failed to insert map object");
+                } else {
+                    argument++;
+                }
+            }
+
+            if(status)
+                goto script_fail;
         }
     }
 
