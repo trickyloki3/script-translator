@@ -5,6 +5,7 @@
 int script_node_token(struct store *, int, struct script_node **);
 int script_node_integer(struct store *, char *, int, struct script_node **);
 int script_node_identifier(struct store *, char *, size_t, struct script_node **);
+int script_node_string(struct store *, char *, size_t, struct script_node **);
 %}
 
 %option outfile="script_scanner.c" header-file="script_scanner.h"
@@ -234,11 +235,11 @@ block_comment       \x2F\x2A
 }
 
 {esc-string} {
-    return script_node_identifier(yyextra, yytext + 2, yyleng - 4, yylval);
+    return script_node_string(yyextra, yytext + 2, yyleng - 4, yylval);
 }
 
 {string} {
-    return script_node_identifier(yyextra, yytext + 1, yyleng - 2, yylval);
+    return script_node_string(yyextra, yytext + 1, yyleng - 2, yylval);
 }
 
 {identifier} {
@@ -309,6 +310,25 @@ int script_node_identifier(struct store * store, char * string, size_t length, s
     struct script_node * node;
 
     node = script_node_create(store, script_identifier);
+    if(!node) {
+        status = panic("failed to create script node object");
+    } else {
+        node->identifier = store_strcpy(store, string, length);
+        if(!node->identifier) {
+            status = panic("failed to char store object");
+        } else {
+            *result = node;
+        }
+    }
+
+    return status ? -1 : node->token;
+}
+
+int script_node_string(struct store * store, char * string, size_t length, struct script_node ** result) {
+    int status = 0;
+    struct script_node * node;
+
+    node = script_node_create(store, script_string);
     if(!node) {
         status = panic("failed to create script node object");
     } else {

@@ -15,7 +15,8 @@ struct script_node {
 
 enum script_type {
     integer,
-    identifier
+    identifier,
+    string
 };
 
 struct script_range {

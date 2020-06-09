@@ -17,7 +17,7 @@
 %define parse.trace false
 
 %token curly_open curly_close semicolon
-%token integer identifier
+%token integer identifier string
 %token for if else
 %left comma
 %right assign plus_assign minus_assign
@@ -279,6 +279,7 @@ expression  : expression increment_prefix %prec increment_postfix {
               }
             | integer
             | identifier
+            | string
 
 %%
 

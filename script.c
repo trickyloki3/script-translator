@@ -855,6 +855,14 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                 }
             }
             break;
+        case script_string:
+            range = script_range_create(script, string, "%s", root->identifier);
+            if(!range) {
+                status = panic("failed to range script object");
+            } else {
+                *result = range;
+            }
+            break;
         case script_comma:
             if( script_evaluate(script, root->root, flag, &x) ||
                 script_evaluate(script, root->root->next, flag, &y) ) {
