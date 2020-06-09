@@ -114,6 +114,7 @@ int argument_splash(struct script *, struct stack *, struct argument_node *, str
 int argument_bf(struct script *, struct stack *, struct argument_node *, struct strbuf *);
 int argument_atf_target(struct script *, struct stack *, struct argument_node *, struct strbuf *);
 int argument_atf_trigger(struct script *, struct stack *, struct argument_node *, struct strbuf *);
+int argument_script(struct script *, struct stack *, struct argument_node *, struct strbuf *);
 
 typedef int (*argument_cb) (struct script *, struct stack *, struct argument_node *, struct strbuf *);
 
@@ -145,6 +146,7 @@ struct argument_entry {
     { "bf", argument_bf },
     { "atf_target", argument_atf_target },
     { "atf_trigger", argument_atf_trigger },
+    { "script", argument_script },
     { NULL, NULL }
 };
 
@@ -2736,6 +2738,22 @@ int argument_atf_trigger(struct script * script, struct stack * stack, struct ar
 
     if(strbuf_unputn(strbuf, 2))
         return panic("failed to unputn strbuf object");
+
+    return 0;
+}
+
+int argument_script(struct script * script, struct stack * stack, struct argument_node * argument, struct strbuf * strbuf) {
+    struct script_range * range;
+
+    range = stack_get(stack, 0);
+    if(!range)
+        return panic("failed to get stack object");
+
+    if(script_parse(script, range->string)) {
+        return panic("failed to parse script object");
+    } else if(script_translate(script, script->root, strbuf)) {
+        return panic("failed to translate script object");
+    }
 
     return 0;
 }
