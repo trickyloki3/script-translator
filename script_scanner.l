@@ -259,7 +259,7 @@ block_comment       \x2F\x2A
 }
 
 . {
-    panic("invalid character (line %d)", yylineno);
+    panic("invalid character %s", yytext);
     return -1;
 }
 
