@@ -44,7 +44,7 @@ int script_parse(struct script *, char *);
 int script_translate(struct script *, struct script_node *, struct strbuf *);
 int script_evaluate(struct script *, struct script_node *, int, struct script_range **);
 struct script_range * script_execute(struct script *, struct stack *, struct argument_node *);
-int script_default(struct script *, struct stack *, size_t, long, long);
+int script_default(struct script *, struct stack *, size_t);
 
 struct script_range * function_set(struct script *, struct stack *);
 struct script_range * function_min(struct script *, struct stack *);
@@ -1583,29 +1583,19 @@ struct script_range * script_execute(struct script * script, struct stack * stac
     return status ? NULL : range;
 }
 
-int script_default(struct script * script, struct stack * stack, size_t index, long min, long max) {
+int script_default(struct script * script, struct stack * stack, size_t index) {
     struct script_range * range;
 
     range = stack_get(stack, index);
     if(!range) {
-        if(min == max) {
-            range = script_range_create(script, integer, "%ld", min);
-            if(!range) {
-                return panic("failed to create script range object");
-            } else if(range_add(range->range, min, min)) {
-                return panic("failed to add range object");
-            }
-        } else {
-            range = script_range_create(script, integer, "%ld ~ %ld", min, max);
-            if(!range) {
-                return panic("failed to create script range object");
-            } else if(range_add(range->range, min, max)) {
-                return panic("failed to add range object");
-            }
-        }
-
-        if(stack_push(stack, range))
+        range = script_range_create(script, integer, "%ld", 0);
+        if(!range) {
+            return panic("failed to create script range object");
+        } else if(range_add(range->range, 0, 0)) {
+            return panic("failed to add range object");
+        } else if(stack_push(stack, range)) {
             return panic("failed to push stack object");
+        }
     }
 
     return 0;
@@ -1876,7 +1866,7 @@ struct script_range * function_sc_start(struct script * script, struct stack * s
         if(!argument) {
             if(undefined_add(&script->undefined, "sc_start.%s", range->string))
                 status = panic("failed to add undefined object");
-        } else if(script_default(script, stack, 3, 0, 0)) {
+        } else if(script_default(script, stack, 3)) {
             status = panic("failed to default script object");
         } else {
             range = script_execute(script, stack, argument);
@@ -1901,7 +1891,7 @@ struct script_range * function_sc_start2(struct script * script, struct stack * 
         if(!argument) {
             if(undefined_add(&script->undefined, "sc_start2.%s", range->string))
                 status = panic("failed to add undefined object");
-        } else if(script_default(script, stack, 4, 0, 0)) {
+        } else if(script_default(script, stack, 4)) {
             status = panic("failed to default script object");
         } else {
             range = script_execute(script, stack, argument);
@@ -1926,7 +1916,7 @@ struct script_range * function_sc_start4(struct script * script, struct stack * 
         if(!argument) {
             if(undefined_add(&script->undefined, "sc_start4.%s", range->string))
                 status = panic("failed to add undefined object");
-        } else if(script_default(script, stack, 6, 0, 0)) {
+        } else if(script_default(script, stack, 6)) {
             status = panic("failed to default script object");
         } else {
             range = script_execute(script, stack, argument);
@@ -1951,7 +1941,7 @@ struct script_range * function_mercenary_sc_start(struct script * script, struct
         if(!argument) {
             if(undefined_add(&script->undefined, "sc_start.%s", range->string))
                 status = panic("failed to add undefined object");
-        } else if(script_default(script, stack, 3, 0, 0)) {
+        } else if(script_default(script, stack, 3)) {
             status = panic("failed to default script object");
         } else {
             range = script_execute(script, stack, argument);
@@ -1972,7 +1962,7 @@ struct script_range * function_autobonus(struct script * script, struct stack * 
     if(!argument) {
         if(undefined_add(&script->undefined, "statement.autobonus"))
             status = panic("failed to add undefined object");
-    } else if(script_default(script, stack, 3, 0, 0)) {
+    } else if(script_default(script, stack, 3)) {
         status = panic("failed to default script object");
     } else {
         range = script_execute(script, stack, argument);
@@ -1992,7 +1982,7 @@ struct script_range * function_autobonus2(struct script * script, struct stack *
     if(!argument) {
         if(undefined_add(&script->undefined, "statement.autobonus2"))
             status = panic("failed to add undefined object");
-    } else if(script_default(script, stack, 3, 0, 0)) {
+    } else if(script_default(script, stack, 3)) {
         status = panic("failed to default script object");
     } else {
         range = script_execute(script, stack, argument);
