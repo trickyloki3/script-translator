@@ -41,7 +41,7 @@ enum script_flag {
 };
 
 int script_parse(struct script *, char *);
-int script_translate(struct script *, struct script_node *);
+int script_translate(struct script *, struct script_node *, struct strbuf *);
 int script_evaluate(struct script *, struct script_node *, int, struct script_range **);
 struct script_range * script_execute(struct script *, struct stack *, struct argument_node *);
 int script_default(struct script *, struct stack *, size_t, long, long);
@@ -412,8 +412,10 @@ void script_destroy(struct script * script) {
     scriptlex_destroy(script->scanner);
 }
 
-int script_compile(struct script * script, char * string) {
+int script_compile(struct script * script, char * string, struct strbuf * strbuf) {
     int status = 0;
+
+    strbuf_clear(strbuf);
 
     script->root = NULL;
     script->map = NULL;
@@ -423,7 +425,7 @@ int script_compile(struct script * script, char * string) {
 
     if(script_parse(script, string)) {
         status = panic("failed to parse script object");
-    } else if(script_translate(script, script->root)) {
+    } else if(script_translate(script, script->root, strbuf)) {
         status = panic("failed to translate script object");
     }
 
@@ -665,7 +667,7 @@ int script_parse(struct script * script, char * string) {
     return status;
 }
 
-int script_translate(struct script * script, struct script_node * root) {
+int script_translate(struct script * script, struct script_node * root, struct strbuf * strbuf) {
     int status = 0;
 
     struct map map;
@@ -681,7 +683,7 @@ int script_translate(struct script * script, struct script_node * root) {
             } else {
                 node = root->root;
                 while(node && !status) {
-                    if(script_translate(script, node)) {
+                    if(script_translate(script, node, strbuf)) {
                         status = panic("failed to statement script object");
                     } else {
                         node = node->next;
@@ -702,7 +704,9 @@ int script_translate(struct script * script, struct script_node * root) {
             } else {
                 if(script_evaluate(script, root->root, is_logic, &range)) {
                     status = panic("failed to expression script object");
-                } else if(script_translate(script, root->root->next)) {
+                } else if(strbuf_printf(strbuf, "%s\n", range->string)) {
+                    status = panic("failed to printf strbuf object");
+                } else if(script_translate(script, root->root->next, strbuf)) {
                     status = panic("failed to statement script object");
                 }
                 script_logic_pop(script);
@@ -717,11 +721,13 @@ int script_translate(struct script * script, struct script_node * root) {
                 } else {
                     if(script_evaluate(script, root->root, is_logic, &range)) {
                         status = panic("failed to expression script object");
-                    } else if(script_translate(script, root->root->next)) {
+                    } else if(strbuf_printf(strbuf, "%s\n", range->string)) {
+                        status = panic("failed to printf strbuf object");
+                    } else if(script_translate(script, root->root->next, strbuf)) {
                         status = panic("failed to statement script object");
                     } else if(logic_pop(script->logic)) {
                         status = panic("failed to logic top pop script object");
-                    } else if(script_translate(script, root->root->next->next)) {
+                    } else if(script_translate(script, root->root->next->next, strbuf)) {
                         status = panic("failed to statement script object");
                     }
                 }
@@ -729,8 +735,11 @@ int script_translate(struct script * script, struct script_node * root) {
             }
             break;
         default:
-            if(script_evaluate(script, root, 0, &range))
+            if(script_evaluate(script, root, 0, &range)) {
                 status = panic("failed to expression script object");
+            } else if(strbuf_printf(strbuf, "%s\n", range->string)) {
+                status = panic("failed to printf strbuf object");
+            }
             break;
     }
 

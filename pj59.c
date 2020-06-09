@@ -6,6 +6,7 @@ int main(int argc, char ** argv) {
     struct heap heap;
     struct table table;
     struct script script;
+    struct strbuf strbuf;
 
     struct item_node * item;
 
@@ -57,30 +58,35 @@ int main(int argc, char ** argv) {
                 } else if(script_create(&script, 4096, &heap, &table)) {
                     status = panic("failed to create script object");
                 } else {
-                    if(argc < 3) {
-                        item = item_start(&table);
-                        while(item && !status) {
-                            if(script_compile(&script, item->bonus)) {
+                    if(strbuf_create(&strbuf, 4096)) {
+                        status = panic("failed to create strbuf object");
+                    } else {
+                        if(argc < 3) {
+                            item = item_start(&table);
+                            while(item && !status) {
+                                if(script_compile(&script, item->bonus, &strbuf)) {
+                                    status = panic("failed to translate script object");
+
+                                    fprintf(stderr, "[item_id:%ld]: %s\n", item->id, item->bonus);
+                                } else {
+                                    item = item_next(&table);
+                                }
+                            }
+                        } else {
+                            item = item_id(&table, strtol(argv[2], NULL, 0));
+                            if(!item) {
+                                status = panic("invalid item id - %s", argv[2]);
+                            } else if(script_compile(&script, item->bonus, &strbuf)) {
                                 status = panic("failed to translate script object");
 
                                 fprintf(stderr, "[item_id:%ld]: %s\n", item->id, item->bonus);
-                            } else {
-                                item = item_next(&table);
                             }
                         }
-                    } else {
-                        item = item_id(&table, strtol(argv[2], NULL, 0));
-                        if(!item) {
-                            status = panic("invalid item id - %s", argv[2]);
-                        } else if(script_compile(&script, item->bonus)) {
-                            status = panic("failed to translate script object");
 
-                            fprintf(stderr, "[item_id:%ld]: %s\n", item->id, item->bonus);
-                        }
+                        undefined_print(&script.undefined);
+
+                        strbuf_destroy(&strbuf);
                     }
-
-                    undefined_print(&script.undefined);
-
                     script_destroy(&script);
                 }
             }
