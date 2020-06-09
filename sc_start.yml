@@ -219,6 +219,13 @@
       Duration: {1|time/ms}
       AGI {2|int/+s}
 
+- identifier: SC_ENDURE
+  print:
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+      Cast Level {2|int/s} Endure.
+
 - identifier: SC_EXPBOOST
   print:
     - {3|sc_start_rate}

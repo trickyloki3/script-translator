@@ -268,7 +268,7 @@
 - identifier: bIgnoreDefClass
   print: Ignore DEF vs. {1|class} enemies.
 
-- identifier: bIgnoreMDefRace
+- identifier: bIgnoreMdefRace
   print: Ignore MDEF vs. {1|race} enemies.
 
 - identifier: bIgnoreMDefEle
