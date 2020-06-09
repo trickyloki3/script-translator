@@ -210,6 +210,7 @@
     [Auto Bonus]
     Chance: {1|int/s%10}
     Duration: {2|time/ms}
+    {3|autobonus/bf}
     {0|script}
 
 - identifier: autobonus2
@@ -217,14 +218,15 @@
     [Auto Bonus]
     Chance: {1|int/s%10}
     Duration: {2|time/ms}
+    {3|autobonus/bf/hit}
     {0|script}
 
 - identifier: autobonus3
   print: |
     [Auto Bonus]
     Chance: {1|int/s%10}
-    Trigger: {3|skill}
     Duration: {2|time/ms}
+    Trigger when using {3|skill}.
     {0|script}
 
 - identifier: bonus_script

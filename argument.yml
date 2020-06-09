@@ -288,6 +288,12 @@
   print: >
     Chance: {0|int/s%100}
 
+- identifier: autobonus/bf
+  print: Trigger for each {0|bf/flag} attack.
+
+- identifier: autobonus/bf/hit
+  print: Trigger when hit with a {0|bf/flag} attack.
+
 - identifier: base_exp
   handler: zero
   print: Gain {0|int} base experience.

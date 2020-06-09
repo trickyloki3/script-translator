@@ -60,6 +60,8 @@ struct script_range * function_sc_start(struct script *, struct stack *);
 struct script_range * function_sc_start2(struct script *, struct stack *);
 struct script_range * function_sc_start4(struct script *, struct stack *);
 struct script_range * function_mercenary_sc_start(struct script *, struct stack *);
+struct script_range * function_autobonus(struct script *, struct stack *);
+struct script_range * function_autobonus2(struct script *, struct stack *);
 
 typedef struct script_range * (*function_cb) (struct script *, struct stack *);
 
@@ -81,6 +83,8 @@ struct function_entry {
     { "sc_start2", function_sc_start2 },
     { "sc_start4", function_sc_start4 },
     { "mercenary_sc_start", function_mercenary_sc_start },
+    { "autobonus", function_autobonus },
+    { "autobonus2", function_autobonus2 },
     { NULL, NULL}
 };
 
@@ -1942,6 +1946,46 @@ struct script_range * function_mercenary_sc_start(struct script * script, struct
             if(!range)
                 status = panic("failed to execute script object");
         }
+    }
+
+    return status ? NULL : range;
+}
+
+struct script_range * function_autobonus(struct script * script, struct stack * stack) {
+    int status = 0;
+    struct script_range * range;
+    struct argument_node * argument;
+
+    argument = statement_identifier(script->table, "autobonus");
+    if(!argument) {
+        if(undefined_add(&script->undefined, "statement.autobonus"))
+            status = panic("failed to add undefined object");
+    } else if(script_default(script, stack, 3, 0, 0)) {
+        status = panic("failed to default script object");
+    } else {
+        range = script_execute(script, stack, argument);
+        if(!range)
+            status = panic("failed to execute script object");
+    }
+
+    return status ? NULL : range;
+}
+
+struct script_range * function_autobonus2(struct script * script, struct stack * stack) {
+    int status = 0;
+    struct script_range * range;
+    struct argument_node * argument;
+
+    argument = statement_identifier(script->table, "autobonus2");
+    if(!argument) {
+        if(undefined_add(&script->undefined, "statement.autobonus2"))
+            status = panic("failed to add undefined object");
+    } else if(script_default(script, stack, 3, 0, 0)) {
+        status = panic("failed to default script object");
+    } else {
+        range = script_execute(script, stack, argument);
+        if(!range)
+            status = panic("failed to execute script object");
     }
 
     return status ? NULL : range;
