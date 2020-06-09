@@ -205,6 +205,34 @@
 - identifier: sc_end
   print: Cure {0|constant}.
 
+- identifier: autobonus
+  print: |
+    [Auto Bonus]
+    Chance: {1|int/s%10}
+    Duration: {2|time/ms}
+    {0|script}
+
+- identifier: autobonus2
+  print: |
+    [Auto Bonus]
+    Chance: {1|int/s%10}
+    Duration: {2|time/ms}
+    {0|script}
+
+- identifier: autobonus3
+  print: |
+    [Auto Bonus]
+    Chance: {1|int/s%10}
+    Trigger: {3|skill}
+    Duration: {2|time/ms}
+    {0|script}
+
+- identifier: bonus_script
+  print: |
+    [Bonus Script]
+    Duration: {1|time/ms}
+    {0|script}
+
 - identifier: gettime
   print: {0|constant}
 
