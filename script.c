@@ -908,12 +908,12 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                 script_evaluate(script, root->root->next, flag, &y) ) {
                 status = panic("failed to evaluate script object");
             } else {
-                range = script_range_create(script, integer, "%s", x->string);
+                range = script_range_create(script, integer, "%s", y->string);
                 if(!range) {
                     status = panic("failed to range script object");
                 } else if(range_assign(range->range, y->range)) {
                     status = panic("failed to assign range object");
-                } else if(map_insert(script->map, range->string, range)) {
+                } else if(map_insert(script->map, x->string, range)) {
                     status = panic("failed to map insert script object");
                 } else {
                     *result = range;
@@ -925,12 +925,12 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                 script_evaluate(script, root->root->next, flag, &y) ) {
                 status = panic("failed to evaluate script object");
             } else {
-                range = script_range_create(script, integer, "%s", x->string);
+                range = script_range_create(script, integer, "%s", y->string);
                 if(!range) {
                     status = panic("failed to range script object");
                 } else if(range_plus(range->range, x->range, y->range)) {
                     status = panic("failed to plus range object");
-                } else if(map_insert(script->map, range->string, range)) {
+                } else if(map_insert(script->map, x->string, range)) {
                     status = panic("failed to map insert script object");
                 } else {
                     *result = range;
@@ -942,12 +942,12 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                 script_evaluate(script, root->root->next, flag, &y) ) {
                 status = panic("failed to evaluate script object");
             } else {
-                range = script_range_create(script, integer, "%s", x->string);
+                range = script_range_create(script, integer, "%s", y->string);
                 if(!range) {
                     status = panic("failed to range script object");
                 } else if(range_minus(range->range, x->range, y->range)) {
                     status = panic("failed to minus range object");
-                } else if(map_insert(script->map, range->string, range)) {
+                } else if(map_insert(script->map, x->string, range)) {
                     status = panic("failed to map insert script object");
                 } else {
                     *result = range;
@@ -1625,12 +1625,12 @@ struct script_range * function_set(struct script * script, struct stack * stack)
         if(!y) {
             status = panic("invalid expression");
         } else {
-            range = script_range_create(script, identifier, "%s", x->string);
+            range = script_range_create(script, identifier, "%s", y->string);
             if(!range) {
                 status = panic("failed to range script object");
             } else if(range_assign(range->range, y->range)) {
                 status = panic("failed to assign range object");
-            }  else if(map_insert(script->map, range->string, range)) {
+            }  else if(map_insert(script->map, x->string, range)) {
                 status = panic("failed to map insert script object");
             }
         }
@@ -2404,7 +2404,9 @@ int argument_constant(struct script * script, struct stack * stack, struct argum
         constant = constant_identifier(script->table, range->string);
         if(!constant) {
             return panic("invalid constant - %s", range->string);
-        } else if(strbuf_printf(strbuf, "%s", constant->tag ? constant->tag : constant->identifier)) {
+        } else if(!constant->tag) {
+            return panic("invalid constant tag - %s", range->string);
+        } else if(strbuf_printf(strbuf, "%s", constant->tag)) {
             return panic("failed to printf strbuf object");
         }
     }
