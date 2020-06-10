@@ -57,6 +57,7 @@ struct script {
     struct stack map_stack;
     struct stack logic_stack;
     struct stack stack_stack;
+    struct stack strbuf_stack;
     struct map function;
     struct map argument;
     struct script_buffer buffer;
@@ -65,6 +66,7 @@ struct script {
     struct map * map;
     struct logic * logic;
     struct stack * stack;
+    struct strbuf * strbuf;
     struct script_range * range;
 };
 
