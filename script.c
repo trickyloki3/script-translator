@@ -32,7 +32,7 @@ int script_stack_push(struct script *, struct stack *);
 void script_stack_pop(struct script *);
 
 struct script_range * script_range_create(struct script *, enum script_type, char *, ...);
-struct script_range * script_range_argument(struct script *, struct argument_node *, struct string *);
+struct script_range * script_range_argument(struct script *, struct argument_node *, struct string *, struct stack *);
 struct script_range * script_range_constant(struct script *, struct constant_node *);
 
 enum script_flag {
@@ -585,8 +585,9 @@ struct script_range * script_range_create(struct script * script, enum script_ty
     return status ? NULL : range;
 }
 
-struct script_range * script_range_argument(struct script * script, struct argument_node * argument, struct string * string) {
+struct script_range * script_range_argument(struct script * script, struct argument_node * argument, struct string * string, struct stack * stack) {
     int status = 0;
+    struct script_range * index;
     struct script_range * range;
     struct range_node * node;
 
@@ -601,6 +602,13 @@ struct script_range * script_range_argument(struct script * script, struct argum
             } else {
                 node = node->next;
             }
+        }
+    } else if(argument->index > -1) {
+        index = stack_get(stack, argument->index);
+        if(!index) {
+            status = panic("failed to get stack object");
+        } else if(range_add(range->range, index->range->min, index->range->max)) {
+            status = panic("failed to add range object");
         }
     }
 
@@ -1571,7 +1579,7 @@ struct script_range * script_execute(struct script * script, struct stack * stac
                 if(!string) {
                     status = panic("failed to string strbuf object");
                 } else {
-                    range = script_range_argument(script, argument, string);
+                    range = script_range_argument(script, argument, string, stack);
                     if(!range)
                         status = panic("failed to range argument script object");
                 }

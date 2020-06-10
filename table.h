@@ -153,6 +153,7 @@ struct argument_node {
     struct map * map;
     struct integer_node * integer;
     struct argument_node * next;
+    long index;
 };
 
 struct argument {

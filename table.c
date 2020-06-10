@@ -57,6 +57,7 @@ struct schema_markup argument_markup[] = {
     {4, schema_string, 19, "inverse"},
     {4, schema_string, 20, "absolute"},
     {4, schema_string, 21, "divide"},
+    {3, schema_string, 22, "index"},
     {0, 0, 0},
 };
 
@@ -598,6 +599,8 @@ int argument_parse(enum parser_type type, int mark, struct string * string, void
                 if(!node) {
                     status = panic("failed to calloc store object");
                 } else {
+                    node->index = -1;
+
                     node->next = argument->argument;
                     argument->argument = node;
                 }
@@ -698,6 +701,7 @@ int argument_parse(enum parser_type type, int mark, struct string * string, void
                 argument->integer->flag |= integer_absolute;
             break;
         case 21: status = string_long(string, &argument->integer->divide); break;
+        case 22: status = string_long(string, &argument->argument->index); break;
     }
 
     return status;
