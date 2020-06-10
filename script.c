@@ -37,7 +37,8 @@ struct script_range * script_range_constant(struct script *, struct constant_nod
 
 enum script_flag {
     is_logic = 0x1,
-    is_array = 0x2
+    is_array = 0x2,
+    is_concat = 0x4
 };
 
 int script_parse(struct script *, char *);
@@ -770,6 +771,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
 
     struct script_range * x;
     struct script_range * y;
+    struct script_range * z;
 
     struct script_range * range;
 
@@ -854,6 +856,18 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                         if(range) {
                             *result = range;
                         } else {
+                            range = script_range_create(script, identifier, "%s", root->identifier);
+                            if(!range) {
+                                status = panic("failed to range script object");
+                            } else {
+                                *result = range;
+                            }
+                        }
+
+                        /*
+                         * use variable identifier when concatenating a with string
+                         */
+                        if(flag & is_concat) {
                             range = script_range_create(script, identifier, "%s", root->identifier);
                             if(!range) {
                                 status = panic("failed to range script object");
@@ -1076,10 +1090,21 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                 script_evaluate(script, root->root->next, flag, &y) ) {
                 status = panic("failed to evaluate script object");
             } else {
-                if(x->type == string || y->type == string)
-                    range = script_range_create(script, integer, "%s%s", x->string, y->string);
-                else
+                if(x->type == string) {
+                    if(script_evaluate(script, root->root->next, flag | is_concat, &z)) {
+                        status = panic("failed to evaluate script object");
+                    } else {
+                        range = script_range_create(script, integer, "%s%s", x->string, z->string);
+                    }
+                } else if(y->type == string) {
+                    if(script_evaluate(script, root->root, flag | is_concat, &z)) {
+                        status = panic("failed to evaluate script object");
+                    } else {
+                        range = script_range_create(script, integer, "%s%s", z->string, y->string);
+                    }
+                } else {
                     range = script_range_create(script, integer, "%s + %s", x->string, y->string);
+                }
 
                 if(!range) {
                     status = panic("failed to range script object");
