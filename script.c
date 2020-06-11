@@ -35,7 +35,6 @@ int script_strbuf_push(struct script *, struct strbuf *);
 void script_strbuf_pop(struct script *);
 
 struct script_range * script_range_create(struct script *, enum script_type, char *, ...);
-struct script_range * script_range_constant(struct script *, struct constant_node *);
 
 enum script_flag {
     is_logic = 0x1,
@@ -622,33 +621,6 @@ struct script_range * script_range_create(struct script * script, enum script_ty
     return status ? NULL : range;
 }
 
-struct script_range * script_range_constant(struct script * script, struct constant_node * constant) {
-    int status = 0;
-    struct script_range * range;
-    struct range_node * node;
-
-    range = script_range_create(script, integer, "%s", constant->identifier);
-    if(!range) {
-        status = panic("failed to range script object");
-    } else {
-        if(constant->range) {
-            node = constant->range;
-            while(node && !status) {
-                if(range_add(range->range, node->min, node->max)) {
-                    status = panic("failed to add range object");
-                } else {
-                    node = node->next;
-                }
-            }
-        } else {
-            if(range_add(range->range, constant->value, constant->value))
-                status = panic("failed to add range object");
-        }
-    }
-
-    return status ? NULL : range;
-}
-
 int script_parse(struct script * script, char * string) {
     int status = 0;
 
@@ -771,6 +743,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
     struct script_range * z;
 
     struct script_range * range;
+    struct range_node * node;
 
     function_cb function;
     struct argument_node * argument;
@@ -842,10 +815,23 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                 } else {
                     constant = constant_identifier(script->table, root->identifier);
                     if(constant) {
-                        range = script_range_constant(script, constant);
+                        range = script_range_create(script, integer, "%s", constant->identifier);
                         if(!range) {
-                            status = panic("failed to range constant script object");
+                            status = panic("failed to range script object");
                         } else {
+                            if(constant->range) {
+                                node = constant->range;
+                                while(node && !status) {
+                                    if(range_add(range->range, node->min, node->max)) {
+                                        status = panic("failed to add range object");
+                                    } else {
+                                        node = node->next;
+                                    }
+                                }
+                            } else if(range_add(range->range, constant->value, constant->value)) {
+                                status = panic("failed to add range object");
+                            }
+
                             *result = range;
                         }
                     } else {
