@@ -64,6 +64,7 @@ struct script_range * function_sc_start4(struct script *, struct stack *);
 struct script_range * function_mercenary_sc_start(struct script *, struct stack *);
 struct script_range * function_autobonus(struct script *, struct stack *);
 struct script_range * function_autobonus2(struct script *, struct stack *);
+struct script_range * function_constant(struct script *, struct stack *);
 
 typedef struct script_range * (*function_cb) (struct script *, struct stack *);
 
@@ -87,6 +88,10 @@ struct function_entry {
     { "mercenary_sc_start", function_mercenary_sc_start },
     { "autobonus", function_autobonus },
     { "autobonus2", function_autobonus2 },
+    { "gettime", function_constant },
+    { "readparam", function_constant },
+    { "vip_status", function_constant },
+    { "checkoption", function_constant },
     { NULL, NULL}
 };
 
@@ -2017,6 +2022,43 @@ struct script_range * function_autobonus2(struct script * script, struct stack *
         range = script_execute(script, stack, argument);
         if(!range)
             status = panic("failed to execute script object");
+    }
+
+    return status ? NULL : range;
+}
+
+struct script_range * function_constant(struct script * script, struct stack * stack) {
+    int status = 0;
+    struct script_range * range;
+    struct constant_node * constant;
+    struct range_node * node;
+
+    range = stack_get(stack, 0);
+    if(!range) {
+        status = panic("failed to get stack object");
+    } else {
+        constant = constant_identifier(script->table, range->string);
+        if(!constant) {
+            status = panic("invalid constant - %s", range->string);
+        } else if(!constant->tag) {
+            status = panic("invalid constant tag - %s", range->string);
+        } else {
+            range = script_range_create(script, integer, "%s", constant->tag);
+            if(!range) {
+                if(constant->range) {
+                    node = constant->range;
+                    while(node && !status) {
+                        if(range_add(range->range, node->min, node->max)) {
+                            status = panic("failed to add range object");
+                        } else {
+                            node = node->next;
+                        }
+                    }
+                } else if(range_add(range->range, constant->value, constant->value)) {
+                    status = panic("failed to add range object");
+                }
+            }
+        }
     }
 
     return status ? NULL : range;

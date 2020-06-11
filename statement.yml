@@ -235,18 +235,6 @@
     Duration: {1|time/ms}
     {0|script}
 
-- identifier: gettime
-  print: {0|constant}
-
-- identifier: readparam
-  print: {0|constant}
-
-- identifier: vip_status
-  print: {0|constant}
-
-- identifier: checkoption
-  print: {0|constant}
-
 # skip
 
 - identifier: announce
