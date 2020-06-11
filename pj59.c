@@ -3,6 +3,7 @@
 
 int item_print(struct script *, struct item_node *, struct strbuf *);
 void bonus_print(char *);
+void combo_print(char *, char *);
 
 int main(int argc, char ** argv) {
     int status = 0;
@@ -98,7 +99,7 @@ int main(int argc, char ** argv) {
 }
 
 int item_print(struct script * script, struct item_node * item, struct strbuf * strbuf) {
-    int status = 0;
+    struct item_combo_node * combo;
 
     fprintf(
         stdout,
@@ -109,12 +110,26 @@ int item_print(struct script * script, struct item_node * item, struct strbuf * 
     );
 
     if(script_compile(script, item->bonus, strbuf)) {
-        status = panic("failed to compile script object");
+        return panic("failed to compile script object");
     } else {
         bonus_print(strbuf_array(strbuf));
+
+        if(item->combo) {
+            fprintf(stdout, "  combo:\n");
+
+            combo = item->combo;
+            while(combo) {
+                if(script_compile(script, combo->bonus, strbuf)) {
+                    return panic("failed to compile script object");
+                } else {
+                    combo_print(combo->combo, strbuf_array(strbuf));
+                }
+                combo = combo->next;
+            }
+        }
     }
 
-    return status;
+    return 0;
 }
 
 void bonus_print(char * bonus) {
@@ -134,6 +149,33 @@ void bonus_print(char * bonus) {
             cursor = strchr(anchor, '\n');
         }
         fputs("    ", stdout);
+        fputs(anchor, stdout);
+        fputc('\n', stdout);
+    }
+}
+
+void combo_print(char * combo, char * bonus) {
+    char * anchor;
+    char * cursor;
+
+    fprintf(
+        stdout,
+        "    - |\n"
+        "      [%s]\n",
+        combo
+    );
+
+    if(bonus && *bonus) {
+        anchor = bonus;
+        cursor = strchr(anchor, '\n');
+        while(cursor) {
+            fputs("      ", stdout);
+            fwrite(anchor, 1, cursor - anchor, stdout);
+            fputc('\n', stdout);
+            anchor = cursor + 1;
+            cursor = strchr(anchor, '\n');
+        }
+        fputs("      ", stdout);
         fputs(anchor, stdout);
         fputc('\n', stdout);
     }
