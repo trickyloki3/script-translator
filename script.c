@@ -453,6 +453,8 @@ int script_compile(struct script * script, char * string, struct strbuf * strbuf
         } else if(script_translate(script, script->root)) {
             status = panic("failed to translate script object");
         }
+        strbuf_trim(strbuf);
+
         script_strbuf_pop(script);
     }
 
@@ -2880,6 +2882,8 @@ int argument_script(struct script * script, struct stack * stack, struct argumen
         } else if(script_translate(script, script->root)) {
             return panic("failed to translate script object");
         }
+        strbuf_trim(strbuf);
+
         script_strbuf_pop(script);
     }
 
