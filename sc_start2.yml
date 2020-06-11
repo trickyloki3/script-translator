@@ -2,106 +2,132 @@
 
 - identifier: SC_ENERGY_DRINK_RESERCH
   print:
+    - |
+      [Status Effect]
+      Max SP {3|energy_drink_research}
     - {4|sc_start_rate}
     - |
       Duration: {1|time/ms}
-      Max SP {3|energy_drink_research}
 
 - identifier: SC_GVG_BLIND
   print:
-    - {4|sc_start_rate}
     - |
-      Duration: {1|time/ms}
+      [Status Effect]
       Immune to Blind.
       Lose {2|int/s} HP.
       Lose {3|int/s} SP.
+    - {4|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
 
 - identifier: SC_GVG_CURSE
   print:
-    - {4|sc_start_rate}
     - |
-      Duration: {1|time/ms}
+      [Status Effect]
       Immune to Curse.
       Lose {2|int/s} HP.
       Lose {3|int/s} SP.
+    - {4|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
 
 - identifier: SC_GVG_FREEZ
   print:
-    - {4|sc_start_rate}
     - |
-      Duration: {1|time/ms}
+      [Status Effect]
       Immune to Freeze.
       Lose {2|int/s} HP.
       Lose {3|int/s} SP.
+    - {4|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
 
 - identifier: SC_GVG_SILENCE
   print:
-    - {4|sc_start_rate}
     - |
-      Duration: {1|time/ms}
+      [Status Effect]
       Immune to Silence.
       Lose {2|int/s} HP.
       Lose {3|int/s} SP.
+    - {4|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
 
 - identifier: SC_GVG_SLEEP
   print:
-    - {4|sc_start_rate}
     - |
-      Duration: {1|time/ms}
+      [Status Effect]
       Immune to Sleep.
       Lose {2|int/s} HP.
       Lose {3|int/s} SP.
+    - {4|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
 
 - identifier: SC_GVG_STONE
   print:
-    - {4|sc_start_rate}
     - |
-      Duration: {1|time/ms}
+      [Status Effect]
       Immune to Stone.
       Lose {2|int/s} HP.
       Lose {3|int/s} SP.
+    - {4|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
 
 - identifier: SC_GVG_STUN
   print:
-    - {4|sc_start_rate}
     - |
-      Duration: {1|time/ms}
+      [Status Effect]
       Immune to Stun.
       Lose {2|int/s} HP.
       Lose {3|int/s} SP.
+    - {4|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
 
 - identifier: SC_ITEMSCRIPT
   print:
+    - |
+      [Status Effect]
+      Apply item script of {2|item}.
     - {4|sc_start_rate}
     - |
       Duration: {1|time/ms}
-      Apply item script of {2|item}.
 
 - identifier: SC_L_LIFEPOTION
   print:
+    - |
+      [Status Effect]
+      Heal {2|lifepotion} every {3|time/s}.
     - {4|sc_start_rate}
     - |
       Duration: {1|time/ms}
-      Heal {2|lifepotion} every {3|time/s}.
 
 - identifier: SC_PROMOTE_HEALTH_RESERCH
   print:
+    - |
+      [Status Effect]
+      Max HP {3|promote_health_research}
     - {4|sc_start_rate}
     - |
       Duration: {1|time/ms}
-      Max HP {3|promote_health_research}
 
 - identifier: SC_S_LIFEPOTION
   print:
+    - |
+      [Status Effect]
+      Heal {2|lifepotion} every {3|time/s}.
     - {4|sc_start_rate}
     - |
       Duration: {1|time/ms}
-      Heal {2|lifepotion} every {3|time/s}.
 
 - identifier: SC_VITATA_500
   print:
+    - |
+      [Status Effect]
+      {2|int/+s%} Natural SP Regeneration
+      Max SP {3|int/+s%}
     - {4|sc_start_rate}
     - |
       Duration: {1|time/ms}
-      {2|int/+s%} Natural SP Regeneration
-      Max SP {3|int/+s%}

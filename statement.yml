@@ -208,32 +208,32 @@
 - identifier: autobonus
   print: |
     [Auto Bonus]
+    {0|script}
     Chance: {1|int/s%10}
     Duration: {2|time/ms}
     {3|autobonus/bf}
-    {0|script}
 
 - identifier: autobonus2
   print: |
     [Auto Bonus]
+    {0|script}
     Chance: {1|int/s%10}
     Duration: {2|time/ms}
     {3|autobonus/bf/hit}
-    {0|script}
 
 - identifier: autobonus3
   print: |
     [Auto Bonus]
+    {0|script}
     Chance: {1|int/s%10}
     Duration: {2|time/ms}
     Trigger when using {3|skill}.
-    {0|script}
 
 - identifier: bonus_script
   print: |
     [Bonus Script]
-    Duration: {1|time/ms}
     {0|script}
+    Duration: {1|time/ms}
 
 # skip
 

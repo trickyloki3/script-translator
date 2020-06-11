@@ -2,92 +2,107 @@
 
 - identifier: SC_ARMOR_ELEMENT_EARTH
   print:
-    - {6|sc_start_rate}
-    - >
-      Duration: {1|time/ms}
+    - [Status Effect]
     - {2|water_resistance}
     - {3|earth_resistance}
     - {4|fire_resistance}
     - {5|wind_resistance}
+    - {6|sc_start_rate}
+    - >
+      Duration: {1|time/ms}
 
 - identifier: SC_ARMOR_ELEMENT_FIRE
   print:
-    - {6|sc_start_rate}
-    - >
-      Duration: {1|time/ms}
+    - [Status Effect]
     - {2|water_resistance}
     - {3|earth_resistance}
     - {4|fire_resistance}
     - {5|wind_resistance}
+    - {6|sc_start_rate}
+    - >
+      Duration: {1|time/ms}
 
 - identifier: SC_ARMOR_ELEMENT_WATER
   print:
-    - {6|sc_start_rate}
-    - >
-      Duration: {1|time/ms}
+    - [Status Effect]
     - {2|water_resistance}
     - {3|earth_resistance}
     - {4|fire_resistance}
     - {5|wind_resistance}
+    - {6|sc_start_rate}
+    - >
+      Duration: {1|time/ms}
 
 - identifier: SC_ARMOR_ELEMENT_WIND
   print:
-    - {6|sc_start_rate}
-    - >
-      Duration: {1|time/ms}
+    - [Status Effect]
     - {2|water_resistance}
     - {3|earth_resistance}
     - {4|fire_resistance}
     - {5|wind_resistance}
+    - {6|sc_start_rate}
+    - >
+      Duration: {1|time/ms}
 
 - identifier: SC_ARMOR_RESIST
   print:
-    - {6|sc_start_rate}
-    - >
-      Duration: {1|time/ms}
+    - [Status Effect]
     - {2|water_resistance}
     - {3|earth_resistance}
     - {4|fire_resistance}
     - {5|wind_resistance}
+    - {6|sc_start_rate}
+    - >
+      Duration: {1|time/ms}
 
 - identifier: SC_ELEMENTALCHANGE
   print:
+    - |
+      [Status Effect]
+      Armor endowed with {3|element} property.
     - {6|sc_start_rate}
     - |
       Duration: {1|time/ms}
-      Armor endowed with {3|element} property.
 
 - identifier: SC_GVG_GIANT
   print:
-    - {6|sc_start_rate}
     - |
-      Duration: {1|time/ms}
+      [Status Effect]
       {4|int/+s%} Physical Damage
       {5|int/+s%} Magical Damage
       Lose {2|int/s} HP.
       Lose {3|int/s} SP.
-
-- identifier: SC_GVG_GOLEM
-  print:
     - {6|sc_start_rate}
     - |
       Duration: {1|time/ms}
+
+- identifier: SC_GVG_GOLEM
+  print:
+    - |
+      [Status Effect]
       {4|int/+s%} Physical Resistance
       {5|int/+s%} Magic Resistance
       Lose {2|int/s} HP.
       Lose {3|int/s} SP.
+    - {6|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
 
 - identifier: SC_L_LIFEPOTION
   print:
+    - |
+      [Status Effect]
+      Heal {2|lifepotion} every {3|time/s}.
     - {6|sc_start_rate}
     - |
       Duration: {1|time/ms}
-      Heal {2|lifepotion} every {3|time/s}.
 
 - identifier: SC_S_LIFEPOTION
   print:
+    - |
+      [Status Effect]
+      Heal {2|lifepotion} every {3|time/s}.
     - {6|sc_start_rate}
     - |
       Duration: {1|time/ms}
-      Heal {2|lifepotion} every {3|time/s}.
 
