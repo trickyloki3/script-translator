@@ -1,0 +1,711 @@
+- identifier: BaseClass
+  tag: Base Class
+  range:
+    - min: 0
+      max: 30
+    - min: 4001
+      max: 4052
+    - min: 4054
+      max: 4087
+    - min: 4096
+      max: 4112
+    - min: 4190
+      max: 4191
+    - min: 4211
+      max: 4212
+    - min: 4215
+      max: 4215
+    - min: 4218
+      max: 4218
+    - min: 4220
+      max: 4220
+    - min: 4222
+      max: 4229
+    - min: 4238
+      max: 4244
+- identifier: BaseJob
+  tag: Base Job
+  range:
+    - min: 0
+      max: 30
+    - min: 4001
+      max: 4052
+    - min: 4054
+      max: 4087
+    - min: 4096
+      max: 4112
+    - min: 4190
+      max: 4191
+    - min: 4211
+      max: 4212
+    - min: 4215
+      max: 4215
+    - min: 4218
+      max: 4218
+    - min: 4220
+      max: 4220
+    - min: 4222
+      max: 4229
+    - min: 4238
+      max: 4244
+- identifier: BaseLevel
+  tag: Base Level
+  range:
+    - min: 0
+      max: 150
+- identifier: CLASS_ALL
+  tag: All Classes
+- identifier: CLASS_BATTLEFIELD
+  tag: Battlefield
+- identifier: CLASS_BOSS
+  tag: Boss
+- identifier: CLASS_GUARDIAN
+  tag: Guardian
+- identifier: CLASS_NORMAL
+  tag: Normal
+- identifier: Class
+  tag: Class
+  range:
+    - min: 0
+      max: 30
+    - min: 4001
+      max: 4052
+    - min: 4054
+      max: 4087
+    - min: 4096
+      max: 4112
+    - min: 4190
+      max: 4191
+    - min: 4211
+      max: 4212
+    - min: 4215
+      max: 4215
+    - min: 4218
+      max: 4218
+    - min: 4220
+      max: 4220
+    - min: 4222
+      max: 4229
+    - min: 4238
+      max: 4244
+- identifier: DT_DAYOFMONTH
+  tag: Day of Month
+  range:
+    - min: 0
+      max: 31
+- identifier: DT_DAYOFWEEK
+  tag: Day of Week
+  range:
+    - min: 0
+      max: 7
+- identifier: DT_DAYOFYEAR
+  tag: Day of Year
+  range:
+    - min: 0
+      max: 365
+- identifier: DT_HOUR
+  tag: Hour
+  range:
+    - min: 0
+      max: 24
+- identifier: DT_MINUTE
+  tag: Minute
+  range:
+    - min: 0
+      max: 60
+- identifier: DT_MONTH
+  tag: Month
+  range:
+    - min: 0
+      max: 12
+- identifier: DT_SECOND
+  tag: Second
+  range:
+    - min: 0
+      max: 60
+- identifier: DT_YEAR
+  tag: Year
+  range:
+    - min: 0
+      max: 9999
+- identifier: ELE_ALL
+  tag: All Elements
+- identifier: ELE_DARK
+  tag: Dark
+- identifier: ELE_EARTH
+  tag: Earth
+- identifier: ELE_FIRE
+  tag: Fire
+- identifier: ELE_GHOST
+  tag: Ghost
+- identifier: ELE_HOLY
+  tag: Holy
+- identifier: ELE_NEUTRAL
+  tag: Neutral
+- identifier: ELE_POISON
+  tag: Poison
+- identifier: ELE_UNDEAD
+  tag: Undead
+- identifier: ELE_WATER
+  tag: Water
+- identifier: ELE_WIND
+  tag: Wind
+- identifier: EQI_ACC_L
+  tag: Left Accessory
+- identifier: EQI_ACC_R
+  tag: Right Accessory
+- identifier: EQI_AMMO
+  tag: Ammo
+- identifier: EQI_ARMOR
+  tag: Armor
+- identifier: EQI_COMPOUND_ON
+  tag: Compound Equip
+- identifier: EQI_COSTUME_GARMENT
+  tag: Costume Garment
+- identifier: EQI_COSTUME_HEAD_LOW
+  tag: Lower Costume Headgear
+- identifier: EQI_COSTUME_HEAD_MID
+  tag: Middle Costume Headgear
+- identifier: EQI_COSTUME_HEAD_TOP
+  tag: Top Costume Headgear
+- identifier: EQI_GARMENT
+  tag: Garment
+- identifier: EQI_HAND_L
+  tag: Left-Hand Weapon
+- identifier: EQI_HAND_R
+  tag: Right-Hand Weapon
+- identifier: EQI_HEAD_LOW
+  tag: Lower Headgear
+- identifier: EQI_HEAD_MID
+  tag: Middle Headgear
+- identifier: EQI_HEAD_TOP
+  tag: Top Headgear
+- identifier: EQI_SHADOW_ACC_L
+  tag: Left Shadow Accessory
+- identifier: EQI_SHADOW_ACC_R
+  tag: Right Shadow Accessory
+- identifier: EQI_SHADOW_ARMOR
+  tag: Shadow Armor
+- identifier: EQI_SHADOW_SHIELD
+  tag: Shadow Shield
+- identifier: EQI_SHADOW_SHOES
+  tag: Shadow Shoes
+- identifier: EQI_SHADOW_WEAPON
+  tag: Shadow Weapon
+- identifier: EQI_SHOES
+  tag: Shoes
+- identifier: Eff_Bleeding
+  tag: Bleeding
+- identifier: Eff_Blind
+  tag: Blind
+- identifier: Eff_Burning
+  tag: Burning
+- identifier: Eff_Confusion
+  tag: Confusion
+- identifier: Eff_Crystalize
+  tag: Crystalize
+- identifier: Eff_Curse
+  tag: Curse
+- identifier: Eff_DPoison
+  tag: EDP Poison
+- identifier: Eff_Fear
+  tag: Fear
+- identifier: Eff_Freeze
+  tag: Freeze
+- identifier: Eff_Poison
+  tag: Poison
+- identifier: Eff_Silence
+  tag: Silence
+- identifier: Eff_Sleep
+  tag: Sleep
+- identifier: Eff_Stone
+  tag: Stone
+- identifier: Eff_Stun
+  tag: Stun
+- identifier: JOB_ACOLYTE
+  tag: Acolyte
+- identifier: JOB_ACOLYTE_HIGH
+  tag: High Acolyte
+- identifier: JOB_ALCHEMIST
+  tag: Alchemist
+- identifier: JOB_ARCHER
+  tag: Archer
+- identifier: JOB_ARCHER_HIGH
+  tag: High Archer
+- identifier: JOB_ARCH_BISHOP
+  tag: Arch Bishop
+- identifier: JOB_ARCH_BISHOP_T
+  tag: Rebirth Arch Bishop
+- identifier: JOB_ASSASSIN
+  tag: Assassin
+- identifier: JOB_ASSASSIN_CROSS
+  tag: Assassin Cross
+- identifier: JOB_BABY
+  tag: Baby Novice
+- identifier: JOB_BABY_ACOLYTE
+  tag: Baby Acolyte
+- identifier: JOB_BABY_ALCHEMIST
+  tag: Baby Alchemist
+- identifier: JOB_BABY_ARCHER
+  tag: Baby Archer
+- identifier: JOB_BABY_ASSASSIN
+  tag: Baby Assassin
+- identifier: JOB_BABY_BARD
+  tag: Baby Bard
+- identifier: JOB_BABY_BISHOP
+  tag: Baby Arch Bishop
+- identifier: JOB_BABY_BLACKSMITH
+  tag: Baby Blacksmith
+- identifier: JOB_BABY_CHASER
+  tag: Baby Shadow Chaser
+- identifier: JOB_BABY_CROSS
+  tag: Baby Assassin Cross
+- identifier: JOB_BABY_CRUSADER
+  tag: Baby Crusader
+- identifier: JOB_BABY_CRUSADER2
+  tag: Baby Crusader
+- identifier: JOB_BABY_DANCER
+  tag: Baby Dancer
+- identifier: JOB_BABY_GENETIC
+  tag: Baby Genetic
+- identifier: JOB_BABY_GUARD
+  tag: Baby Royal Guard
+- identifier: JOB_BABY_GUARD2
+  tag: Baby Royal Guard
+- identifier: JOB_BABY_GUNSLINGER
+  tag: Baby Gunslinger
+- identifier: JOB_BABY_HUNTER
+  tag: Baby Hunter
+- identifier: JOB_BABY_KAGEROU
+  tag: Baby Kagerou
+- identifier: JOB_BABY_KNIGHT
+  tag: Baby Knight
+- identifier: JOB_BABY_KNIGHT2
+  tag: Baby Knight
+- identifier: JOB_BABY_MAGE
+  tag: Baby Mage
+- identifier: JOB_BABY_MECHANIC
+  tag: Baby Mechanic
+- identifier: JOB_BABY_MECHANIC2
+  tag: Baby Mechanic
+- identifier: JOB_BABY_MERCHANT
+  tag: Baby Merchant
+- identifier: JOB_BABY_MINSTREL
+  tag: Baby Minstrel
+- identifier: JOB_BABY_MONK
+  tag: Baby Monk
+- identifier: JOB_BABY_NINJA
+  tag: Baby Ninja
+- identifier: JOB_BABY_OBORO
+  tag: Baby Oboro
+- identifier: JOB_BABY_PRIEST
+  tag: Baby Priest
+- identifier: JOB_BABY_RANGER
+  tag: Baby Ranger
+- identifier: JOB_BABY_RANGER2
+  tag: Baby Ranger
+- identifier: JOB_BABY_REBELLION
+  tag: Baby Rebellion
+- identifier: JOB_BABY_ROGUE
+  tag: Baby Rogue
+- identifier: JOB_BABY_RUNE
+  tag: Baby Rune Knight
+- identifier: JOB_BABY_RUNE2
+  tag: Baby Rune Knight
+- identifier: JOB_BABY_SAGE
+  tag: Baby Sage
+- identifier: JOB_BABY_SORCERER
+  tag: Baby Sorcerer
+- identifier: JOB_BABY_SOUL_LINKER
+  tag: Baby Soul Linker
+- identifier: JOB_BABY_STAR_GLADIATOR
+  tag: Baby Star Gladiator
+- identifier: JOB_BABY_STAR_GLADIATOR2
+  tag: Baby Star Gladiator
+- identifier: JOB_BABY_SUMMONER
+  tag: Baby Summoner
+- identifier: JOB_BABY_SURA
+  tag: Baby Shura
+- identifier: JOB_BABY_SWORDMAN
+  tag: Baby Swordsman
+- identifier: JOB_BABY_TAEKWON
+  tag: Baby Taekwon
+- identifier: JOB_BABY_THIEF
+  tag: Baby Thief
+- identifier: JOB_BABY_WANDERER
+  tag: Baby Wanderer
+- identifier: JOB_BABY_WARLOCK
+  tag: Baby Warlock
+- identifier: JOB_BABY_WIZARD
+  tag: Baby Wizard
+- identifier: JOB_BARD
+  tag: Bard
+- identifier: JOB_BLACKSMITH
+  tag: Blacksmith
+- identifier: JOB_CHAMPION
+  tag: Champion
+- identifier: JOB_CLOWN
+  tag: Clown
+- identifier: JOB_CREATOR
+  tag: Creator
+- identifier: JOB_CRUSADER
+  tag: Crusader
+- identifier: JOB_CRUSADER2
+  tag: Crusader
+- identifier: JOB_DANCER
+  tag: Dancer
+- identifier: JOB_DARK_COLLECTOR
+  tag: Dark Collector
+- identifier: JOB_DEATH_KNIGHT
+  tag: Death Knight
+- identifier: JOB_GANGSI
+  tag: Gangsi
+- identifier: JOB_GENETIC
+  tag: Genetic
+- identifier: JOB_GENETIC_T
+  tag: Rebirth Genetic
+- identifier: JOB_GUILLOTINE_CROSS
+  tag: Guillotine Cross
+- identifier: JOB_GUILLOTINE_CROSS_T
+  tag: Rebirth Guillotine Cross
+- identifier: JOB_GUNSLINGER
+  tag: Gunslinger
+- identifier: JOB_GYPSY
+  tag: Gypsy
+- identifier: JOB_HANBOK
+  tag: Hanbok
+- identifier: JOB_HIGH_PRIEST
+  tag: High Priest
+- identifier: JOB_HIGH_WIZARD
+  tag: High Wizard
+- identifier: JOB_HUNTER
+  tag: Hunter
+- identifier: JOB_KAGEROU
+  tag: Kagerou
+- identifier: JOB_KNIGHT
+  tag: Knight
+- identifier: JOB_KNIGHT2
+  tag: Knight
+- identifier: JOB_LORD_KNIGHT
+  tag: Lord Knight
+- identifier: JOB_LORD_KNIGHT2
+  tag: Lord Knight
+- identifier: JOB_MAGE
+  tag: Mage
+- identifier: JOB_MAGE_HIGH
+  tag: High Mage
+- identifier: JOB_MECHANIC
+  tag: Mechanic
+- identifier: JOB_MECHANIC2
+  tag: Mechanic
+- identifier: JOB_MECHANIC_T
+  tag: Rebirth Mechanic
+- identifier: JOB_MECHANIC_T2
+  tag: Rebirth Mechanic
+- identifier: JOB_MERCHANT
+  tag: Merchant
+- identifier: JOB_MERCHANT_HIGH
+  tag: High Merchant
+- identifier: JOB_MINSTREL
+  tag: Minstrel
+- identifier: JOB_MINSTREL_T
+  tag: Rebirth Minstrel
+- identifier: JOB_MONK
+  tag: Monk
+- identifier: JOB_NINJA
+  tag: Ninja
+- identifier: JOB_NOVICE
+  tag: Novice
+- identifier: JOB_NOVICE_HIGH
+  tag: High Novice
+- identifier: JOB_OBORO
+  tag: Oboro
+- identifier: JOB_OKTOBERFEST
+  tag: Oktoberfest
+- identifier: JOB_PALADIN
+  tag: Paladin
+- identifier: JOB_PALADIN2
+  tag: Paladin
+- identifier: JOB_PRIEST
+  tag: Priest
+- identifier: JOB_PROFESSOR
+  tag: Professor
+- identifier: JOB_RANGER
+  tag: Ranger
+- identifier: JOB_RANGER2
+  tag: Ranger
+- identifier: JOB_RANGER_T
+  tag: Rebirth Ranger
+- identifier: JOB_RANGER_T2
+  tag: Rebirth Ranger
+- identifier: JOB_REBELLION
+  tag: Rebellion
+- identifier: JOB_ROGUE
+  tag: Rogue
+- identifier: JOB_ROYAL_GUARD
+  tag: Royal Guard
+- identifier: JOB_ROYAL_GUARD2
+  tag: Royal Guard
+- identifier: JOB_ROYAL_GUARD_T
+  tag: Rebirth Royal Guard
+- identifier: JOB_ROYAL_GUARD_T2
+  tag: Rebirth Royal Guard
+- identifier: JOB_RUNE_KNIGHT
+  tag: Rune Knight
+- identifier: JOB_RUNE_KNIGHT2
+  tag: Rune Knight
+- identifier: JOB_RUNE_KNIGHT_T
+  tag: Rebirth Rune Knight
+- identifier: JOB_RUNE_KNIGHT_T2
+  tag: Rebirth Rune Knight
+- identifier: JOB_SAGE
+  tag: Sage
+- identifier: JOB_SHADOW_CHASER
+  tag: Shadow Chaser
+- identifier: JOB_SHADOW_CHASER_T
+  tag: Rebirth Shadow Chaser
+- identifier: JOB_SNIPER
+  tag: Sniper
+- identifier: JOB_SORCERER
+  tag: Sorcerer
+- identifier: JOB_SORCERER_T
+  tag: Rebirth Sorcerer
+- identifier: JOB_SOUL_LINKER
+  tag: Soul Linker
+- identifier: JOB_STALKER
+  tag: Stalker
+- identifier: JOB_STAR_GLADIATOR
+  tag: Star Gladiator
+- identifier: JOB_STAR_GLADIATOR2
+  tag: Star Gladiator
+- identifier: JOB_SUMMER
+  tag: Summer
+- identifier: JOB_SUMMONER
+  tag: Summoner
+- identifier: JOB_SUPER_BABY
+  tag: Super Baby Novice
+- identifier: JOB_SUPER_BABY_E
+  tag: Super Baby Novice
+- identifier: JOB_SUPER_NOVICE
+  tag: Super Novice
+- identifier: JOB_SUPER_NOVICE_E
+  tag: Super Novice
+- identifier: JOB_SURA
+  tag: Shura
+- identifier: JOB_SURA_T
+  tag: Rebirth Shura
+- identifier: JOB_SWORDMAN
+  tag: Swordsman
+- identifier: JOB_SWORDMAN_HIGH
+  tag: High Swordsman
+- identifier: JOB_TAEKWON
+  tag: Taekwon
+- identifier: JOB_THIEF
+  tag: Thief
+- identifier: JOB_THIEF_HIGH
+  tag: High Thief
+- identifier: JOB_WANDERER
+  tag: Wanderer
+- identifier: JOB_WANDERER_T
+  tag: Rebirth Wanderer
+- identifier: JOB_WARLOCK
+  tag: Warlock
+- identifier: JOB_WARLOCK_T
+  tag: Rebirth Warlock
+- identifier: JOB_WEDDING
+  tag: Wedding
+- identifier: JOB_WHITESMITH
+  tag: Whitesmith
+- identifier: JOB_WIZARD
+  tag: Wizard
+- identifier: JOB_XMAS
+  tag: Santa Suit
+- identifier: JobLevel
+  tag: Job Level
+  range:
+    - min: 0
+      max: 70
+- identifier: OPTION_CHASEWALK
+  tag: chasewalk
+- identifier: OPTION_CLOAK
+  tag: cloak
+- identifier: OPTION_COSTUME
+  tag: costume
+- identifier: OPTION_DRAGON
+  tag: dragon
+- identifier: OPTION_DRAGON1
+  tag: dragon
+- identifier: OPTION_DRAGON2
+  tag: dragon
+- identifier: OPTION_DRAGON3
+  tag: dragon
+- identifier: OPTION_DRAGON4
+  tag: dragon
+- identifier: OPTION_DRAGON5
+  tag: dragon
+- identifier: OPTION_FALCON
+  tag: falcon
+- identifier: OPTION_FLYING
+  tag: flying
+- identifier: OPTION_HANBOK
+  tag: hanbok
+- identifier: OPTION_HIDE
+  tag: hide
+- identifier: OPTION_INVISIBLE
+  tag: invisible
+- identifier: OPTION_MADOGEAR
+  tag: madogear
+- identifier: OPTION_NOTHING
+  tag: nothing
+- identifier: OPTION_OKTOBERFEST
+  tag: oktoberfest
+- identifier: OPTION_ORCISH
+  tag: orcish
+- identifier: OPTION_RIDING
+  tag: riding
+- identifier: OPTION_RUWACH
+  tag: ruwach
+- identifier: OPTION_SIGHT
+  tag: sight
+- identifier: OPTION_SUMMER
+  tag: summer
+- identifier: OPTION_TRANSFORM
+  tag: transform
+- identifier: OPTION_WEDDING
+  tag: wedding
+- identifier: OPTION_WUG
+  tag: wug
+- identifier: OPTION_WUGRIDER
+  tag: wug ridger
+- identifier: OPTION_XMAS
+  tag: xmas
+- identifier: RC2_BATTLEFIELD
+  tag: Battlefield
+- identifier: RC2_BIOLAB
+  tag: Bio Lab
+- identifier: RC2_GOBLIN
+  tag: Goblin
+- identifier: RC2_GOLEM
+  tag: Golem
+- identifier: RC2_GUARDIAN
+  tag: Guardian
+- identifier: RC2_GVG
+  tag: GVG
+- identifier: RC2_KOBOLD
+  tag: Kobold
+- identifier: RC2_NINJA
+  tag: Ninja
+- identifier: RC2_ORC
+  tag: Orc
+- identifier: RC2_SCARABA
+  tag: Scaraba
+- identifier: RC2_TREASURE
+  tag: Treasure
+- identifier: RC_ALL
+  tag: All Races
+- identifier: RC_ANGEL
+  tag: Angel
+- identifier: RC_BRUTE
+  tag: Brute
+- identifier: RC_DEMIHUMAN
+  tag: Demihuman
+- identifier: RC_DEMON
+  tag: Demon
+- identifier: RC_DRAGON
+  tag: Dragon
+- identifier: RC_FISH
+  tag: Fish
+- identifier: RC_FORMLESS
+  tag: Formless
+- identifier: RC_INSECT
+  tag: Insect
+- identifier: RC_PLANT
+  tag: Plant
+- identifier: RC_PLAYER
+  tag: Player
+- identifier: RC_UNDEAD
+  tag: Undead
+- identifier: SC_ANGELUS
+  tag: Angelus
+- identifier: SC_AUTOGUARD
+  tag: Autoguard
+- identifier: SC_BLEEDING
+  tag: Bleeding
+- identifier: SC_BLIND
+  tag: Blind
+- identifier: SC_CHANGEUNDEAD
+  tag: Change Undead
+- identifier: SC_CLOAKING
+  tag: Cloaking
+- identifier: SC_CONFUSION
+  tag: Confusion
+- identifier: SC_CURSE
+  tag: Curse
+- identifier: SC_DPOISON
+  tag: Deadly Poison
+- identifier: SC_FREEZE
+  tag: Freeze
+- identifier: SC_HALLUCINATION
+  tag: Hallucination
+- identifier: SC_HIDING
+  tag: Hiding
+- identifier: SC_ORCISH
+  tag: Orcish
+- identifier: SC_POISON
+  tag: Poison
+- identifier: SC_RUWACH
+  tag: Ruwach
+- identifier: SC_SIGHT
+  tag: Sight
+- identifier: SC_SILENCE
+  tag: Silence
+- identifier: SC_SLEEP
+  tag: Sleep
+- identifier: SC_STONE
+  tag: Stone
+- identifier: SC_STUN
+  tag: Stun
+- identifier: Size_All
+  tag: All Sizes
+- identifier: Size_Large
+  tag: Large
+- identifier: Size_Medium
+  tag: Medium
+- identifier: Size_Small
+  tag: Small
+- identifier: VIP_STATUS_ACTIVE
+  tag: Active
+- identifier: VIP_STATUS_EXPIRE
+  tag: Expire
+- identifier: VIP_STATUS_REMAINING
+  tag: Time
+- identifier: bAgi
+  tag: AGI
+  range:
+    - min: 0
+      max: 150
+- identifier: bDex
+  tag: DEX
+  range:
+    - min: 0
+      max: 150
+- identifier: bInt
+  tag: INT
+  range:
+    - min: 0
+      max: 150
+- identifier: bLuk
+  tag: LUK
+  range:
+    - min: 0
+      max: 150
+- identifier: bStr
+  tag: STR
+  range:
+    - min: 0
+      max: 150
+- identifier: bVit
+  tag: VIT
+  range:
+    - min: 0
+      max: 150
