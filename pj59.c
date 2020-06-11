@@ -1,7 +1,7 @@
 #include "unistd.h"
 #include "script.h"
 
-void item_print(struct item_node *, struct strbuf *);
+int item_print(struct script *, struct item_node *, struct strbuf *);
 void bonus_print(char *);
 
 int main(int argc, char ** argv) {
@@ -67,10 +67,9 @@ int main(int argc, char ** argv) {
                         if(argc < 3) {
                             item = item_start(&table);
                             while(item && !status) {
-                                if(script_compile(&script, item->bonus, &strbuf)) {
-                                    status = panic("failed to translate script object - %ld", item->id);
+                                if(item_print(&script, item, &strbuf)) {
+                                    status = panic("failed to print item - %ld", item->id);
                                 } else {
-                                    item_print(item, &strbuf);
                                     item = item_next(&table);
                                 }
                             }
@@ -78,10 +77,8 @@ int main(int argc, char ** argv) {
                             item = item_id(&table, strtol(argv[2], NULL, 0));
                             if(!item) {
                                 status = panic("invalid item id - %s", argv[2]);
-                            } else if(script_compile(&script, item->bonus, &strbuf)) {
-                                status = panic("failed to translate script object - %ld", item->id);
-                            } else {
-                                item_print(item, &strbuf);
+                            } else if(item_print(&script, item, &strbuf)) {
+                                status = panic("failed to print item - %ld", item->id);
                             }
                         }
 
@@ -100,7 +97,9 @@ int main(int argc, char ** argv) {
     return status;
 }
 
-void item_print(struct item_node * item, struct strbuf * bonus) {
+int item_print(struct script * script, struct item_node * item, struct strbuf * strbuf) {
+    int status = 0;
+
     fprintf(
         stdout,
         "- id: %ld\n"
@@ -109,7 +108,13 @@ void item_print(struct item_node * item, struct strbuf * bonus) {
         item->name
     );
 
-    bonus_print(strbuf_array(bonus));
+    if(script_compile(script, item->bonus, strbuf)) {
+        status = panic("failed to compile script object");
+    } else {
+        bonus_print(strbuf_array(strbuf));
+    }
+
+    return status;
 }
 
 void bonus_print(char * bonus) {
