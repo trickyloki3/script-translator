@@ -472,7 +472,6 @@ void constant_destroy(struct constant * constant) {
 }
 
 int constant_parse(enum parser_type type, int mark, struct string * string, void * context) {
-    int status = 0;
     struct constant * constant = context;
 
     switch(mark) {
@@ -480,33 +479,51 @@ int constant_parse(enum parser_type type, int mark, struct string * string, void
             if(type == parser_start) {
                 constant->constant = store_calloc(&constant->store, sizeof(*constant->constant));
                 if(!constant->constant)
-                    status = panic("failed to calloc store object");
+                    return panic("failed to calloc store object");
             } else if(type == parser_end) {
                 if(!constant->constant->identifier) {
-                    status = panic("invalid string object");
+                    return panic("invalid string object");
                 } else if(map_insert(&constant->identifier, constant->constant->identifier, constant->constant)) {
-                    status = panic("failed to insert map object");
+                    return panic("failed to insert map object");
                 }
             }
             break;
-        case 2: status = string_store(string, &constant->store, &constant->constant->identifier); break;
-        case 3: status = string_long(string, &constant->constant->value); break;
-        case 4: status = string_store(string, &constant->store, &constant->constant->tag); break;
+        case 2: return string_store(string, &constant->store, &constant->constant->identifier); break;
+        case 3: return string_long(string, &constant->constant->value); break;
+    }
+
+    return 0;
+}
+
+int constant_data_parse(enum parser_type type, int mark, struct string * string, void * context) {
+    struct constant * constant = context;
+
+    switch(mark) {
+        case 1:
+            if(type == parser_start)
+                constant->constant = NULL;
+            break;
+        case 2:
+            constant->constant = map_search(&constant->identifier, string->string);
+            if(!constant->constant)
+                return panic("failed to search map object - %s", string->string);
+            break;
+        case 4: return string_store(string, &constant->store, &constant->constant->tag); break;
         case 6:
             if(type == parser_start) {
                 constant->range = store_calloc(&constant->store, sizeof(*constant->range));
                 if(!constant->range)
-                    status = panic("failed to calloc store object");
+                    return panic("failed to calloc store object");
             } else if(type == parser_end) {
                 constant->range->next = constant->constant->range;
                 constant->constant->range = constant->range;
             }
             break;
-        case 7: status = string_long(string, &constant->range->min); break;
-        case 8: status = string_long(string, &constant->range->max); break;
+        case 7: return string_long(string, &constant->range->min); break;
+        case 8: return string_long(string, &constant->range->max); break;
     }
 
-    return status;
+    return 0;
 }
 
 int constant_group_parse(enum parser_type type, int mark, struct string * string, void * context) {
@@ -902,6 +919,10 @@ int table_mercenary_parse(struct table * table, char * path) {
 
 int table_constant_parse(struct table * table, char * path) {
     return parser_file(&table->parser, constant_markup, path, constant_parse, &table->constant);
+}
+
+int table_constant_data_parse(struct table * table, char * path) {
+    return parser_file(&table->parser, constant_markup, path, constant_data_parse, &table->constant);
 }
 
 int table_constant_group_parse(struct table * table, char * path) {

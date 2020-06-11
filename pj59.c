@@ -26,14 +26,16 @@ int main(int argc, char ** argv) {
                 status = panic("failed to item parse table object");
             } else if(table_item_combo_parse(&table, "item_combo_db.txt")) {
                 status = panic("failed to item combo parse table object");
-            } else if (table_skill_parse(&table, "skill_db.yml")) {
+            } else if(table_skill_parse(&table, "skill_db.yml")) {
                 status = panic("failed to skill parse table object");
-            } else if (table_mob_parse(&table, "mob_db.txt")) {
+            } else if(table_mob_parse(&table, "mob_db.txt")) {
                 status = panic("failed to mob parse table object");
-            } else if (table_mercenary_parse(&table, "mercenary_db.txt")) {
+            } else if(table_mercenary_parse(&table, "mercenary_db.txt")) {
                 status = panic("failed to mercenary parse table object");
-            } else if (table_constant_parse(&table, "constant.yml")) {
+            } else if(table_constant_parse(&table, "constant.yml")) {
                 status = panic("failed to constant parse table object");
+            } else if(table_constant_data_parse(&table, "constant_data.yml")) {
+                status = panic("failed to constant data parse table object");
             } else if(table_constant_group_parse(&table, "constant_group.yml")) {
                 status = panic("failed to constant group parse table object");
             } else if(table_argument_parse(&table, "argument.yml")) {

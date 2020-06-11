@@ -109,6 +109,7 @@ struct constant {
 int constant_create(struct constant *, size_t, struct heap *);
 void constant_destroy(struct constant *);
 int constant_parse(enum parser_type, int, struct string *, void *);
+int constant_data_parse(enum parser_type, int, struct string *, void *);
 int constant_group_parse(enum parser_type, int, struct string *, void *);
 
 enum integer_flag {
@@ -199,6 +200,7 @@ int table_skill_parse(struct table *, char *);
 int table_mob_parse(struct table *, char *);
 int table_mercenary_parse(struct table *, char *);
 int table_constant_parse(struct table *, char *);
+int table_constant_data_parse(struct table *, char *);
 int table_constant_group_parse(struct table *, char *);
 int table_argument_parse(struct table *, char *);
 int table_bonus_parse(struct table *, char *);
