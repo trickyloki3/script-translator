@@ -35,7 +35,6 @@ int script_strbuf_push(struct script *, struct strbuf *);
 void script_strbuf_pop(struct script *);
 
 struct script_range * script_range_create(struct script *, enum script_type, char *, ...);
-struct script_range * script_range_argument(struct script *, struct argument_node *, struct string *, struct stack *);
 struct script_range * script_range_constant(struct script *, struct constant_node *);
 
 enum script_flag {
@@ -619,36 +618,6 @@ struct script_range * script_range_create(struct script * script, enum script_ty
     }
 
     va_end(vararg);
-
-    return status ? NULL : range;
-}
-
-struct script_range * script_range_argument(struct script * script, struct argument_node * argument, struct string * string, struct stack * stack) {
-    int status = 0;
-    struct script_range * index;
-    struct script_range * range;
-    struct range_node * node;
-
-    range = script_range_create(script, identifier, "%s", string->string);
-    if(!range) {
-        status = panic("failed to range script object");
-    } else if(argument->range) {
-        node = argument->range;
-        while(node && !status) {
-            if(range_add(range->range, node->min, node->max)) {
-                status = panic("failed to add range object");
-            } else {
-                node = node->next;
-            }
-        }
-    } else if(argument->index > -1) {
-        index = stack_get(stack, argument->index);
-        if(!index) {
-            status = panic("failed to get stack object");
-        } else if(range_add(range->range, index->range->min, index->range->max)) {
-            status = panic("failed to add range object");
-        }
-    }
 
     return status ? NULL : range;
 }
@@ -1618,6 +1587,7 @@ struct script_range * script_execute(struct script * script, struct stack * stac
     struct strbuf * strbuf;
     struct string * string;
     struct script_range * range;
+    struct range_node * node;
 
     handler = argument->handler ? map_search(&script->argument, argument->handler) : (void *) argument_print;
     if(!handler) {
@@ -1634,9 +1604,19 @@ struct script_range * script_execute(struct script * script, struct stack * stac
                 if(!string) {
                     status = panic("failed to string strbuf object");
                 } else {
-                    range = script_range_argument(script, argument, string, stack);
-                    if(!range)
-                        status = panic("failed to range argument script object");
+                    range = script_range_create(script, identifier, "%s", string->string);
+                    if(!range) {
+                        status = panic("failed to range script object");
+                    } else if(argument->range) {
+                        node = argument->range;
+                        while(node && !status) {
+                            if(range_add(range->range, node->min, node->max)) {
+                                status = panic("failed to add range object");
+                            } else {
+                                node = node->next;
+                            }
+                        }
+                    }
                 }
             }
             script_buffer_put(&script->buffer, strbuf);
