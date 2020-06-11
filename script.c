@@ -622,16 +622,23 @@ struct script_range * script_range_create(struct script * script, enum script_ty
 int script_compile_re(struct script * script, char * string, struct strbuf * strbuf) {
     int status = 0;
 
+    struct map map;
+
     if(script_strbuf_push(script, strbuf)) {
         status = panic("failed to strbuf push script object");
     } else {
-        if(script_parse(script, string)) {
-            status = panic("failed to parse script object");
-        } else if(script_translate(script, script->root)) {
-            status = panic("failed to translate script object");
-        }
-        strbuf_trim(strbuf);
+        if(script_map_push(script, &map)) {
+            status = panic("failed to map push script object");
+        } else {
+            if(script_parse(script, string)) {
+                status = panic("failed to parse script object");
+            } else if(script_translate(script, script->root)) {
+                status = panic("failed to translate script object");
+            }
+            strbuf_trim(strbuf);
 
+            script_map_pop(script);
+        }
         script_strbuf_pop(script);
     }
 
@@ -680,7 +687,6 @@ int script_parse(struct script * script, char * string) {
 int script_translate(struct script * script, struct script_node * root) {
     int status = 0;
 
-    struct map map;
     struct logic logic;
 
     struct script_node * node;
@@ -688,18 +694,13 @@ int script_translate(struct script * script, struct script_node * root) {
 
     switch(root->token) {
         case script_curly_open:
-            if(script_map_push(script, &map)) {
-                status = panic("failed to map push script object");
-            } else {
-                node = root->root;
-                while(node && !status) {
-                    if(script_translate(script, node)) {
-                        status = panic("failed to statement script object");
-                    } else {
-                        node = node->next;
-                    }
+            node = root->root;
+            while(node && !status) {
+                if(script_translate(script, node)) {
+                    status = panic("failed to statement script object");
+                } else {
+                    node = node->next;
                 }
-                script_map_pop(script);
             }
             break;
         case script_semicolon:
