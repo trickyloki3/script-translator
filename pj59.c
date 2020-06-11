@@ -1,6 +1,9 @@
 #include "unistd.h"
 #include "script.h"
 
+void item_print(struct item_node *, struct strbuf *);
+void bonus_print(char *);
+
 int main(int argc, char ** argv) {
     int status = 0;
     struct heap heap;
@@ -67,6 +70,7 @@ int main(int argc, char ** argv) {
                                 if(script_compile(&script, item->bonus, &strbuf)) {
                                     status = panic("failed to translate script object - %ld", item->id);
                                 } else {
+                                    item_print(item, &strbuf);
                                     item = item_next(&table);
                                 }
                             }
@@ -76,6 +80,8 @@ int main(int argc, char ** argv) {
                                 status = panic("invalid item id - %s", argv[2]);
                             } else if(script_compile(&script, item->bonus, &strbuf)) {
                                 status = panic("failed to translate script object - %ld", item->id);
+                            } else {
+                                item_print(item, &strbuf);
                             }
                         }
 
@@ -92,4 +98,38 @@ int main(int argc, char ** argv) {
     }
 
     return status;
+}
+
+void item_print(struct item_node * item, struct strbuf * bonus) {
+    fprintf(
+        stdout,
+        "- id: %ld\n"
+        "  name: %s\n",
+        item->id,
+        item->name
+    );
+
+    bonus_print(strbuf_array(bonus));
+}
+
+void bonus_print(char * bonus) {
+    char * anchor;
+    char * cursor;
+
+    if(bonus && *bonus) {
+        fprintf(stdout, "  bonus: |\n");
+
+        anchor = bonus;
+        cursor = strchr(anchor, '\n');
+        while(cursor) {
+            fputs("    ", stdout);
+            fwrite(anchor, 1, cursor - anchor, stdout);
+            fputc('\n', stdout);
+            anchor = cursor + 1;
+            cursor = strchr(anchor, '\n');
+        }
+        fputs("    ", stdout);
+        fputs(anchor, stdout);
+        fputc('\n', stdout);
+    }
 }
