@@ -65,9 +65,7 @@ int main(int argc, char ** argv) {
                             item = item_start(&table);
                             while(item && !status) {
                                 if(script_compile(&script, item->bonus, &strbuf)) {
-                                    status = panic("failed to translate script object");
-
-                                    fprintf(stderr, "[item_id:%ld]: %s\n", item->id, item->bonus);
+                                    status = panic("failed to translate script object - %ld", item->id);
                                 } else {
                                     item = item_next(&table);
                                 }
@@ -77,9 +75,7 @@ int main(int argc, char ** argv) {
                             if(!item) {
                                 status = panic("invalid item id - %s", argv[2]);
                             } else if(script_compile(&script, item->bonus, &strbuf)) {
-                                status = panic("failed to translate script object");
-
-                                fprintf(stderr, "[item_id:%ld]: %s\n", item->id, item->bonus);
+                                status = panic("failed to translate script object - %ld", item->id);
                             }
                         }
 
