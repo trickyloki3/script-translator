@@ -50,7 +50,7 @@
   print: {2|int/+s%} Recovery Amount From {1|item}
 
 - identifier: bAddItemGroupHealRate
-  print: {2|int/+s%} Recovery Amount From Any Item In {1|constant}
+  print: {2|int/+s%} Recovery Amount From Any Item In {1|string}
 
 - identifier: bCastrate
   print: {2|int/+s%} {1|skill} Variable Cast Time
@@ -233,7 +233,7 @@
   print: Add {2|int/s%100} chance to drop {1|item} per kill.
 
 - identifier: bAddMonsterDropItemGroup
-  print: Add {2|int/s%100} chance to drop an item from {1|constant} per kill.
+  print: Add {2|int/s%100} chance to drop an item from {1|string} per kill.
 
 - identifier: bGetZenyNum
   print: Add {2|int/s%} chance of gaining {1|int/s} zeny per kill.
