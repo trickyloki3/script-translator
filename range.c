@@ -48,6 +48,10 @@ int range_create(struct range * range, struct pool * pool) {
 }
 
 void range_destroy(struct range * range) {
+    range_clear(range);
+}
+
+void range_clear(struct range * range) {
     struct range_node * node;
 
     while(range->root) {
@@ -55,6 +59,10 @@ void range_destroy(struct range * range) {
         range->root = range->root->next;
         range_node_destroy(range, node);
     }
+
+    range->last = NULL;
+    range->min = 0;
+    range->max = 0;
 }
 
 int range_add(struct range * range, long min, long max) {
