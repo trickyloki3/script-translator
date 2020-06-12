@@ -363,10 +363,10 @@
   print: Add {1|int/s%100} chance of breaking an enemy's armor for each weapon attack.
 
 - identifier: bDoubleRate
-  print: Add {1|int/s%} chance to double attack.
+  print: Add {1|int/s%} chance to Double Attack.
 
 - identifier: bDoubleAddRate
-  print: Add {1|int/s%} chance to double attack.
+  print: Add {1|int/s%} chance to Double Attack.
 
 - identifier: bSplashRange
   print: Each weapon attack deals AoE damage to a {1|splash} grid.
@@ -401,4 +401,4 @@
   print: Ability to use any skill without consuming any magic gear fuel.
 
 - identifier: bNoWalkDelay
-  print: Infinite endure.
+  print: Infinite Endure.
