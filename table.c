@@ -140,7 +140,6 @@ void item_destroy(struct item * item) {
 }
 
 int item_parse(enum parser_type type, int mark, struct string * string, void * context) {
-    int status = 0;
     struct item * item = context;
 
     switch(mark) {
@@ -148,29 +147,27 @@ int item_parse(enum parser_type type, int mark, struct string * string, void * c
             if(type == parser_start) {
                 item->item = store_calloc(&item->store, sizeof(*item->item));
                 if(!item->item)
-                    status = panic("failed to calloc store object");
+                    return panic("failed to calloc store object");
             } else if(type == parser_end) {
                 if(map_insert(&item->id, &item->item->id, item->item)) {
-                    status = panic("failed to insert map object");
+                    return panic("failed to insert map object");
                 } else if(map_insert(&item->name, item->item->name, item->item)) {
-                    status = panic("failed to insert map object");
+                    return panic("failed to insert map object");
                 }
             }
             break;
-        case 1: status = string_long(string, &item->item->id); break;
-        case 3: status = string_store(string, &item->store, &item->item->name); break;
+        case 1: return string_long(string, &item->item->id); break;
+        case 3: return string_store(string, &item->store, &item->item->name); break;
         case 20:
             if(item_script_parse(item, string->string))
-                status = panic("failed to script parse item object");
+                return panic("failed to script parse item object");
             break;
     }
 
-    return status;
+    return 0;
 }
 
 int item_script_parse(struct item * item, char * string) {
-    int status = 0;
-
     int curly = 0;
     size_t index = 0;
     char * anchor = NULL;
@@ -187,23 +184,20 @@ int item_script_parse(struct item * item, char * string) {
                     case 0:
                         item->item->bonus = store_strcpy(&item->store, anchor, string - anchor + 1);
                         if(!item->item->bonus)
-                            status = panic("failed to char store object");
+                            return panic("failed to char store object");
                         break;
                     case 1:
                         item->item->equip = store_strcpy(&item->store, anchor, string - anchor + 1);
                         if(!item->item->equip)
-                            status = panic("failed to char store object");
+                            return panic("failed to char store object");
                         break;
                     case 2:
                         item->item->unequip = store_strcpy(&item->store, anchor, string - anchor + 1);
                         if(!item->item->unequip)
-                            status = panic("failed to char store object");
+                            return panic("failed to char store object");
                         break;
                 }
                 index++;
-
-                if(status)
-                    break;
 
                 anchor = NULL;
             }
@@ -211,7 +205,7 @@ int item_script_parse(struct item * item, char * string) {
         string++;
     }
 
-    return status;
+    return 0;
 }
 
 int item_combo_parse(enum parser_type type, int mark, struct string * string, void * context) {
@@ -368,7 +362,6 @@ void mob_destroy(struct mob * mob) {
 }
 
 int mob_parse(enum parser_type type, int mark, struct string * string, void * context) {
-    int status = 0;
     struct mob * mob = context;
 
     switch(mark) {
@@ -376,21 +369,21 @@ int mob_parse(enum parser_type type, int mark, struct string * string, void * co
             if(type == parser_start) {
                 mob->mob = store_calloc(&mob->store, sizeof(*mob->mob));
                 if(!mob->mob)
-                    status = panic("failed to calloc store object");
+                    return panic("failed to calloc store object");
             } else if(type == parser_end) {
                 if(map_insert(&mob->id, &mob->mob->id, mob->mob)) {
-                    status = panic("failed to insert map object");
+                    return panic("failed to insert map object");
                 } else if(map_insert(&mob->sprite, mob->mob->sprite, mob->mob)) {
-                    status = panic("failed to insert map object");
+                    return panic("failed to insert map object");
                 }
             }
             break;
-        case 1: status = string_long(string, &mob->mob->id); break;
-        case 2: status = string_store(string, &mob->store, &mob->mob->sprite); break;
-        case 3: status = string_store(string, &mob->store, &mob->mob->kro); break;
+        case 1: return string_long(string, &mob->mob->id); break;
+        case 2: return string_store(string, &mob->store, &mob->mob->sprite); break;
+        case 3: return string_store(string, &mob->store, &mob->mob->kro); break;
     }
 
-    return status;
+    return 0;
 }
 
 int mercenary_create(struct mercenary * mercenary, size_t size, struct heap * heap) {
@@ -414,7 +407,6 @@ void mercenary_destroy(struct mercenary * mercenary) {
 }
 
 int mercenary_parse(enum parser_type type, int mark, struct string * string, void * context) {
-    int status = 0;
     struct mercenary * mercenary = context;
 
     switch(mark) {
@@ -422,17 +414,17 @@ int mercenary_parse(enum parser_type type, int mark, struct string * string, voi
             if(type == parser_start) {
                 mercenary->mercenary = store_calloc(&mercenary->store, sizeof(*mercenary->mercenary));
                 if(!mercenary->mercenary)
-                    status = panic("failed to calloc store object");
+                    return panic("failed to calloc store object");
             } else if(type == parser_end) {
                 if(map_insert(&mercenary->id, &mercenary->mercenary->id, mercenary->mercenary))
-                    status = panic("failed to insert map object");
+                    return panic("failed to insert map object");
             }
             break;
-        case 1: status = string_long(string, &mercenary->mercenary->id); break;
-        case 3: status = string_store(string, &mercenary->store, &mercenary->mercenary->name); break;
+        case 1: return string_long(string, &mercenary->mercenary->id); break;
+        case 3: return string_store(string, &mercenary->store, &mercenary->mercenary->name); break;
     }
 
-    return status;
+    return 0;
 }
 
 int constant_create(struct constant * constant, size_t size, struct heap * heap) {
@@ -608,7 +600,6 @@ void argument_destroy(struct argument * argument) {
 }
 
 int argument_parse(enum parser_type type, int mark, struct string * string, void * context) {
-    int status = 0;
     struct argument_node * node;
     struct print_node * print;
     struct map * map;
@@ -619,30 +610,30 @@ int argument_parse(enum parser_type type, int mark, struct string * string, void
             if(type == parser_start) {
                 node = store_calloc(&argument->store, sizeof(*node));
                 if(!node) {
-                    status = panic("failed to calloc store object");
+                    return panic("failed to calloc store object");
                 } else {
                     node->next = argument->argument;
                     argument->argument = node;
                 }
             } else if(type == parser_end) {
                 if(!argument->argument->identifier) {
-                    status = panic("invalid string object");
+                    return panic("invalid string object");
                 } else if(map_insert(&argument->identifier, argument->argument->identifier, argument->argument)) {
-                    status = panic("failed to insert map object");
+                    return panic("failed to insert map object");
                 }
             }
             break;
-        case 2: status = string_store(string, &argument->store, &argument->argument->identifier); break;
-        case 3: status = string_store(string, &argument->store, &argument->argument->handler); break;
+        case 2: return string_store(string, &argument->store, &argument->argument->identifier); break;
+        case 3: return string_store(string, &argument->store, &argument->argument->handler); break;
         case 5:
             argument->print = NULL;
             if(type == parser_next)
-                status = argument_parse(type, 6, string, context);
+                return argument_parse(type, 6, string, context);
             break;
         case 6:
             print = store_calloc(&argument->store, sizeof(*print));
             if(!print) {
-                status = panic("failed to calloc store object");
+                return panic("failed to calloc store object");
             } else {
                 if(argument->print) {
                     argument->print->next = print;
@@ -652,28 +643,28 @@ int argument_parse(enum parser_type type, int mark, struct string * string, void
                 argument->print = print;
 
                 if(argument_entry_parse(argument, string->string, string->length))
-                    status = panic("failed toi entry push argument object");
+                    return panic("failed toi entry push argument object");
             }
             break;
         case 8:
             if(type == parser_start) {
                 argument->range = store_calloc(&argument->store, sizeof(*argument->range));
                 if(!argument->range)
-                    status = panic("failed to calloc store object");
+                    return panic("failed to calloc store object");
             } else if(type == parser_end) {
                 argument->range->next = argument->argument->range;
                 argument->argument->range = argument->range;
             }
             break;
-        case 9:  status = string_long(string, &argument->range->min); break;
-        case 10: status = string_long(string, &argument->range->max); break;
+        case 9:  return string_long(string, &argument->range->min); break;
+        case 10: return string_long(string, &argument->range->max); break;
         case 11:
             if(type == parser_start) {
                 map = store_malloc(&argument->store, sizeof(*map));
                 if(!map) {
-                    status = panic("failed to malloc store object");
+                    return panic("failed to malloc store object");
                 } else if(map_create(map, long_compare, argument->identifier.pool)) {
-                    status = panic("failed to create map object");
+                    return panic("failed to create map object");
                 } else {
                     argument->argument->map = map;
                 }
@@ -683,19 +674,19 @@ int argument_parse(enum parser_type type, int mark, struct string * string, void
             if(type == parser_start) {
                 argument->array = store_calloc(&argument->store, sizeof(*argument->array));
                 if(!argument->array)
-                    status = panic("failed to calloc store object");
+                    return panic("failed to calloc store object");
             } else if(type == parser_end) {
                 if(map_insert(argument->argument->map, &argument->array->index, argument->array->string))
-                    status = panic("failed to insert map object");
+                    return panic("failed to insert map object");
             }
             break;
-        case 13: status = string_long(string, &argument->array->index); break;
-        case 14: status = string_store(string, &argument->store, &argument->array->string); break;
+        case 13: return string_long(string, &argument->array->index); break;
+        case 14: return string_store(string, &argument->store, &argument->array->string); break;
         case 15:
             if(type == parser_start) {
                 argument->integer = store_calloc(&argument->store, sizeof(*argument->integer));
                 if(!argument->integer)
-                    status = panic("failed to calloc store object");
+                    return panic("failed to calloc store object");
             } else if(type == parser_end) {
                 argument->argument->integer = argument->integer;
             }
@@ -720,10 +711,10 @@ int argument_parse(enum parser_type type, int mark, struct string * string, void
             if(!strcmp("true", string->string))
                 argument->integer->flag |= integer_absolute;
             break;
-        case 21: status = string_long(string, &argument->integer->divide); break;
+        case 21: return string_long(string, &argument->integer->divide); break;
     }
 
-    return status;
+    return 0;
 }
 
 int argument_entry_parse(struct argument * argument, char * string, size_t length) {
