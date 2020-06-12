@@ -89,6 +89,7 @@ struct constant_node {
     long value;
     char * tag;
     struct range_node * range;
+    int variable;
 };
 
 struct constant_group_node {

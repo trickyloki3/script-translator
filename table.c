@@ -24,6 +24,7 @@ struct schema_markup constant_markup[] = {
     {4, schema_map, 6, NULL},
     {5, schema_string, 7, "min"},
     {5, schema_string, 8, "max"},
+    {3, schema_string, 9, "variable"},
     {0, 0, 0},
 };
 
@@ -521,6 +522,10 @@ int constant_data_parse(enum parser_type type, int mark, struct string * string,
             break;
         case 7: return string_long(string, &constant->range->min); break;
         case 8: return string_long(string, &constant->range->max); break;
+        case 9:
+            if(!strcmp(string->string, "true"))
+                constant->constant->variable = 1;
+            break;
     }
 
     return 0;

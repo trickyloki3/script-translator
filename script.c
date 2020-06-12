@@ -837,7 +837,7 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                 } else {
                     constant = constant_identifier(script->table, root->identifier);
                     if(constant) {
-                        range = script_range_create(script, integer, "%s", constant->identifier);
+                        range = script_range_create(script, constant->variable ? identifier : integer, "%s", constant->identifier);
                         if(!range) {
                             status = panic("failed to range script object");
                         } else {
@@ -2060,7 +2060,7 @@ struct script_range * function_constant(struct script * script, struct stack * s
         } else if(!constant->tag) {
             status = panic("invalid constant tag - %s", range->string);
         } else {
-            range = script_range_create(script, integer, "%s", constant->tag);
+            range = script_range_create(script, constant->variable ? identifier : integer, "%s", constant->tag);
             if(!range) {
                 if(constant->range) {
                     node = constant->range;

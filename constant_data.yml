@@ -1,4 +1,5 @@
 - identifier: BaseClass
+  variable: true
   tag: Base Class
   range:
     - min: 0
@@ -24,6 +25,7 @@
     - min: 4238
       max: 4244
 - identifier: BaseJob
+  variable: true
   tag: Base Job
   range:
     - min: 0
@@ -49,6 +51,7 @@
     - min: 4238
       max: 4244
 - identifier: BaseLevel
+  variable: true
   tag: Base Level
   range:
     - min: 0
@@ -64,6 +67,7 @@
 - identifier: CLASS_NORMAL
   tag: Normal
 - identifier: Class
+  variable: true
   tag: Class
   range:
     - min: 0
@@ -521,6 +525,7 @@
 - identifier: JOB_XMAS
   tag: Santa Suit
 - identifier: JobLevel
+  variable: true
   tag: Job Level
   range:
     - min: 0
