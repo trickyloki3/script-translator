@@ -11,6 +11,7 @@ struct schema_markup skill_markup[] = {
     {4, schema_string, 3, "Id"},
     {4, schema_string, 4, "Name"},
     {4, schema_string, 5, "Description"},
+    {4, schema_string, 6, "MaxLevel"},
     {0, 0, 0}
 };
 
@@ -312,7 +313,6 @@ void skill_destroy(struct skill * skill) {
 }
 
 int skill_parse(enum parser_type type, int mark, struct string * string, void * context) {
-    int status = 0;
     struct skill * skill = context;
 
     switch(mark) {
@@ -320,23 +320,24 @@ int skill_parse(enum parser_type type, int mark, struct string * string, void * 
             if(type == parser_start) {
                 skill->skill = store_calloc(&skill->store, sizeof(*skill->skill));
                 if(!skill->skill)
-                    status = panic("failed to calloc store object");
+                    return panic("failed to calloc store object");
             } else if(type == parser_end) {
                 if(!skill->skill->name) {
-                    status = panic("invalid name");
+                    return panic("invalid name");
                 } else if(map_insert(&skill->id, &skill->skill->id, skill->skill)) {
-                    status = panic("failed to insert map object");
+                    return panic("failed to insert map object");
                 } else if(map_insert(&skill->name, skill->skill->name, skill->skill)) {
-                    status = panic("failed to insert map object");
+                    return panic("failed to insert map object");
                 }
             }
             break;
-        case 3: status = string_long(string, &skill->skill->id); break;
-        case 4: status = string_store(string, &skill->store, &skill->skill->name); break;
-        case 5:  status = string_store(string, &skill->store, &skill->skill->description); break;
+        case 3: return string_long(string, &skill->skill->id); break;
+        case 4: return string_store(string, &skill->store, &skill->skill->name); break;
+        case 5: return string_store(string, &skill->store, &skill->skill->description); break;
+        case 6: return string_long(string, &skill->skill->level); break;
     }
 
-    return status;
+    return 0;
 }
 
 int mob_create(struct mob * mob, size_t size, struct heap * heap) {

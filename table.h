@@ -39,6 +39,7 @@ struct skill_node {
     long id;
     char * name;
     char * description;
+    long level;
 };
 
 struct skill {
