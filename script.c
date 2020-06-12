@@ -727,6 +727,8 @@ int script_translate(struct script * script, struct script_node * root) {
             } else {
                 if(logic_push(script->logic, not, NULL)) {
                     status = panic("failed to logic top push script object");
+                } else if(logic_push(script->logic, or, NULL)) {
+                    status = panic("failed to logic top push script object");
                 } else {
                     if(script_evaluate(script, root->root, is_logic, &range)) {
                         status = panic("failed to expression script object");
