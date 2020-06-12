@@ -714,3 +714,13 @@
   range:
     - min: 0
       max: 150
+- identifier: MaxHp
+  tag: Max HP
+  range:
+    - min: 0
+      max: 10000000
+- identifier: MaxSp
+  tag: Max SP
+  range:
+    - min: 0
+      max: 10000000
