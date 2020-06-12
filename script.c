@@ -65,6 +65,7 @@ struct script_range * function_sc_start4(struct script *, struct stack *);
 struct script_range * function_mercenary_sc_start(struct script *, struct stack *);
 struct script_range * function_autobonus(struct script *, struct stack *);
 struct script_range * function_autobonus2(struct script *, struct stack *);
+struct script_range * function_getskilllv(struct script *, struct stack *);
 struct script_range * function_constant(struct script *, struct stack *);
 
 typedef struct script_range * (*function_cb) (struct script *, struct stack *);
@@ -89,6 +90,7 @@ struct function_entry {
     { "mercenary_sc_start", function_mercenary_sc_start },
     { "autobonus", function_autobonus },
     { "autobonus2", function_autobonus2 },
+    { "getskilllv", function_getskilllv },
     { "gettime", function_constant },
     { "readparam", function_constant },
     { "vip_status", function_constant },
@@ -2047,6 +2049,46 @@ struct script_range * function_autobonus2(struct script * script, struct stack *
         range = script_execute(script, stack, argument);
         if(!range)
             status = panic("failed to execute script object");
+    }
+
+    return status ? NULL : range;
+}
+
+struct script_range * function_getskilllv(struct script * script, struct stack * stack) {
+    int status = 0;
+    struct script_range * index;
+    struct script_range * range;
+    struct argument_node * argument;
+    struct skill_node * skill;
+
+    argument = statement_identifier(script->table, "getskilllv");
+    if(!argument) {
+        if(undefined_add(&script->undefined, "statement.getskilllv"))
+            status = panic("failed to add undefined object");
+    } else {
+        range = script_execute(script, stack, argument);
+        if(!range) {
+            status = panic("failed to execute script object");
+        } else {
+            index = stack_get(stack, 0);
+            if(!index) {
+                status = panic("failed to get stack object");
+            } else {
+                skill = skill_id(script->table, index->range->min);
+                if(skill) {
+                    if(range_add(range->range, 0, skill->level))
+                        status = panic("failed to add range object");
+                } else {
+                    skill = skill_name(script->table, index->string);
+                    if(skill) {
+                        if(range_add(range->range, 0, skill->level))
+                            status = panic("failed to add range object");
+                    } else{
+                        status = panic("invalid skill - %s", index->string);
+                    }
+                }
+            }
+        }
     }
 
     return status ? NULL : range;
