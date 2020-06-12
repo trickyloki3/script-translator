@@ -2112,6 +2112,8 @@ struct script_range * function_constant(struct script * script, struct stack * s
         } else {
             range = script_range_create(script, constant->variable ? identifier : integer, "%s", constant->tag);
             if(!range) {
+                status = panic("failed to create script range object");
+            } else {
                 if(constant->range) {
                     node = constant->range;
                     while(node && !status) {
