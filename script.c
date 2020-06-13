@@ -36,6 +36,10 @@ void script_strbuf_pop(struct script *);
 
 struct script_range * script_range_create(struct script *, enum script_type, char *, ...);
 
+int script_logic_create(struct script *, struct logic_node *, struct map *);
+int script_logic_cond(struct script *, struct script_range *, struct map *, range_cb);
+int script_logic_not_cond(struct script *, struct script_range *, struct map *, range_cb);
+
 enum script_flag {
     is_logic = 0x1,
     is_array = 0x2,
@@ -619,6 +623,99 @@ struct script_range * script_range_create(struct script * script, enum script_ty
     va_end(vararg);
 
     return status ? NULL : range;
+}
+
+int script_logic_create(struct script * script, struct logic_node * root, struct map * result) {
+    int status = 0;
+
+    struct map map;
+    struct script_range * range;
+
+    if(map_create(result, (map_compare_cb) strcmp, script->heap->map_pool)) {
+        status = panic("failed to create map object");
+    } else {
+        if(root->type == not || root->type == and) {
+            root = root->root;
+            while(root && !status) {
+                if(root->type == cond) {
+                    if(script_logic_cond(script, root->data, result, range_and))
+                        status = panic("failed to logic cond script object");
+                } else if(root->type == not_cond) {
+                    if(script_logic_not_cond(script, root->data, result, range_and))
+                        status = panic("failed to logic not cond script object");
+                } else {
+                    status = panic("invalid logic type");
+                }
+                root = root->next;
+            }
+        } else if(root->type == or || root->type == and_or) {
+            root = root->root;
+            while(root && !status) {
+                if(root->type == and) {
+                    if(script_logic_create(script, root, &map)) {
+                        status = panic("failed to logic map script object");
+                    } else {
+                        range = map_start(&map).value;
+                        while(range && !status) {
+                            if(script_logic_cond(script, range, result, range_or))
+                                status = panic("failed to logic or cond script object");
+                            range = map_next(&map).value;
+                        }
+                        map_destroy(&map);
+                    }
+                } else {
+                    status = panic("invalid logic type");
+                }
+                root = root->next;
+            }
+        } else {
+            status = panic("invalid logic type");
+        }
+        if(status)
+            map_destroy(result);
+    }
+
+    return status;
+}
+
+int script_logic_cond(struct script * script, struct script_range * x, struct map * map, range_cb cb) {
+    int status = 0;
+
+    struct script_range * y;
+    struct script_range * z;
+
+    y = map_search(map, x->string);
+    if(y) {
+        z = script_range_create(script, y->type, "%s", y->string);
+        if(!z) {
+            status = panic("failed to create script range object");
+        } else if(cb(z->range, x->range, y->range)) {
+            status = panic("failed to cb range object");
+        } else if(map_insert(map, z->string, z)) {
+            status = panic("failed to insert map object");
+        }
+    } else if(map_insert(map, x->string, x)) {
+        status = panic("failed to insert map object");
+    }
+
+    return status;
+}
+
+int script_logic_not_cond(struct script * script, struct script_range * x, struct map * map, range_cb cb) {
+    int status = 0;
+
+    struct script_range * y;
+
+    y = script_range_create(script, x->type, "%s", x->string);
+    if(!y) {
+        status = panic("failed to create script range object");
+    } else if(range_not(y->range, x->range)) {
+        status = panic("failed to not range object");
+    } else if(script_logic_cond(script, y, map, cb)) {
+        status = panic("failed to logic cond script object");
+    }
+
+    return status;
 }
 
 int script_compile_re(struct script * script, char * string, struct strbuf * strbuf) {
