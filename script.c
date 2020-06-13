@@ -34,6 +34,9 @@ void script_stack_pop(struct script *);
 int script_strbuf_push(struct script *, struct strbuf *);
 void script_strbuf_pop(struct script *);
 
+int script_map_logic_push(struct script *, struct map *);
+void script_map_logic_pop(struct script *);
+
 struct script_range * script_range_create(struct script *, enum script_type, char *, ...);
 
 int script_logic_create(struct script *, struct logic_node *, struct map *);
@@ -362,6 +365,9 @@ int script_create(struct script * script, size_t size, struct heap * heap, struc
         } else if(stack_create(&script->strbuf_stack, heap->stack_pool)) {
             status = panic("failed to create stack object");
             goto strbuf_fail;
+        } else if(stack_create(&script->map_logic_stack, heap->stack_pool)) {
+            status = panic("failed to create stack object");
+            goto map_logic_fail;
         } else if(map_create(&script->function, (map_compare_cb) strcmp, heap->map_pool)) {
             status = panic("failed to create map object");
             goto function_fail;
@@ -409,6 +415,8 @@ buffer_fail:
 argument_fail:
     map_destroy(&script->function);
 function_fail:
+    stack_destroy(&script->map_logic_stack);
+map_logic_fail:
     stack_destroy(&script->strbuf_stack);
 strbuf_fail:
     stack_destroy(&script->stack_stack);
@@ -431,6 +439,7 @@ void script_destroy(struct script * script) {
     script_buffer_destroy(&script->buffer);
     map_destroy(&script->argument);
     map_destroy(&script->function);
+    stack_destroy(&script->map_logic_stack);
     stack_destroy(&script->strbuf_stack);
     stack_destroy(&script->stack_stack);
     stack_destroy(&script->logic_stack);
@@ -450,6 +459,7 @@ int script_compile(struct script * script, char * string, struct strbuf * strbuf
     script->logic = NULL;
     script->stack = NULL;
     script->strbuf = NULL;
+    script->map_logic = NULL;
     script->range = NULL;
 
     if(script_compile_re(script, string, strbuf))
@@ -586,6 +596,34 @@ int script_strbuf_push(struct script * script, struct strbuf * strbuf) {
 
 void script_strbuf_pop(struct script * script) {
     script->strbuf = stack_pop(&script->strbuf_stack);
+}
+
+int script_map_logic_push(struct script * script, struct map * map) {
+    int status = 0;
+
+    if(script_logic_create(script, script->logic->root, map)) {
+        status = panic("failed to create logic script object");
+    } else {
+        if(script->map_logic) {
+            if(stack_push(&script->map_logic_stack, script->map_logic)) {
+                status = panic("failed to push stack object");
+            } else {
+                script->map_logic = map;
+            }
+        } else {
+            script->map_logic = map;
+        }
+        if(status)
+            map_destroy(map);
+    }
+
+    return status;
+}
+
+void script_map_logic_pop(struct script * script) {
+    map_destroy(script->map_logic);
+
+    script->map_logic = stack_pop(&script->map_logic_stack);
 }
 
 struct script_range * script_range_create(struct script * script, enum script_type type, char * format, ...) {
@@ -786,6 +824,8 @@ int script_parse(struct script * script, char * string) {
 int script_translate(struct script * script, struct script_node * root) {
     int status = 0;
 
+    struct map if_map;
+    struct map else_map;
     struct logic logic;
 
     struct script_node * node;
@@ -816,8 +856,12 @@ int script_translate(struct script * script, struct script_node * root) {
                     status = panic("failed to expression script object");
                 } else if(strbuf_printf(script->strbuf, "[%s]\n", range->string)) {
                     status = panic("failed to printf strbuf object");
-                } else if(script_translate(script, root->root->next)) {
-                    status = panic("failed to statement script object");
+                } else if(script_map_logic_push(script, &if_map)) {
+                    status = panic("failed to map logic push script object");
+                } else {
+                    if(script_translate(script, root->root->next))
+                        status = panic("failed to statement script object");
+                    script_map_logic_pop(script);
                 }
                 script_logic_pop(script);
             }
@@ -830,20 +874,27 @@ int script_translate(struct script * script, struct script_node * root) {
                     status = panic("failed to logic top push script object");
                 } else if(logic_push(script->logic, or, NULL)) {
                     status = panic("failed to logic top push script object");
+                } else if(script_evaluate(script, root->root, is_logic, &range)) {
+                    status = panic("failed to expression script object");
+                } else if(strbuf_printf(script->strbuf, "[%s]\n", range->string)) {
+                    status = panic("failed to printf strbuf object");
+                } else if(script_map_logic_push(script, &if_map)) {
+                    status = panic("failed to map logic push script object");
                 } else {
-                    if(script_evaluate(script, root->root, is_logic, &range)) {
-                        status = panic("failed to expression script object");
-                    } else if(strbuf_printf(script->strbuf, "[%s]\n", range->string)) {
-                        status = panic("failed to printf strbuf object");
-                    } else if(script_translate(script, root->root->next)) {
+                    if(script_translate(script, root->root->next)) {
                         status = panic("failed to statement script object");
                     } else if(logic_pop(script->logic)) {
                         status = panic("failed to logic top pop script object");
                     } else if(strbuf_printf(script->strbuf, "[else]\n")) {
                         status = panic("failed to printf strbuf object");
-                    } else if(script_translate(script, root->root->next->next)) {
-                        status = panic("failed to statement script object");
+                    } else if(script_map_logic_push(script, &else_map)) {
+                        status = panic("failed to map logic push script object");
+                    } else {
+                        if(script_translate(script, root->root->next->next))
+                            status = panic("failed to statement script object");
+                        script_map_logic_pop(script);
                     }
+                    script_map_logic_pop(script);
                 }
                 script_logic_pop(script);
             }
