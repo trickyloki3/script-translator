@@ -17,6 +17,8 @@ struct range {
     long max;
 };
 
+typedef int (*range_cb) (struct range *, struct range *, struct range *);
+
 int range_create(struct range *, struct pool *);
 void range_destroy(struct range *);
 void range_clear(struct range *);
