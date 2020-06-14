@@ -49,7 +49,7 @@ enum script_flag {
     is_concat = 0x4
 };
 
-int script_compile_re(struct script *, char *, struct strbuf *);
+int script_generate(struct script *, char *, struct strbuf *);
 int script_parse(struct script *, char *);
 int script_translate(struct script *, struct script_node *);
 int script_evaluate(struct script *, struct script_node *, int, struct script_range **);
@@ -464,7 +464,7 @@ int script_compile(struct script * script, char * string, struct strbuf * strbuf
     script->map_logic = NULL;
     script->range = NULL;
 
-    if(script_compile_re(script, string, strbuf))
+    if(script_generate(script, string, strbuf))
         status = panic("failed to compile script object");
 
     while(script->range) {
@@ -758,7 +758,7 @@ int script_logic_not_cond(struct script * script, struct script_range * x, struc
     return status;
 }
 
-int script_compile_re(struct script * script, char * string, struct strbuf * strbuf) {
+int script_generate(struct script * script, char * string, struct strbuf * strbuf) {
     int status = 0;
 
     struct map map;
@@ -3123,7 +3123,7 @@ int argument_script(struct script * script, struct stack * stack, struct argumen
     if(!range)
         return panic("failed to get stack object");
 
-    if(script_compile_re(script, range->string, strbuf))
+    if(script_generate(script, range->string, strbuf))
         return panic("failed to compile script object");
 
     return 0;
