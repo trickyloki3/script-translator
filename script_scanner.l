@@ -66,7 +66,8 @@ decimal             [\x30-\x39]+
 hexadecimal         (\x30\x58|\x30\x78)[\x30-\x39\x41-\x46\x61-\x66]+
 esc-string          \x5C\x22([\x9\x20-\x21\x23-\x7E])*\x5C\x22
 string              \x22([\x9\x20-\x21\x23-\x7E]|\x5C\x22)*\x22
-identifier          {prefix}?{alpha}({alpha}|{digit}|\x5F)*{postfix}?
+index               \x5B{digit}+\x5D
+identifier          {prefix}?{alpha}({alpha}|{digit}|\x5F)*{postfix}?{index}?
 
 whitespace          [\x20\x9\xA\xD]|\xD\xA
 line_comment        \x2F\x2F.*
