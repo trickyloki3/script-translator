@@ -2841,6 +2841,9 @@ int argument_mercenary(struct script * script, struct stack * stack, struct argu
 }
 
 int argument_group(struct script * script, struct stack * stack, struct strbuf * strbuf, char * group) {
+    long i;
+    struct range_node * node;
+
     struct script_range * range;
     struct constant_node * constant;
     struct constant_group_node * constant_group;
@@ -2854,11 +2857,26 @@ int argument_group(struct script * script, struct stack * stack, struct strbuf *
         return panic("failed to get stack object");
 
     constant = map_search(&constant_group->map_identifier, range->string);
-    if(!constant)
-        return panic("invalid constant - %s", range->string);
+    if(constant) {
+        if(strbuf_printf(strbuf, "%s", constant->tag))
+            return panic("failed to printf strbuf object");
+    } else {
+        node = range->range->root;
+        while(node) {
+            for(i = node->min; i <= node->max; i++) {
+                constant = map_search(&constant_group->map_value, &i);
+                if(!constant) {
+                    return panic("invalid constant value - %ld", i);
+                } else if(strbuf_printf(strbuf, "%s, ", constant->tag)) {
+                    return panic("failed to printf strbuf object");
+                }
+            }
+            node = node->next;
+        }
 
-    if(strbuf_printf(strbuf, "%s", constant->tag))
-        return panic("failed to printf strbuf object");
+        if(constant && strbuf_unputn(strbuf, 2))
+            return panic("failed to unputn strbuf object");
+    }
 
     return 0;
 }
