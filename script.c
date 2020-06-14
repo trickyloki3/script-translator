@@ -125,6 +125,7 @@ int argument_mercenary(struct script *, struct stack *, struct argument_node *, 
 
 int argument_group(struct script *, struct stack *, struct strbuf *, char *);
 int argument_element(struct script *, struct stack *, struct argument_node *, struct strbuf *);
+int argument_equip(struct script *, struct stack *, struct argument_node *, struct strbuf *);
 int argument_job(struct script *, struct stack *, struct argument_node *, struct strbuf *);
 int argument_size(struct script *, struct stack *, struct argument_node *, struct strbuf *);
 int argument_race(struct script *, struct stack *, struct argument_node *, struct strbuf *);
@@ -157,6 +158,7 @@ struct argument_entry {
     { "mob", argument_mob },
     { "mercenary", argument_mercenary },
     { "element", argument_element },
+    { "equip", argument_equip },
     { "job", argument_job },
     { "size", argument_size },
     { "race", argument_race },
@@ -2883,6 +2885,10 @@ int argument_group(struct script * script, struct stack * stack, struct strbuf *
 
 int argument_element(struct script * script, struct stack * stack, struct argument_node * argument, struct strbuf * strbuf) {
     return argument_group(script, stack, strbuf, "element");
+}
+
+int argument_equip(struct script * script, struct stack * stack, struct argument_node * argument, struct strbuf * strbuf) {
+    return argument_group(script, stack, strbuf, "equip");
 }
 
 int argument_job(struct script * script, struct stack * stack, struct argument_node * argument, struct strbuf * strbuf) {

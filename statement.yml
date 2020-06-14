@@ -113,7 +113,7 @@
       max: 15
 
 - identifier: getequiprefinerycnt
-  print: {0|string} Refine Rate
+  print: {0|equip} Refine Rate
   range:
     - min: 0
       max: 15
