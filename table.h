@@ -229,7 +229,7 @@ struct mob_node * mob_sprite(struct table *, char *);
 struct mercenary_node * mercenary_id(struct table *, long);
 
 struct constant_node * constant_identifier(struct table *, char *);
-struct map * constant_group_identifier(struct table *, char *);
+struct constant_group_node * constant_group_identifier(struct table *, char *);
 struct argument_node * argument_identifier(struct table *, char *);
 struct argument_node * bonus_identifier(struct table *, char *);
 struct argument_node * bonus2_identifier(struct table *, char *);

@@ -557,7 +557,7 @@ int constant_group_parse(enum parser_type type, int mark, struct string * string
             group->identifier = store_strcpy(&constant->store, string->string, string->length);
             if(!group->identifier) {
                 return panic("failed to strcpy store object");
-            } else if(map_insert(&constant->group, group->identifier, &group->map)) {
+            } else if(map_insert(&constant->group, group->identifier, group)) {
                 return panic("failed to insert map object");
             }
             break;
@@ -1005,7 +1005,7 @@ struct constant_node * constant_identifier(struct table * table, char * identifi
     return map_search(&table->constant.identifier, identifier);
 }
 
-struct map * constant_group_identifier(struct table * table, char * identifier) {
+struct constant_group_node * constant_group_identifier(struct table * table, char * identifier) {
     return map_search(&table->constant.group, identifier);
 }
 

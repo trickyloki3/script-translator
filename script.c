@@ -2841,19 +2841,19 @@ int argument_mercenary(struct script * script, struct stack * stack, struct argu
 }
 
 int argument_group(struct script * script, struct stack * stack, struct strbuf * strbuf, char * group) {
-    struct map * map;
     struct script_range * range;
     struct constant_node * constant;
+    struct constant_group_node * constant_group;
 
-    map = constant_group_identifier(script->table, group);
-    if(!map)
+    constant_group = constant_group_identifier(script->table, group);
+    if(!constant_group)
         return panic("failed to get constant group - %s", group);
 
     range = stack_get(stack, 0);
     if(!range)
         return panic("failed to get stack object");
 
-    constant = map_search(map, range->string);
+    constant = map_search(&constant_group->map, range->string);
     if(!constant)
         return panic("invalid constant - %s", range->string);
 
