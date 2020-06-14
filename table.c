@@ -455,13 +455,33 @@ void constant_destroy(struct constant * constant) {
 
     group = constant->constant_group;
     while(group) {
-        map_destroy(&group->map);
+        map_destroy(&group->map_value);
+        map_destroy(&group->map_identifier);
         group = group->next;
     }
 
     map_destroy(&constant->group);
     map_destroy(&constant->identifier);
     store_destroy(&constant->store);
+}
+
+struct constant_group_node * constant_group(struct constant * constant) {
+    int status = 0;
+    struct constant_group_node * group;
+
+    group = store_calloc(&constant->store, sizeof(*group));
+    if(!group) {
+        status = panic("failed to calloc store object");
+    } else if(map_create(&group->map_identifier, (map_compare_cb) strcasecmp, constant->identifier.pool)) {
+        status = panic("failed to create map object");
+    } else {
+        if(map_create(&group->map_value, long_compare, constant->identifier.pool))
+            status = panic("failed to create map object");
+        if(status)
+            map_destroy(&group->map_identifier);
+    }
+
+    return status ? NULL : group;
 }
 
 int constant_parse(enum parser_type type, int mark, struct string * string, void * context) {
@@ -533,11 +553,9 @@ int constant_group_parse(enum parser_type type, int mark, struct string * string
 
     switch(mark) {
         case 1:
-            group = store_calloc(&constant->store, sizeof(*group));
+            group = constant_group(constant);
             if(!group) {
-                return panic("failed to calloc store object");
-            } else if(map_create(&group->map, (map_compare_cb) strcasecmp, constant->identifier.pool)) {
-                return panic("failed to create map object");
+                return panic("failed to group constant object");
             } else {
                 group->next = constant->constant_group;
                 constant->constant_group = group;
@@ -549,7 +567,9 @@ int constant_group_parse(enum parser_type type, int mark, struct string * string
                 return panic("invalid constant - %s", string->string);
             } else if(!node->tag) {
                 return panic("invalid tag - %s", node->identifier);
-            } else if(map_insert(&group->map, node->identifier, node)) {
+            } else if(map_insert(&group->map_identifier, node->identifier, node)) {
+                return panic("failed to insert map object");
+            } else if(map_insert(&group->map_value, &node->value, node)) {
                 return panic("failed to insert map object");
             }
             break;

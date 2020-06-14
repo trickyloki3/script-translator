@@ -2853,7 +2853,7 @@ int argument_group(struct script * script, struct stack * stack, struct strbuf *
     if(!range)
         return panic("failed to get stack object");
 
-    constant = map_search(&constant_group->map, range->string);
+    constant = map_search(&constant_group->map_identifier, range->string);
     if(!constant)
         return panic("invalid constant - %s", range->string);
 

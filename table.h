@@ -95,7 +95,8 @@ struct constant_node {
 
 struct constant_group_node {
     char * identifier;
-    struct map map;
+    struct map map_identifier;
+    struct map map_value;
     struct constant_group_node * next;
 };
 
@@ -110,6 +111,7 @@ struct constant {
 
 int constant_create(struct constant *, size_t, struct heap *);
 void constant_destroy(struct constant *);
+struct constant_group_node * constant_group(struct constant *);
 int constant_parse(enum parser_type, int, struct string *, void *);
 int constant_data_parse(enum parser_type, int, struct string *, void *);
 int constant_group_parse(enum parser_type, int, struct string *, void *);
