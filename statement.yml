@@ -233,7 +233,7 @@
   print: |
     [Bonus Script]
     {0|script}
-    Duration: {1|time/ms}
+    Duration: {1|time/s}
 
 # skip
 
