@@ -1041,6 +1041,20 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                     }
                 }
             }
+
+            if(!status && script->map_logic) {
+                x = map_search(script->map_logic, range->string);
+                if(x) {
+                    y = script_range_create(script, range->type, "%s", range->string);
+                    if(!y) {
+                        status = panic("failed to range script object");
+                    } else if(range_and(y->range, x->range, range->range)) {
+                        status = panic("failed to and range object");
+                    } else {
+                        *result = y;
+                    }
+                }
+            }
             break;
         case script_string:
             range = script_range_create(script, string, "%s", root->identifier);
