@@ -228,18 +228,19 @@ int item_combo_parse(enum parser_type type, int mark, struct string * string, vo
             while(cursor[0] == ':') {
                 item_node = map_search(&item->id, &id);
                 if(!item_node) {
-                    panic("invalid item id - %ld in item combo - %s", id, string->string);
+                    return panic("invalid item id - %ld", id);
                 } else if(stack_push(&item->stack, item_node)) {
                     return panic("failed to push stack object");
                 } else if(strbuf_printf(&item->strbuf, "%s, ", item_node->name)) {
                     return panic("failed to printf strbuf object");
+                } else {
+                    id = strtol(cursor + 1, &cursor, 10);
                 }
-                id = strtol(cursor + 1, &cursor, 10);
             }
 
             item_node = map_search(&item->id, &id);
             if(!item_node) {
-                panic("invalid item id - %ld in item combo - %s", id, string->string);
+                return panic("invalid item id - %ld", id);
             } else if(stack_push(&item->stack, item_node)) {
                 return panic("failed to push stack object");
             } else if(strbuf_printf(&item->strbuf, "%s", item_node->name)) {
