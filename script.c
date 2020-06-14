@@ -902,7 +902,7 @@ int script_translate(struct script * script, struct script_node * root) {
         default:
             if(script_evaluate(script, root, 0, &range)) {
                 status = panic("failed to expression script object");
-            } else if(range->type == identifier) {
+            } else if(range->type == identifier && root->token == script_identifier) {
                 if(strbuf_printf(script->strbuf, "%s\n", range->string))
                     status = panic("failed to printf strbuf object");
             }
