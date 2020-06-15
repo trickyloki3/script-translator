@@ -2522,10 +2522,13 @@ int argument_integer(struct script * script, struct stack * stack, struct argume
         }
 
         if(flag & integer_absolute) {
-            if(min < 0 && max < 0) {
+            if(min < 0)
                 min *= -1;
+
+            if(max < 0)
                 max *= -1;
 
+            if(min > max) {
                 tmp = min;
                 min = max;
                 max = tmp;
@@ -2603,10 +2606,14 @@ int argument_second(struct script * script, struct stack * stack, struct argumen
     } else {
         min = range->range->min;
         max = range->range->max;
-        if(min < 0 && max < 0) {
+
+        if(min < 0)
             min *= -1;
+
+        if(max < 0)
             max *= -1;
 
+        if(min > max) {
             tmp = min;
             min = max;
             max = tmp;
@@ -2664,10 +2671,14 @@ int argument_millisecond(struct script * script, struct stack * stack, struct ar
     } else {
         min = range->range->min;
         max = range->range->max;
-        if(min < 0 && max < 0) {
+
+        if(min < 0)
             min *= -1;
+
+        if(max < 0)
             max *= -1;
 
+        if(min > max) {
             tmp = min;
             min = max;
             max = tmp;
