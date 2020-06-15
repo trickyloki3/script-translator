@@ -2386,13 +2386,8 @@ int argument_integer(struct script * script, struct stack * stack, struct argume
             divide = 0;
         }
 
-        if(divide) {
-            min = range->range->min / divide;
-            max = range->range->max / divide;
-        } else {
-            min = range->range->min;
-            max = range->range->max;
-        }
+        min = range->range->min;
+        max = range->range->max;
 
         if(flag & integer_absolute) {
             if(min < 0)
@@ -2421,8 +2416,19 @@ int argument_integer(struct script * script, struct stack * stack, struct argume
             if(min >= 0 && strbuf_putc(strbuf, '+'))
                 return panic("failed to putc strbuf object");
 
-        if(strbuf_printf(strbuf, "%ld", min))
+        if(divide) {
+            if(min / divide) {
+                if(strbuf_printf(strbuf, "%ld", min / divide))
+                    return panic("failed to printf strbuf object");
+            } else if(flag & integer_percent) {
+                if(strbuf_printf(strbuf, "%.2lf", ((double) min) / divide))
+                    return panic("failed to printf strbuf object");
+            } else if(strbuf_printf(strbuf, "%ld", min)) {
+                return panic("failed to printf strbuf object");
+            }
+        } else if(strbuf_printf(strbuf, "%ld", min)) {
             return panic("failed to printf strbuf object");
+        }
 
         if(flag & integer_percent)
             if(strbuf_putc(strbuf, '%'))
@@ -2436,8 +2442,19 @@ int argument_integer(struct script * script, struct stack * stack, struct argume
                 if(max >= 0 && strbuf_putc(strbuf, '+'))
                     return panic("failed to putc strbuf object");
 
-            if(strbuf_printf(strbuf, "%ld", max))
+            if(divide) {
+                if(max / divide) {
+                    if(strbuf_printf(strbuf, "%ld", max / divide))
+                        return panic("failed to printf strbuf object");
+                } else if(flag & integer_percent) {
+                    if(strbuf_printf(strbuf, "%.2lf", ((double) max) / divide))
+                        return panic("failed to printf strbuf object");
+                } else if(strbuf_printf(strbuf, "%ld", max)) {
+                    return panic("failed to printf strbuf object");
+                }
+            } else if(strbuf_printf(strbuf, "%ld", max)) {
                 return panic("failed to printf strbuf object");
+            }
 
             if(flag & integer_percent)
                 if(strbuf_putc(strbuf, '%'))
