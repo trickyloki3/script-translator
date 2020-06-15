@@ -202,6 +202,58 @@
     - index: 30
       string: Open cooking window for Novice Dishes.
 
+- identifier: sc_start
+  print:
+    - |
+      [Status Effect]
+      {*|sc_start}
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+  optional:
+    - index: 3
+      string: >
+        var = 0;
+
+- identifier: sc_start2
+  print:
+    - |
+      [Status Effect]
+      {*|sc_start2}
+    - {4|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+  optional:
+    - index: 4
+      string: >
+        var = 0;
+
+- identifier: sc_start4
+  print:
+    - |
+      [Status Effect]
+      {*|sc_start4}
+    - {6|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+  optional:
+    - index: 6
+      string: >
+        var = 0;
+
+- identifier: mercenary_sc_start
+  print:
+    - |
+      [Status Effect]
+      {*|sc_start}
+    - {3|sc_start_rate}
+    - |
+      Duration: {1|time/ms}
+  optional:
+    - index: 3
+      string: >
+        var = 0;
+
 - identifier: sc_end
   print: Cure {0|constant}.
 

@@ -68,10 +68,6 @@ struct script_range * function_bonus2(struct script *, struct stack *);
 struct script_range * function_bonus3(struct script *, struct stack *);
 struct script_range * function_bonus4(struct script *, struct stack *);
 struct script_range * function_bonus5(struct script *, struct stack *);
-struct script_range * function_sc_start(struct script *, struct stack *);
-struct script_range * function_sc_start2(struct script *, struct stack *);
-struct script_range * function_sc_start4(struct script *, struct stack *);
-struct script_range * function_mercenary_sc_start(struct script *, struct stack *);
 struct script_range * function_getskilllv(struct script *, struct stack *);
 struct script_range * function_constant(struct script *, struct stack *);
 
@@ -91,10 +87,6 @@ struct function_entry {
     { "bonus3", function_bonus3 },
     { "bonus4", function_bonus4 },
     { "bonus5", function_bonus5 },
-    { "sc_start", function_sc_start },
-    { "sc_start2", function_sc_start2 },
-    { "sc_start4", function_sc_start4 },
-    { "mercenary_sc_start", function_mercenary_sc_start },
     { "getskilllv", function_getskilllv },
     { "gettime", function_constant },
     { "readparam", function_constant },
@@ -136,6 +128,10 @@ int argument_atf_target(struct script *, struct stack *, struct argument_node *,
 int argument_atf_trigger(struct script *, struct stack *, struct argument_node *, struct strbuf *);
 int argument_script(struct script *, struct stack *, struct argument_node *, struct strbuf *);
 
+int argument_sc_start(struct script *, struct stack *, struct argument_node *, struct strbuf *);
+int argument_sc_start2(struct script *, struct stack *, struct argument_node *, struct strbuf *);
+int argument_sc_start4(struct script *, struct stack *, struct argument_node *, struct strbuf *);
+
 typedef int (*argument_cb) (struct script *, struct stack *, struct argument_node *, struct strbuf *);
 
 struct argument_entry {
@@ -168,6 +164,9 @@ struct argument_entry {
     { "atf_target", argument_atf_target },
     { "atf_trigger", argument_atf_trigger },
     { "script", argument_script },
+    { "sc_start", argument_sc_start },
+    { "sc_start2", argument_sc_start2 },
+    { "sc_start4", argument_sc_start4 },
     { NULL, NULL }
 };
 
@@ -2128,106 +2127,6 @@ struct script_range * function_bonus5(struct script * script, struct stack * sta
     return status ? NULL : range;
 }
 
-struct script_range * function_sc_start(struct script * script, struct stack * stack) {
-    int status = 0;
-    struct script_range * range;
-    struct argument_node * argument;
-
-    range = stack_get(stack, 0);
-    if(!range) {
-        status = panic("invalid bonus");
-    } else {
-        argument = sc_start_identifier(script->table, range->string);
-        if(!argument) {
-            if(undefined_add(&script->undefined, "sc_start.%s", range->string))
-                status = panic("failed to add undefined object");
-        } else if(script_default(script, stack, 3)) {
-            status = panic("failed to default script object");
-        } else {
-            range = script_execute(script, stack, argument);
-            if(!range)
-                status = panic("failed to execute script object");
-        }
-    }
-
-    return status ? NULL : range;
-}
-
-struct script_range * function_sc_start2(struct script * script, struct stack * stack) {
-    int status = 0;
-    struct script_range * range;
-    struct argument_node * argument;
-
-    range = stack_get(stack, 0);
-    if(!range) {
-        status = panic("invalid bonus");
-    } else {
-        argument = sc_start2_identifier(script->table, range->string);
-        if(!argument) {
-            if(undefined_add(&script->undefined, "sc_start2.%s", range->string))
-                status = panic("failed to add undefined object");
-        } else if(script_default(script, stack, 4)) {
-            status = panic("failed to default script object");
-        } else {
-            range = script_execute(script, stack, argument);
-            if(!range)
-                status = panic("failed to execute script object");
-        }
-    }
-
-    return status ? NULL : range;
-}
-
-struct script_range * function_sc_start4(struct script * script, struct stack * stack) {
-    int status = 0;
-    struct script_range * range;
-    struct argument_node * argument;
-
-    range = stack_get(stack, 0);
-    if(!range) {
-        status = panic("invalid bonus");
-    } else {
-        argument = sc_start4_identifier(script->table, range->string);
-        if(!argument) {
-            if(undefined_add(&script->undefined, "sc_start4.%s", range->string))
-                status = panic("failed to add undefined object");
-        } else if(script_default(script, stack, 6)) {
-            status = panic("failed to default script object");
-        } else {
-            range = script_execute(script, stack, argument);
-            if(!range)
-                status = panic("failed to execute script object");
-        }
-    }
-
-    return status ? NULL : range;
-}
-
-struct script_range * function_mercenary_sc_start(struct script * script, struct stack * stack) {
-    int status = 0;
-    struct script_range * range;
-    struct argument_node * argument;
-
-    range = stack_get(stack, 0);
-    if(!range) {
-        status = panic("invalid bonus");
-    } else {
-        argument = sc_start_identifier(script->table, range->string);
-        if(!argument) {
-            if(undefined_add(&script->undefined, "sc_start.%s", range->string))
-                status = panic("failed to add undefined object");
-        } else if(script_default(script, stack, 3)) {
-            status = panic("failed to default script object");
-        } else {
-            range = script_execute(script, stack, argument);
-            if(!range)
-                status = panic("failed to execute script object");
-        }
-    }
-
-    return status ? NULL : range;
-}
-
 struct script_range * function_getskilllv(struct script * script, struct stack * stack) {
     int status = 0;
     struct script_range * index;
@@ -3099,6 +2998,78 @@ int argument_script(struct script * script, struct stack * stack, struct argumen
 
     if(script_generate(script, range->string, strbuf))
         return panic("failed to compile script object");
+
+    return 0;
+}
+
+int argument_sc_start(struct script * script, struct stack * stack, struct argument_node * argument, struct strbuf * strbuf) {
+    struct script_range * range;
+
+    range = stack_get(stack, 0);
+    if(!range) {
+        return panic("invalid bonus");
+    } else {
+        argument = sc_start_identifier(script->table, range->string);
+        if(!argument) {
+            if(undefined_add(&script->undefined, "sc_start.%s", range->string))
+                return panic("failed to add undefined object");
+        } else {
+            range = script_execute(script, stack, argument);
+            if(!range) {
+                return panic("failed to execute script object");
+            } else if(strbuf_printf(strbuf, "%s", range->string)) {
+                return panic("failed to printf strbuf object");
+            }
+        }
+    }
+
+    return 0;
+}
+
+int argument_sc_start2(struct script * script, struct stack * stack, struct argument_node * argument, struct strbuf * strbuf) {
+    struct script_range * range;
+
+    range = stack_get(stack, 0);
+    if(!range) {
+        return panic("invalid bonus");
+    } else {
+        argument = sc_start2_identifier(script->table, range->string);
+        if(!argument) {
+            if(undefined_add(&script->undefined, "sc_start2.%s", range->string))
+                return panic("failed to add undefined object");
+        } else {
+            range = script_execute(script, stack, argument);
+            if(!range) {
+                return panic("failed to execute script object");
+            } else if(strbuf_printf(strbuf, "%s", range->string)) {
+                return panic("failed to printf strbuf object");
+            }
+        }
+    }
+
+    return 0;
+}
+
+int argument_sc_start4(struct script * script, struct stack * stack, struct argument_node * argument, struct strbuf * strbuf) {
+    struct script_range * range;
+
+    range = stack_get(stack, 0);
+    if(!range) {
+        return panic("invalid bonus");
+    } else {
+        argument = sc_start4_identifier(script->table, range->string);
+        if(!argument) {
+            if(undefined_add(&script->undefined, "sc_start4.%s", range->string))
+                return panic("failed to add undefined object");
+        } else {
+            range = script_execute(script, stack, argument);
+            if(!range) {
+                return panic("failed to execute script object");
+            } else if(strbuf_printf(strbuf, "%s", range->string)) {
+                return panic("failed to printf strbuf object");
+            }
+        }
+    }
 
     return 0;
 }
