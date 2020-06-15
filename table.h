@@ -134,6 +134,11 @@ struct array_node {
     char * string;
 };
 
+struct print_node {
+    struct entry_node * entry;
+    struct print_node * next;
+};
+
 #define ENTRY_MAX 16
 
 struct entry_node {
@@ -143,11 +148,6 @@ struct entry_node {
     size_t length;
     char * string;
     struct entry_node * next;
-};
-
-struct print_node {
-    struct entry_node * entry;
-    struct print_node * next;
 };
 
 struct argument_node {
