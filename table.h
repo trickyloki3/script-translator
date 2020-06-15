@@ -116,6 +116,12 @@ int constant_parse(enum parser_type, int, struct string *, void *);
 int constant_data_parse(enum parser_type, int, struct string *, void *);
 int constant_group_parse(enum parser_type, int, struct string *, void *);
 
+struct optional_node {
+    long index;
+    char * string;
+    struct optional_node * next;
+};
+
 enum integer_flag {
     integer_sign = 1 << 0,
     integer_string = 1 << 1,
@@ -157,6 +163,7 @@ struct argument_node {
     struct range_node * range;
     struct map * map;
     struct integer_node * integer;
+    struct optional_node * optional;
     struct argument_node * next;
 };
 
@@ -169,6 +176,7 @@ struct argument {
     struct range_node * range;
     struct array_node * array;
     struct integer_node * integer;
+    struct optional_node * optional;
 };
 
 int argument_create(struct argument *, size_t, struct heap *);

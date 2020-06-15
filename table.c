@@ -59,6 +59,10 @@ struct schema_markup argument_markup[] = {
     {4, schema_string, 19, "inverse"},
     {4, schema_string, 20, "absolute"},
     {4, schema_string, 21, "divide"},
+    {3, schema_list, 22, "optional"},
+    {4, schema_map, 23, NULL},
+    {5, schema_string, 24, "index"},
+    {5, schema_string, 25, "string"},
     {0, 0, 0},
 };
 
@@ -732,6 +736,18 @@ int argument_parse(enum parser_type type, int mark, struct string * string, void
                 argument->integer->flag |= integer_absolute;
             break;
         case 21: return string_long(string, &argument->integer->divide); break;
+        case 23:
+            if(type == parser_start) {
+                argument->optional = store_calloc(&argument->store, sizeof(*argument->optional));
+                if(!argument->optional)
+                    return panic("failed to calloc store object");
+            } else if(type == parser_end) {
+                argument->optional->next = argument->argument->optional;
+                argument->argument->optional = argument->optional;
+            }
+            break;
+        case 24: return string_long(string, &argument->optional->index); break;
+        case 25: return string_store(string, &argument->store, &argument->optional->string); break;
     }
 
     return 0;
