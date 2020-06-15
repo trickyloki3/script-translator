@@ -107,13 +107,13 @@
   print: Gain {0|int} guild experience.
 
 - identifier: getrefine
-  print: Refine Rate
+  print: Refine
   range:
     - min: 0
       max: 15
 
 - identifier: getequiprefinerycnt
-  print: {0|equip} Refine Rate
+  print: {0|equip} Refine
   range:
     - min: 0
       max: 15
