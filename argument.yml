@@ -1,4 +1,4 @@
-# argument
+# integer
 
 - identifier: int
   handler: integer
@@ -110,6 +110,8 @@
     percent: true
     inverse: true
 
+# time
+
 - identifier: time/s
   handler: second
   print:
@@ -143,6 +145,8 @@
     sign: true
     string: true
 
+# bf / atf
+
 - identifier: bf/flag
   handler: bf
   print:
@@ -167,11 +171,15 @@
     - ranged
     - weapon
 
-- identifier: recover
-  handler: prefix
-  print:
-    - Heal
-    - Lose
+# autobonus
+
+- identifier: autobonus/bf
+  print: Trigger for each {0|bf/flag} attack.
+
+- identifier: autobonus/bf/hit
+  print: Trigger when hit with a {0|bf/flag} attack.
+
+# array
 
 - identifier: regen
   handler: array
@@ -249,6 +257,11 @@
 
 # status change
 
+- identifier: sc_start_rate
+  handler: zero
+  print: >
+    Chance: {0|int/s%100}
+
 - identifier: energy_drink_research
   handler: array
   array:
@@ -291,16 +304,7 @@
   handler: zero
   print: {0|int/+s%} Wind Resistance
 
-- identifier: sc_start_rate
-  handler: zero
-  print: >
-    Chance: {0|int/s%100}
-
-- identifier: autobonus/bf
-  print: Trigger for each {0|bf/flag} attack.
-
-- identifier: autobonus/bf/hit
-  print: Trigger when hit with a {0|bf/flag} attack.
+# exp
 
 - identifier: base_exp
   handler: zero
@@ -309,6 +313,14 @@
 - identifier: job_exp
   handler: zero
   print: Gain {0|int} job experience.
+
+# hp / sp
+
+- identifier: recover
+  handler: prefix
+  print:
+    - Heal
+    - Lose
 
 - identifier: hp_integer
   handler: zero
