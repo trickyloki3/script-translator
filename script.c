@@ -2596,8 +2596,6 @@ int argument_second(struct script * script, struct stack * stack, struct argumen
     struct script_range * range;
 
     long min;
-    long max;
-    long tmp;
     struct print_node * print;
 
     range = stack_get(stack, 0);
@@ -2605,52 +2603,31 @@ int argument_second(struct script * script, struct stack * stack, struct argumen
         return panic("failed to get stack object");
     } else {
         min = range->range->min;
-        max = range->range->max;
-
-        if(min < 0)
-            min *= -1;
-
-        if(max < 0)
-            max *= -1;
-
-        if(min > max) {
-            tmp = min;
-            min = max;
-            max = tmp;
-        }
 
         print = argument->print;
-        if(min / 86400 > 0) {
-            min /= 86400;
-            max /= 86400;
+        if(min / 86400) {
+            argument->integer->divide = 86400;
         } else {
             print = print->next;
-            if(min / 3600 > 0) {
-                min /= 3600;
-                max /= 3600;
+            if(min / 3600) {
+                argument->integer->divide = 3600;
             } else {
                 print = print->next;
-                if(min / 60 > 0) {
-                    min /= 60;
-                    max /= 60;
+                if(min / 60) {
+                    argument->integer->divide = 60;
                 } else {
                     print = print->next;
+                    argument->integer->divide = 1;
                 }
             }
         }
 
-        if(min == max) {
-            if(strbuf_printf(strbuf, "%ld ", min)) {
-                return panic("failed to printf strbuf object");
-            } else if(print_node_write(print, script, stack, strbuf)) {
-                return panic("failed to write argument object");
-            }
-        } else {
-            if(strbuf_printf(strbuf, "%ld ~ %ld ", min, max)) {
-                return panic("failed to printf strbuf object");
-            } else if(print_node_write(print, script, stack, strbuf)) {
-                return panic("failed to write argument object");
-            }
+        if(argument_integer(script, stack, argument, strbuf)) {
+            return panic("failed to integer argument");
+        } else if(strbuf_printf(strbuf, " ")) {
+            return panic("failed to printf strbuf object");
+        } else if(print_node_write(print, script, stack, strbuf)) {
+            return panic("failed to write argument object");
         }
     }
 
@@ -2661,8 +2638,6 @@ int argument_millisecond(struct script * script, struct stack * stack, struct ar
     struct script_range * range;
 
     long min;
-    long max;
-    long tmp;
     struct print_node * print;
 
     range = stack_get(stack, 0);
@@ -2670,58 +2645,36 @@ int argument_millisecond(struct script * script, struct stack * stack, struct ar
         return panic("failed to get stack object");
     } else {
         min = range->range->min;
-        max = range->range->max;
-
-        if(min < 0)
-            min *= -1;
-
-        if(max < 0)
-            max *= -1;
-
-        if(min > max) {
-            tmp = min;
-            min = max;
-            max = tmp;
-        }
 
         print = argument->print;
-        if(min / 86400000 > 0) {
-            min /= 86400000;
-            max /= 86400000;
+        if(min / 86400000) {
+            argument->integer->divide = 86400000;
         } else {
             print = print->next;
-            if(min / 3600000 > 0) {
-                min /= 3600000;
-                max /= 3600000;
+            if(min / 3600000) {
+                argument->integer->divide = 3600000;
             } else {
                 print = print->next;
-                if(min / 60000 > 0) {
-                    min /= 60000;
-                    max /= 60000;
+                if(min / 60000) {
+                    argument->integer->divide = 60000;
                 } else {
                     print = print->next;
-                    if(min / 1000 > 0) {
-                        min /= 1000;
-                        max /= 1000;
+                    if(min / 1000) {
+                        argument->integer->divide = 1000;
                     } else {
                         print = print->next;
+                        argument->integer->divide = 1;
                     }
                 }
             }
         }
 
-        if(min == max) {
-            if(strbuf_printf(strbuf, "%ld ", min)) {
-                return panic("failed to printf strbuf object");
-            } else if(print_node_write(print, script, stack, strbuf)) {
-                return panic("failed to write argument object");
-            }
-        } else {
-            if(strbuf_printf(strbuf, "%ld ~ %ld ", min, max)) {
-                return panic("failed to printf strbuf object");
-            } else if(print_node_write(print, script, stack, strbuf)) {
-                return panic("failed to write argument object");
-            }
+        if(argument_integer(script, stack, argument, strbuf)) {
+            return panic("failed to integer argument");
+        } else if(strbuf_printf(strbuf, " ")) {
+            return panic("failed to printf strbuf object");
+        } else if(print_node_write(print, script, stack, strbuf)) {
+            return panic("failed to write argument object");
         }
     }
 

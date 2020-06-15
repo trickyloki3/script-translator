@@ -117,6 +117,8 @@
     - Hours
     - Minutes
     - Seconds
+  integer:
+    string: true
 
 - identifier: time/ms
   handler: millisecond
@@ -126,6 +128,20 @@
     - Minutes
     - Seconds
     - Milliseconds
+  integer:
+    string: true
+
+- identifier: time/ms/+
+  handler: millisecond
+  print:
+    - Days
+    - Hours
+    - Minutes
+    - Seconds
+    - Milliseconds
+  integer:
+    sign: true
+    string: true
 
 - identifier: bf/flag
   handler: bf
@@ -156,14 +172,6 @@
   print:
     - Heal
     - Lose
-
-- identifier: sign
-  handler: prefix
-  print:
-    - >
-      +
-    - >
-      -
 
 - identifier: regen
   handler: array

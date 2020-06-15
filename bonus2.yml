@@ -62,16 +62,16 @@
   print: {2|int/+s%} {1|skill} Variable Cast Time
 
 - identifier: bSkillFixedCast
-  print: {2|sign}{2|time/ms} {1|skill} Fixed Cast Time
+  print: {2|time/ms/+} {1|skill} Fixed Cast Time
 
 - identifier: bSkillVariableCast
-  print: {2|sign}{2|time/ms} {1|skill} Variable Cast Time
+  print: {2|time/ms/+} {1|skill} Variable Cast Time
 
 - identifier: bSkillDelay
-  print: {2|sign}{2|time/ms} {1|skill} Delay
+  print: {2|time/ms/+} {1|skill} Delay
 
 - identifier: bSkillCooldown
-  print: {2|sign}{2|time/ms} {1|skill} Cooldown
+  print: {2|time/ms/+} {1|skill} Cooldown
 
 # bAddEle is applied in battle_calc_cardfix under BF_WEAPON
 

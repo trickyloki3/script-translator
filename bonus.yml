@@ -222,10 +222,10 @@
   print: {1|int/+s%} Skill Variable Cast Time
 
 - identifier: bFixedCast
-  print: {1|sign}{1|time/ms} Skill Fixed Cast Time
+  print: {1|time/ms/+} Skill Fixed Cast Time
 
 - identifier: bVariableCast
-  print: {1|sign}{1|time/ms} Skill Variable Cast Time
+  print: {1|time/ms/+} Skill Variable Cast Time
 
 - identifier: bNoCastCancel
   print: Ability to cast spells without being interrupted (exclude GvG).
