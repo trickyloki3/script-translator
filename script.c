@@ -55,7 +55,6 @@ int script_translate(struct script *, struct script_node *);
 int script_translate_if(struct script *, struct script_node *, char *, ...);
 int script_evaluate(struct script *, struct script_node *, int, struct script_range **);
 struct script_range * script_execute(struct script *, struct stack *, struct argument_node *);
-int script_default(struct script *, struct stack *, size_t);
 int script_optional(struct script *, struct stack *, struct argument_node *);
 
 struct script_range * function_set(struct script *, struct stack *);
@@ -1834,24 +1833,6 @@ struct script_range * script_execute(struct script * script, struct stack * stac
     }
 
     return status ? NULL : range;
-}
-
-int script_default(struct script * script, struct stack * stack, size_t index) {
-    struct script_range * range;
-
-    range = stack_get(stack, index);
-    if(!range) {
-        range = script_range_create(script, integer, "%ld", 0);
-        if(!range) {
-            return panic("failed to create script range object");
-        } else if(range_add(range->range, 0, 0)) {
-            return panic("failed to add range object");
-        } else if(stack_push(stack, range)) {
-            return panic("failed to push stack object");
-        }
-    }
-
-    return 0;
 }
 
 int script_optional(struct script * script, struct stack * stack, struct argument_node * argument) {
