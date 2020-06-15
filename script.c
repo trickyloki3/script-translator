@@ -56,6 +56,7 @@ int script_translate_if(struct script *, struct script_node *, char *, ...);
 int script_evaluate(struct script *, struct script_node *, int, struct script_range **);
 struct script_range * script_execute(struct script *, struct stack *, struct argument_node *);
 int script_default(struct script *, struct stack *, size_t);
+int script_optional(struct script *, struct stack *, struct argument_node *);
 
 struct script_range * function_set(struct script *, struct stack *);
 struct script_range * function_min(struct script *, struct stack *);
@@ -71,8 +72,6 @@ struct script_range * function_sc_start(struct script *, struct stack *);
 struct script_range * function_sc_start2(struct script *, struct stack *);
 struct script_range * function_sc_start4(struct script *, struct stack *);
 struct script_range * function_mercenary_sc_start(struct script *, struct stack *);
-struct script_range * function_autobonus(struct script *, struct stack *);
-struct script_range * function_autobonus2(struct script *, struct stack *);
 struct script_range * function_getskilllv(struct script *, struct stack *);
 struct script_range * function_constant(struct script *, struct stack *);
 
@@ -96,8 +95,6 @@ struct function_entry {
     { "sc_start2", function_sc_start2 },
     { "sc_start4", function_sc_start4 },
     { "mercenary_sc_start", function_mercenary_sc_start },
-    { "autobonus", function_autobonus },
-    { "autobonus2", function_autobonus2 },
     { "getskilllv", function_getskilllv },
     { "gettime", function_constant },
     { "readparam", function_constant },
@@ -1809,7 +1806,9 @@ struct script_range * script_execute(struct script * script, struct stack * stac
         if(!strbuf) {
             status = panic("failed to get script buffer object");
         } else {
-            if(handler(script, stack, argument, strbuf)) {
+            if(script_optional(script, stack, argument)) {
+                status = panic("failed to optional script object");
+            } else if(handler(script, stack, argument, strbuf)) {
                 status = panic("failed to execute argument object");
             } else {
                 string = strbuf_string(strbuf);
@@ -1851,6 +1850,27 @@ int script_default(struct script * script, struct stack * stack, size_t index) {
         } else if(stack_push(stack, range)) {
             return panic("failed to push stack object");
         }
+    }
+
+    return 0;
+}
+
+int script_optional(struct script * script, struct stack * stack, struct argument_node * argument) {
+    struct optional_node * optional;
+    struct script_range * range;
+
+    optional = argument->optional;
+    while(optional) {
+        if(!stack_get(stack, optional->index)) {
+            if(script_parse(script, optional->string)) {
+                return panic("failed to parse script object");
+            } else if(script_evaluate(script, script->root->root, 0, &range)) {
+                return panic("failed to evaluate script object");
+            } else if(stack_push(stack, range)) {
+                return panic("failed to push stack object");
+            }
+        }
+        optional = optional->next;
     }
 
     return 0;
@@ -2203,46 +2223,6 @@ struct script_range * function_mercenary_sc_start(struct script * script, struct
             if(!range)
                 status = panic("failed to execute script object");
         }
-    }
-
-    return status ? NULL : range;
-}
-
-struct script_range * function_autobonus(struct script * script, struct stack * stack) {
-    int status = 0;
-    struct script_range * range;
-    struct argument_node * argument;
-
-    argument = statement_identifier(script->table, "autobonus");
-    if(!argument) {
-        if(undefined_add(&script->undefined, "statement.autobonus"))
-            status = panic("failed to add undefined object");
-    } else if(script_default(script, stack, 3)) {
-        status = panic("failed to default script object");
-    } else {
-        range = script_execute(script, stack, argument);
-        if(!range)
-            status = panic("failed to execute script object");
-    }
-
-    return status ? NULL : range;
-}
-
-struct script_range * function_autobonus2(struct script * script, struct stack * stack) {
-    int status = 0;
-    struct script_range * range;
-    struct argument_node * argument;
-
-    argument = statement_identifier(script->table, "autobonus2");
-    if(!argument) {
-        if(undefined_add(&script->undefined, "statement.autobonus2"))
-            status = panic("failed to add undefined object");
-    } else if(script_default(script, stack, 3)) {
-        status = panic("failed to default script object");
-    } else {
-        range = script_execute(script, stack, argument);
-        if(!range)
-            status = panic("failed to execute script object");
     }
 
     return status ? NULL : range;

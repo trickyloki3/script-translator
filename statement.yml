@@ -212,6 +212,10 @@
     Chance: {1|int/s%10}
     Duration: {2|time/ms}
     {3|autobonus/bf}
+  optional:
+    - index: 3
+      string: >
+        var = 0;
 
 - identifier: autobonus2
   print: |
@@ -220,6 +224,10 @@
     Chance: {1|int/s%10}
     Duration: {2|time/ms}
     {3|autobonus/bf/hit}
+  optional:
+    - index: 3
+      string: >
+        var = 0;
 
 - identifier: autobonus3
   print: |
