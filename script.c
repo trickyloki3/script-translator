@@ -1299,23 +1299,36 @@ int script_evaluate(struct script * script, struct script_node * root, int flag,
                         status = panic("failed to evaluate script object");
                     } else {
                         range = script_range_create(script, integer, "%s%s", x->string, z->string);
+                        if(!range) {
+                            status = panic("failed to range script object");
+                        } else if(range_plus(range->range, x->range, y->range)) {
+                            status = panic("failed to plus range object");
+                        } else {
+                            *result = range;
+                        }
                     }
                 } else if(y->type == string) {
                     if(script_evaluate(script, root->root, flag | is_concat, &z)) {
                         status = panic("failed to evaluate script object");
                     } else {
                         range = script_range_create(script, integer, "%s%s", z->string, y->string);
+                        if(!range) {
+                            status = panic("failed to range script object");
+                        } else if(range_plus(range->range, x->range, y->range)) {
+                            status = panic("failed to plus range object");
+                        } else {
+                            *result = range;
+                        }
                     }
                 } else {
                     range = script_range_create(script, integer, "%s + %s", x->string, y->string);
-                }
-
-                if(!range) {
-                    status = panic("failed to range script object");
-                } else if(range_plus(range->range, x->range, y->range)) {
-                    status = panic("failed to plus range object");
-                } else {
-                    *result = range;
+                    if(!range) {
+                        status = panic("failed to range script object");
+                    } else if(range_plus(range->range, x->range, y->range)) {
+                        status = panic("failed to plus range object");
+                    } else {
+                        *result = range;
+                    }
                 }
             }
             break;
