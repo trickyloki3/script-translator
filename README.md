@@ -31,6 +31,8 @@ Translates an item script into an item description.
 
 ```./pj59 . > output.yml```
 
+```./pj59 . 1138```
+
 **How to setup?**
 
 Copy these files from rAthena to pj59.
