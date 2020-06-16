@@ -2416,7 +2416,7 @@ int argument_integer(struct script * script, struct stack * stack, struct argume
             if(min >= 0 && strbuf_putc(strbuf, '+'))
                 return panic("failed to putc strbuf object");
 
-        if(divide) {
+        if(min && divide) {
             if(min / divide) {
                 if(strbuf_printf(strbuf, "%ld", min / divide))
                     return panic("failed to printf strbuf object");
@@ -2442,7 +2442,7 @@ int argument_integer(struct script * script, struct stack * stack, struct argume
                 if(max >= 0 && strbuf_putc(strbuf, '+'))
                     return panic("failed to putc strbuf object");
 
-            if(divide) {
+            if(max && divide) {
                 if(max / divide) {
                     if(strbuf_printf(strbuf, "%ld", max / divide))
                         return panic("failed to printf strbuf object");
