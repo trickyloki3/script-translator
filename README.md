@@ -42,3 +42,23 @@ Copy these files from rAthena to pj59.
 * item_db.txt
 * mercenary_db.txt
 * mob_db.txt
+
+**What do you support?**
+
+English and rAthena in Renewal mode.
+
+**What about another language?**
+
+Translate these files and save in UTF-8.
+
+ * statement.yml
+ * argument.yml
+ * bonus.yml
+ * bonus2.yml
+ * bonus3.yml
+ * bonus4.yml
+ * bonus5.yml
+ * constant_data.yml
+ * sc_start.yml
+ * sc_start2.yml
+ * sc_start4.yml
