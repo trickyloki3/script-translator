@@ -27,6 +27,10 @@ Translates an item script into an item description.
 
 ```make```
 
+OR
+
+```make CFLAGS=-O2```
+
 **How to use?**
 
 ```./pj59 . > output.yml```
