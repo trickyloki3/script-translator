@@ -423,24 +423,15 @@ int yaml_scalar(struct yaml * yaml, yaml_scalar_cb callback) {
 }
 
 int yaml_literal(struct yaml * yaml, int space, int newline) {
-    int status = 0;
-
-    if(strbuf_putcn(&yaml->strbuf, '\n', newline))
-        status = panic("failed to putcn strbuf object");
-
-    return status;
+    return strbuf_putcn(&yaml->strbuf, '\n', newline);
 }
 
 int yaml_folded(struct yaml * yaml, int space, int newline) {
-    int status = 0;
-
     if(newline == 1) {
-        if(strbuf_putc(&yaml->strbuf, space || yaml->scope < yaml->space ? '\n' : ' '))
-            status = panic("failed to putcn strbuf object");
-    } else if(newline) {
-        if(strbuf_putcn(&yaml->strbuf, '\n', newline - 1))
-            status = panic("failed to putcn strbuf object");
+        return strbuf_putc(&yaml->strbuf, space || yaml->scope < yaml->space ? '\n' : ' ');
+    } else if(newline > 1) {
+        return strbuf_putcn(&yaml->strbuf, '\n', newline - 1);
     }
 
-    return status;
+    return 0;
 }
