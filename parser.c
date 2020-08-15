@@ -575,10 +575,7 @@ int parser_parse(struct parser * parser, const char * path, event_cb callback, v
     if(!ext) {
         status = panic("failed to get file extension - %s", path);
     } else {
-        if(!strcmp(ext, ".json")) {
-            if(json_parse(path, callback, context))
-                status = panic("failed to parse json object");
-        } else if(!strcmp(ext, ".yaml") || !strcmp(ext, ".yml")) {
+        if(!strcmp(ext, ".yaml") || !strcmp(ext, ".yml")) {
             if(yaml_parse(&parser->yaml, path, callback, context))
                 status = panic("failed to parse yaml object");
         } else {

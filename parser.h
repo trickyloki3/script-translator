@@ -3,7 +3,6 @@
 
 #include "map.h"
 #include "store.h"
-#include "json.h"
 #include "yaml.h"
 
 enum schema_type {

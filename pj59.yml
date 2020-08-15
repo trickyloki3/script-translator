@@ -9,7 +9,6 @@ source: |
   logic.h     ; container ; disjunctive normal form
   heap.h      ; memory
   csv.h       ; parser
-  json.h      ; parser
   yaml.h      ; parser
   parser.h    ; parser, schema
   table.h     ; database
@@ -20,7 +19,6 @@ layout: |
   table.h
     parser.h
       csv.h
-      json.h
       yaml.h
         event.h
         heap.h

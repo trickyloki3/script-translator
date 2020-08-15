@@ -9,9 +9,6 @@ OBJECT+=store.o
 OBJECT+=heap.o
 OBJECT+=csv_scanner.o
 OBJECT+=csv.o
-OBJECT+=json_parser.o
-OBJECT+=json_scanner.o
-OBJECT+=json.o
 OBJECT+=yaml_scanner.o
 OBJECT+=yaml.o
 OBJECT+=parser.o
@@ -42,11 +39,6 @@ clean:
 	@rm -f csv_scanner.c
 	@rm -f csv_scanner.h
 	@rm -f lex.backup
-	@rm -f json_parser.c
-	@rm -f json_parser.h
-	@rm -f json_parser.output
-	@rm -f json_scanner.c
-	@rm -f json_scanner.h
 	@rm -f yaml_scanner.c
 	@rm -f yaml_scanner.h
 	@rm -f script_parser.c
