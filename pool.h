@@ -1,7 +1,7 @@
 #ifndef pool_h
 #define pool_h
 
-#include "utility.h"
+#include "panic.h"
 
 struct pool_node {
     struct pool_node * next;

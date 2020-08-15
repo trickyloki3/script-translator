@@ -1,4 +1,4 @@
-OBJECT+=utility.o
+OBJECT+=panic.o
 OBJECT+=pool.o
 OBJECT+=array.o
 OBJECT+=stack.o

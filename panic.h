@@ -1,5 +1,5 @@
-#ifndef utility_h
-#define utility_h
+#ifndef panic_h
+#define panic_h
 
 #include "math.h"
 #include "ctype.h"

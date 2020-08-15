@@ -1,7 +1,7 @@
 #ifndef store_h
 #define store_h
 
-#include "utility.h"
+#include "panic.h"
 
 struct store_node {
     char * pos;

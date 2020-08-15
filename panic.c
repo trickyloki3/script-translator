@@ -1,4 +1,4 @@
-#include "utility.h"
+#include "panic.h"
 
 int panic_(const char * format, ...) {
     va_list vararg;

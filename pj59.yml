@@ -1,5 +1,5 @@
 source: |
-  utility.h   ; header
+  panic.h     ; header
   pool.h      ; memory
   store.h     ; memory
   array.h     ; memory
@@ -31,4 +31,4 @@ layout: |
             pool.h
             store.h
             array.h
-              utility.h
+              panic.h

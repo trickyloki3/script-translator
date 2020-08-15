@@ -1,7 +1,7 @@
 #ifndef array_h
 #define array_h
 
-#include "utility.h"
+#include "panic.h"
 
 struct string {
     size_t length;
