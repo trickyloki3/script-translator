@@ -12,7 +12,7 @@ struct schema_markup skill_markup[] = {
     {4, schema_string, 4, "Name"},
     {4, schema_string, 5, "Description"},
     {4, schema_string, 6, "MaxLevel"},
-    {0, 0, 0}
+    {0, 0, 0},
 };
 
 struct schema_markup constant_markup[] = {
@@ -35,6 +35,7 @@ struct schema_markup constant_group_markup[] = {
     {3, schema_list, 2, "group"},
     {4, schema_string, 3, NULL},
     {3, schema_string, 4, "identifier"},
+    {0, 0, 0},
 };
 
 struct schema_markup argument_markup[] = {
