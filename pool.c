@@ -1,62 +1,56 @@
 #include "pool.h"
 
-int pool_alloc(struct pool *);
-
 int pool_create(struct pool * pool, size_t size, size_t count) {
-    int status = 0;
-
     if(sizeof(struct pool_node) > size) {
-        status = panic("invalid size");
+        return panic("invalid size");
     } else if(!count) {
-        status = panic("invalid count");
+        return panic("invalid count");
     } else {
         pool->size = size;
         pool->count = count;
         pool->root = NULL;
-        pool->buffer = NULL;
+        pool->cache = NULL;
     }
 
-    return status;
+    return 0;
 }
 
 void pool_destroy(struct pool * pool) {
-    struct pool_buffer * buffer;
+    struct pool_node * node;
 
-    while(pool->buffer) {
-        buffer = pool->buffer;
-        pool->buffer = pool->buffer->next;
-        free(buffer);
+    while(pool->cache) {
+        node = pool->cache;
+        pool->cache = node->next;
+        free(node);
     }
 
     pool->root = NULL;
 }
 
-int pool_alloc(struct pool * pool) {
-    int status = 0;
+void * pool_add(struct pool * pool) {
     size_t i;
-    struct pool_buffer * buffer;
+    char * buffer;
+    struct pool_node * node;
 
-    buffer = malloc(sizeof(*buffer) + pool->size * pool->count);
-    if(!buffer) {
-        status = panic("out of memory");
-    } else {
-        buffer->buffer = (char *) (buffer + 1);
-        buffer->next = pool->buffer;
-        pool->buffer = buffer;
+    node = malloc(sizeof(*node) + pool->size * pool->count);
+    if(node) {
+        node->next = pool->cache;
+        pool->cache = node;
 
+        buffer = (char *) (node + 1);
         for(i = 0; i < pool->count; i++)
-            pool_put(pool, buffer->buffer + pool->size * i);
+            pool_put(pool, buffer + pool->size * i);
     }
 
-    return status;
+    return pool->root;
 }
 
 void * pool_get(struct pool * pool) {
     struct pool_node * node = NULL;
 
-    if(pool->root || !pool_alloc(pool)) {
+    if(pool->root || pool_add(pool)) {
         node = pool->root;
-        pool->root = pool->root->next;
+        pool->root = node->next;
     }
 
     return node;
@@ -64,7 +58,6 @@ void * pool_get(struct pool * pool) {
 
 void pool_put(struct pool * pool, void * object) {
     struct pool_node * node = object;
-
     node->next = pool->root;
     pool->root = node;
 }

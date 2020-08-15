@@ -22,7 +22,7 @@ int pool_map_leak(struct pool_map * pool_map, struct pool * pool) {
 
     struct map map;
     struct range range;
-    struct pool_buffer * buffer;
+    struct pool_node * cache;
     struct pool_node * node;
     struct map_kv kv;
 
@@ -32,11 +32,11 @@ int pool_map_leak(struct pool_map * pool_map, struct pool * pool) {
         if(range_create(&range, &pool_map->range_pool)) {
             status = panic("failed to create range object");
         } else {
-            buffer = pool->buffer;
-            while(buffer && !status) {
-                if(range_add(&range, (long) buffer->buffer, (long) buffer->buffer + (pool->size * pool->count) - 1))
+            cache = pool->cache;
+            while(cache && !status) {
+                if(range_add(&range, (long) (cache + 1), (long) (cache + 1) + (pool->size * pool->count) - 1))
                     status = panic("failed to add range object");
-                buffer = buffer->next;
+                cache = cache->next;
             }
 
             node = pool->root;
