@@ -260,24 +260,23 @@ int undefined_add(struct undefined * undef, char * format, ...) {
     int status = 0;
 
     va_list vararg;
-    va_list varcpy;
-    char * string;
+    struct string * string;
+    char * key;
 
     va_start(vararg, format);
-    va_copy(varcpy, vararg);
 
     if(strbuf_vprintf(&undef->strbuf, format, vararg)) {
         status = panic("failed to vprintf strbuf object");
     } else {
-        string = strbuf_array(&undef->strbuf);
+        string = strbuf_string(&undef->strbuf);
         if(!string) {
-            status = panic("failed to array strbuf object");
+            status = panic("failed to string strbuf object");
         } else {
-            if(!map_search(&undef->map, string)) {
-                string = store_vprintf(&undef->store, format, varcpy);
-                if(!string) {
+            if(!map_search(&undef->map, string->string)) {
+                key = store_strcpy(&undef->store, string->string, string->length);
+                if(!key) {
                     status = panic("failed to printf store object");
-                } else if(map_insert(&undef->map, string, string)) {
+                } else if(map_insert(&undef->map, key, key)) {
                     status = panic("failed to insert map object");
                 }
             }
@@ -285,7 +284,6 @@ int undefined_add(struct undefined * undef, char * format, ...) {
         strbuf_clear(&undef->strbuf);
     }
 
-    va_end(varcpy);
     va_end(vararg);
 
     return status;
