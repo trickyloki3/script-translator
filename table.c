@@ -3,6 +3,7 @@
 int long_compare(void *, void *);
 int string_long(struct string *, long *);
 int string_store(struct string *, struct store *, char **);
+int string_strcpy(char *, size_t, struct store *, char **);
 
 struct schema_markup skill_markup[] = {
     {1, schema_map, 0, NULL},
@@ -74,33 +75,21 @@ int long_compare(void * x, void * y) {
 }
 
 int string_long(struct string * string, long * result) {
-    int status = 0;
-
     char * last;
-    long value;
 
-    value = strtol(string->string, &last, 0);
-    if(*last) {
-        status = panic("failed to strtol");
-    } else {
-        *result = value;
-    }
+    *result = strtol(string->string, &last, 0);
 
-    return status;
+    return *last ? panic("failed to strtol") : 0;
 }
 
 int string_store(struct string * string, struct store * store, char ** result) {
-    int status = 0;
-    char * object;
+    return string_strcpy(string->string, string->length, store, result);
+}
 
-    object = store_strcpy(store, string->string, string->length);
-    if(!object) {
-        status = panic("failed to strcpy store object");
-    } else {
-        *result = object;
-    }
+int string_strcpy(char * string, size_t length, struct store * store, char ** result) {
+    *result = store_strcpy(store, string, length);
 
-    return status;
+    return *result ? 0 : panic("failed to strcpy store object");
 }
 
 int item_create(struct item * item, size_t size, struct heap * heap) {
@@ -783,9 +772,8 @@ int argument_entry_parse(struct argument * argument, char * string, size_t lengt
         if(!cursor)
             return panic("expected curly close");
 
-        entry->identifier = store_strcpy(&argument->store, anchor, cursor - anchor);
-        if(!entry->identifier)
-            return panic("failed to strcpy store object");
+        if(string_strcpy(anchor, cursor - anchor, &argument->store, &entry->identifier))
+            return panic("failed to strcpy string object");
 
         anchor = cursor + 1;
         cursor = strchr(anchor, '{');
@@ -806,9 +794,8 @@ int argument_entry_create(struct argument * argument, char * string, size_t leng
         status = panic("failed to calloc store object");
     } else {
         entry->length = length;
-        entry->string = store_strcpy(&argument->store, string, length);
-        if(!entry->string) {
-            status = panic("failed to strcpy store object");
+        if(string_strcpy(string, length, &argument->store, &entry->string)) {
+            status = panic("failed to strcpy string object");
         } else {
             if(argument->entry) {
                 argument->entry->next = entry;
