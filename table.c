@@ -176,6 +176,7 @@ int item_script_parse(struct item * item, char * string) {
     int curly = 0;
     size_t index = 0;
     char * anchor = NULL;
+    struct string script;
 
     while(*string) {
         if(*string == '{') {
@@ -185,21 +186,21 @@ int item_script_parse(struct item * item, char * string) {
         } else if(*string == '}') {
             curly--;
             if(!curly) {
+                script.string = anchor;
+                script.length = string - anchor + 1;
+
                 switch(index) {
                     case 0:
-                        item->item->bonus = store_strcpy(&item->store, anchor, string - anchor + 1);
-                        if(!item->item->bonus)
-                            return panic("failed to char store object");
+                        if(string_store(&script, &item->store, &item->item->bonus))
+                            return panic("failed to store string object");
                         break;
                     case 1:
-                        item->item->equip = store_strcpy(&item->store, anchor, string - anchor + 1);
-                        if(!item->item->equip)
-                            return panic("failed to char store object");
+                        if(string_store(&script, &item->store, &item->item->equip))
+                            return panic("failed to store string object");
                         break;
                     case 2:
-                        item->item->unequip = store_strcpy(&item->store, anchor, string - anchor + 1);
-                        if(!item->item->unequip)
-                            return panic("failed to char store object");
+                        if(string_store(&script, &item->store, &item->item->unequip))
+                            return panic("failed to store string object");
                         break;
                 }
                 index++;
@@ -253,17 +254,15 @@ int item_combo_parse(enum parser_type type, int mark, struct string * string, vo
             }
             break;
         case 2:
-            bonus = store_strcpy(&item->store, string->string, string->length);
-            if(!bonus)
-                return panic("failed to strcpy store object");
+            if(string_store(string, &item->store, &bonus))
+                return panic("failed to store string object");
 
             string = strbuf_string(&item->strbuf);
             if(!string)
                 return panic("failed to string strbuf object");
 
-            combo = store_strcpy(&item->store, string->string, string->length);
-            if(!combo)
-                return panic("failed to strcpy store object");
+            if(string_store(string, &item->store, &combo))
+                return panic("failed to store string object");
 
             item_node = stack_start(&item->stack);
             while(item_node) {
@@ -580,9 +579,8 @@ int constant_group_parse(enum parser_type type, int mark, struct string * string
             }
             break;
         case 4:
-            group->identifier = store_strcpy(&constant->store, string->string, string->length);
-            if(!group->identifier) {
-                return panic("failed to strcpy store object");
+            if(string_store(string, &constant->store, &group->identifier)) {
+                return panic("failed to store string object");
             } else if(map_insert(&constant->group, group->identifier, group)) {
                 return panic("failed to insert map object");
             }
