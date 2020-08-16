@@ -102,17 +102,6 @@ char * store_strcpy(struct store * store, char * string, size_t length) {
     return buffer;
 }
 
-char * store_printf(struct store * store, char * format, ...) {
-    char * string;
-    va_list vararg;
-
-    va_start(vararg, format);
-    string = store_vprintf(store, format, vararg);
-    va_end(vararg);
-
-    return string;
-}
-
 char * store_vprintf(struct store * store, char * format, va_list vararg) {
     int status = 0;
 
