@@ -214,28 +214,15 @@ struct schema_node * schema_add(struct schema * schema, struct schema_node * roo
 }
 
 struct schema_node * schema_get(struct schema_node * root, char * key) {
-    int status = 0;
-    struct schema_node * node;
-
     if(key) {
-        if(root->type & schema_map) {
-            node = map_search(&root->map, key);
-            if(!node)
-                status = panic("invalid key - %s", key);
-        } else {
-            status = panic("expected map");
-        }
+        if(root->type & schema_map)
+            return map_search(&root->map, key);
     } else {
-        if(root->type & schema_list) {
-            node = root->list;
-            if(!node)
-                status = panic("invalid node");
-        } else {
-            status = panic("expected list");
-        }
+        if(root->type & schema_list)
+            return root->list;
     }
 
-    return status ? NULL : node;
+    return NULL;
 }
 
 int schema_reload(struct schema * schema, struct schema_markup * array) {
