@@ -93,25 +93,24 @@ int string_strcpy(char * string, size_t length, struct store * store, char ** re
 }
 
 int item_create(struct item * item, size_t size, struct heap * heap) {
-    int status = 0;
-
     if(store_create(&item->store, size)) {
-        status = panic("failed to create store object");
+        panic("failed to create store object");
+        goto store_fail;
     } else if(stack_create(&item->stack, heap->stack_pool)) {
-        status = panic("failed to create stack object");
+        panic("failed to create stack object");
         goto stack_fail;
     } else if(strbuf_create(&item->strbuf, size)) {
-        status = panic("failed to create strbuf object");
+        panic("failed to create strbuf object");
         goto strbuf_fail;
     } else if(map_create(&item->id, long_compare, heap->map_pool)) {
-        status = panic("failed to create map object");
+        panic("failed to create map object");
         goto id_fail;
     } else if(map_create(&item->name, (map_compare_cb) strcmp, heap->map_pool)) {
-        status = panic("failed to create map object");
+        panic("failed to create map object");
         goto name_fail;
     }
 
-    return status;
+    return 0;
 
 name_fail:
     map_destroy(&item->id);
@@ -121,8 +120,8 @@ strbuf_fail:
     stack_destroy(&item->stack);
 stack_fail:
     store_destroy(&item->store);
-
-    return status;
+store_fail:
+    return 1;
 }
 
 void item_destroy(struct item * item) {
@@ -810,58 +809,57 @@ int argument_entry_create(struct argument * argument, char * string, size_t leng
 }
 
 int table_create(struct table * table, size_t size, struct heap * heap) {
-    int status = 0;
-
     if(parser_create(&table->parser, size)) {
-        status = panic("failed to create parser object");
+        panic("failed to create parser object");
+        goto parser_fail;
     } else if(item_create(&table->item, size, heap)) {
-        status = panic("failed to create item object");
+        panic("failed to create item object");
         goto item_fail;
     } else if(skill_create(&table->skill, size, heap)) {
-        status = panic("failed to create skill object");
+        panic("failed to create skill object");
         goto skill_fail;
     } else if(mob_create(&table->mob, size, heap)) {
-        status = panic("failed to create mob object");
+        panic("failed to create mob object");
         goto mob_fail;
     } else if(mercenary_create(&table->mercenary, size, heap)) {
-        status = panic("failed to create mercenary object");
+        panic("failed to create mercenary object");
         goto mercenary_fail;
     } else if(constant_create(&table->constant, size, heap)) {
-        status = panic("failed to create constant object");
+        panic("failed to create constant object");
         goto constant_fail;
     } else if(argument_create(&table->argument, size, heap)) {
-        status = panic("failed to create argument object");
+        panic("failed to create argument object");
         goto argument_fail;
     } else if(argument_create(&table->bonus, size, heap)) {
-        status = panic("failed to create argument object");
+        panic("failed to create argument object");
         goto bonus_fail;
     } else if(argument_create(&table->bonus2, size, heap)) {
-        status = panic("failed to create argument object");
+        panic("failed to create argument object");
         goto bonus2_fail;
     } else if(argument_create(&table->bonus3, size, heap)) {
-        status = panic("failed to create argument object");
+        panic("failed to create argument object");
         goto bonus3_fail;
     } else if(argument_create(&table->bonus4, size, heap)) {
-        status = panic("failed to create argument object");
+        panic("failed to create argument object");
         goto bonus4_fail;
     } else if(argument_create(&table->bonus5, size, heap)) {
-        status = panic("failed to create argument object");
+        panic("failed to create argument object");
         goto bonus5_fail;
     } else if(argument_create(&table->sc_start, size, heap)) {
-        status = panic("failed to create argument object");
+        panic("failed to create argument object");
         goto sc_start_fail;
     } else if(argument_create(&table->sc_start2, size, heap)) {
-        status = panic("failed to create argument object");
+        panic("failed to create argument object");
         goto sc_start2_fail;
     } else if(argument_create(&table->sc_start4, size, heap)) {
-        status = panic("failed to create argument object");
+        panic("failed to create argument object");
         goto sc_start4_fail;
     } else if(argument_create(&table->statement, size, heap)) {
-        status = panic("failed to create argument object");
+        panic("failed to create argument object");
         goto statement_fail;
     }
 
-    return status;
+    return 0;
 
 statement_fail:
     argument_destroy(&table->sc_start4);
@@ -893,8 +891,8 @@ skill_fail:
     item_destroy(&table->item);
 item_fail:
     parser_destroy(&table->parser);
-
-    return status;
+parser_fail:
+    return 1;
 }
 
 void table_destroy(struct table * table) {

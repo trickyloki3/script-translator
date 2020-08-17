@@ -490,26 +490,25 @@ int data_state_node(struct data_state * state, struct schema_node * node, enum e
 }
 
 int parser_create(struct parser * parser, size_t size) {
-    int status = 0;
-
     if(yaml_create(&parser->yaml, size)) {
-        status = panic("failed to create yaml object");
+        panic("failed to create yaml object");
+        goto yaml_fail;
     } else if(strbuf_create(&parser->strbuf, size)) {
-        status = panic("failed to create strbuf object");
+        panic("failed to create strbuf object");
         goto strbuf_fail;
     } else if(schema_create(&parser->schema, size)) {
-        status = panic("failed to create schema object");
+        panic("failed to create schema object");
         goto schema_fail;
     }
 
-    return status;
+    return 0;
 
 schema_fail:
     strbuf_destroy(&parser->strbuf);
 strbuf_fail:
     yaml_destroy(&parser->yaml);
-
-    return status;
+yaml_fail:
+    return 1;
 }
 
 void parser_destroy(struct parser * parser) {
