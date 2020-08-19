@@ -72,43 +72,28 @@ void schema_node_print(struct schema_node * node, int indent, char * key) {
         fputs("  ", stdout);
 
     if(key)
-        fprintf(stdout, "[%s]", key);
+        fprintf(stdout, "(%s): ", key);
 
-    switch(node->type) {
-        case schema_list | schema_map | schema_string:
-            fprintf(stdout, "[list | map | string]");
-            break;
-        case schema_list | schema_map:
-            fprintf(stdout, "[list | map]");
-            break;
-        case schema_list | schema_string:
-            fprintf(stdout, "[list | string]");
-            break;
-        case schema_map | schema_string:
-            fprintf(stdout, "[map | string]");
-            break;
-        case schema_list:
-            fprintf(stdout, "[list]");
-            break;
-        case schema_map:
-            fprintf(stdout, "[map]");
-            break;
-        case schema_string:
-            fprintf(stdout, "[string]");
-            break;
+    fprintf(stdout, "[%d", node->mark);
+
+    if(node->type & schema_list)
+        fputs(", list", stdout);
+
+    if(node->type & schema_map)
+        fputs(", map", stdout);
+
+    if(node->type & schema_string)
+        fputs(", string", stdout);
+
+    fputs("]\n", stdout);
+
+    kv = map_start(&node->map);
+    while(kv.key) {
+        schema_node_print(kv.value, indent + 1, kv.key);
+        kv = map_next(&node->map);
     }
 
-    fprintf(stdout, "[%d]\n", node->mark);
-
-    if(node->type & schema_map) {
-        kv = map_start(&node->map);
-        while(kv.key) {
-            schema_node_print(kv.value, indent + 1, kv.key);
-            kv = map_next(&node->map);
-        }
-    }
-
-    if(node->type & schema_list && node->list)
+    if(node->list)
         schema_node_print(node->list, indent + 1, NULL);
 }
 
