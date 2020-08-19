@@ -211,79 +211,69 @@ struct schema_node * schema_get(struct schema_node * root, char * key) {
 }
 
 int schema_reload(struct schema * schema, struct schema_markup * array) {
-    int status = 0;
     struct schema_node * node;
     struct schema_node * root;
 
-    if(schema_reset(schema)) {
-        status = panic("failed to reset schema object");
-    } else {
-        root = schema->root;
-        if(!root) {
-            status = panic("invalid node");
-        } else {
-            root->state = 0;
+    if(schema_reset(schema))
+        return panic("failed to reset schema object");
 
-            while(array->level > 0 && !status) {
-                while(root->state >= array->level)
-                    root = root->next;
+    root = schema->root;
+    if(!root)
+        return panic("invalid node");
 
-                node = schema_add(schema, root, array->type, array->mark, array->key);
-                if(!node) {
-                    status = panic("failed to add schema object");
-                } else {
-                    if(array->type & (schema_list | schema_map)) {
-                        node->state = array->level;
-                        node->next = root;
-                        root = node;
-                    }
+    root->state = 0;
 
-                    array++;
-                }
-            }
+    while(array->level > 0) {
+        while(root->state >= array->level)
+            root = root->next;
+
+        node = schema_add(schema, root, array->type, array->mark, array->key);
+        if(!node)
+            return panic("failed to add schema object");
+
+        if(array->type & (schema_list | schema_map)) {
+            node->state = array->level;
+            node->next = root;
+            root = node;
         }
+
+        array++;
     }
 
-    return status;
+    return 0;
 }
 
 int schema_update(struct schema * schema, struct schema_markup * array) {
-    int status = 0;
     struct schema_node * node;
     struct schema_node * root;
 
     root = schema->root;
-    if(!root) {
-        status = panic("invalid node");
-    } else {
-        root->state = 0;
+    if(!root)
+        return panic("invalid node");
 
-        while(array->level > 0 && !status) {
-            while(root->state >= array->level)
-                root = root->next;
+    root->state = 0;
 
-            node = schema_get(root, array->key);
-            if(!node) {
-                status = panic("failed to get schema object");
-            } else {
-                if(node->type & array->type) {
-                    node->mark = array->mark;
+    while(array->level) {
+        while(root->state >= array->level)
+            root = root->next;
 
-                    if(array->type & (schema_list | schema_map)) {
-                        node->state = array->level;
-                        node->next = root;
-                        root = node;
-                    }
+        node = schema_get(root, array->key);
+        if(!node)
+            return panic("failed to get schema object");
 
-                    array++;
-                } else {
-                    status = panic("expected %d", array->type);
-                }
-            }
+        node->type = array->type | node->type;
+        node->mark = array->mark;
+
+        if(array->type & (schema_list | schema_map)) {
+            node->state = array->level;
+            node->next = root;
+            root = node;
         }
+
+        array++;
     }
 
-    return status;
+    return 0;
 }
 
 /*
