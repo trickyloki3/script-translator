@@ -51,7 +51,7 @@ struct skill {
 
 int skill_create(struct skill *, size_t, struct heap *);
 void skill_destroy(struct skill *);
-int skill_parse(enum parser_type, int, struct string *, void *);
+int skill_parse(enum yaml_event, int, char *, size_t, void *);
 
 struct mob_node {
     long id;
@@ -112,9 +112,9 @@ struct constant {
 int constant_create(struct constant *, size_t, struct heap *);
 void constant_destroy(struct constant *);
 struct constant_group_node * constant_group(struct constant *);
-int constant_parse(enum parser_type, int, struct string *, void *);
-int constant_data_parse(enum parser_type, int, struct string *, void *);
-int constant_group_parse(enum parser_type, int, struct string *, void *);
+int constant_parse(enum yaml_event, int, char *, size_t, void *);
+int constant_data_parse(enum yaml_event, int, char *, size_t, void *);
+int constant_group_parse(enum yaml_event, int, char *, size_t, void *);
 
 struct optional_node {
     long index;
@@ -181,7 +181,7 @@ struct argument {
 
 int argument_create(struct argument *, size_t, struct heap *);
 void argument_destroy(struct argument *);
-int argument_parse(enum parser_type, int, struct string *, void *);
+int argument_parse(enum yaml_event, int, char *, size_t, void *);
 int argument_entry_parse(struct argument *, char *, size_t);
 int argument_entry_create(struct argument *, char *, size_t);
 

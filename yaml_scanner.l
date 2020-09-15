@@ -10,12 +10,6 @@
 %option noinput nounput
 %option extra-type="struct yaml *"
 
-u8-b1                   [\x80-\xBF]
-u8-b2                   [\xC0-\xDF]
-u8-b3                   [\xE0-\xEF]
-u8-b4                   [\xF0-\xF7]
-u8-char                 {u8-b2}{u8-b1}|{u8-b3}{u8-b1}{u8-b1}|{u8-b4}{u8-b1}{u8-b1}{u8-b1}
-
 c-sequence-entry        \x2D
 c-mapping-value         \x3A
 c-comment               \x23
@@ -30,9 +24,9 @@ c-nb-comment-text       {c-comment}{nb-char}*
 ns-char                 [\x21-\x7E]
 ns-plain-first          [\x21-\x7E]{-}[\x2D\x3F\x3A\x23\x7C\x3E]|(\x2D|\x3F|\x3A){ns-char}
 ns-plain-char           [\x21-\x7E]{-}[\x3A\x23]|{ns-char}{c-comment}|{c-mapping-value}{ns-char}
-ns-plain-one-line       ({u8-char}|{ns-plain-first})({s-space}*({u8-char}|{ns-plain-char}))*
+ns-plain-one-line       {ns-plain-first}({s-space}*{ns-plain-char})*
 
-%x literal
+%x SCALAR
 
 %%
 
@@ -54,8 +48,7 @@ ns-plain-one-line       ({u8-char}|{ns-plain-first})({s-space}*({u8-char}|{ns-pl
 
 {s-indent} {
     if(yyextra->scalar && yyextra->scope <= yyleng)
-        BEGIN(literal);
-
+        BEGIN(SCALAR);
     yyextra->space = yyleng;
     return s_indent;
 }
@@ -73,9 +66,8 @@ ns-plain-one-line       ({u8-char}|{ns-plain-first})({s-space}*({u8-char}|{ns-pl
     return b_break;
 }
 
-<literal>({u8-char}|{ns-char})({s-space}*({u8-char}|{nb-char}))* {
+<SCALAR>{ns-char}({s-space}*{nb-char})* {
     BEGIN(INITIAL);
-
     yyextra->string = yytext;
     yyextra->length = yyleng;
     return nb_char;
@@ -87,6 +79,13 @@ ns-plain-one-line       ({u8-char}|{ns-plain-first})({s-space}*({u8-char}|{ns-pl
     return ns_plain_one_line;
 }
 
-<INITIAL,literal>.|{b-break} {
+{ns-plain-one-line}{c-mapping-value} {
+    yyextra->string = yytext;
+    yyextra->length = yyleng - 1;
+    yytext[yyleng - 1] = 0;
+    return ns_key_one_line;
+}
+
+<INITIAL,SCALAR>.|{b-break} {
     return -1;
 }

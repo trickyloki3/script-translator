@@ -3,68 +3,69 @@
 int long_compare(void *, void *);
 int string_long(struct string *, long *);
 int string_store(struct string *, struct store *, char **);
+int string_strtol(char *, long *);
 int string_strcpy(char *, size_t, struct store *, char **);
 
-struct schema_markup skill_markup[] = {
-    {1, schema_map, 0, NULL},
-    {2, schema_list, 1, "Body"},
-    {3, schema_map, 2, NULL},
-    {4, schema_string, 3, "Id"},
-    {4, schema_string, 4, "Name"},
-    {4, schema_string, 5, "Description"},
-    {4, schema_string, 6, "MaxLevel"},
+struct tag skill_tag[] = {
+    {1, meta_map, 0, NULL},
+    {2, meta_list, 1, "Body"},
+    {3, meta_map, 2, NULL},
+    {4, meta_string, 3, "Id"},
+    {4, meta_string, 4, "Name"},
+    {4, meta_string, 5, "Description"},
+    {4, meta_string, 6, "MaxLevel"},
     {0, 0, 0},
 };
 
-struct schema_markup constant_markup[] = {
-    {1, schema_list, 0, NULL},
-    {2, schema_map, 1, NULL},
-    {3, schema_string, 2, "identifier"},
-    {3, schema_string, 3, "value"},
-    {3, schema_string, 4, "tag"},
-    {3, schema_list, 5, "range"},
-    {4, schema_map, 6, NULL},
-    {5, schema_string, 7, "min"},
-    {5, schema_string, 8, "max"},
-    {3, schema_string, 9, "variable"},
+struct tag constant_tag[] = {
+    {1, meta_list, 0, NULL},
+    {2, meta_map, 1, NULL},
+    {3, meta_string, 2, "identifier"},
+    {3, meta_string, 3, "value"},
+    {3, meta_string, 4, "tag"},
+    {3, meta_list, 5, "range"},
+    {4, meta_map, 6, NULL},
+    {5, meta_string, 7, "min"},
+    {5, meta_string, 8, "max"},
+    {3, meta_string, 9, "variable"},
     {0, 0, 0},
 };
 
-struct schema_markup constant_group_markup[] = {
-    {1, schema_list, 0, NULL},
-    {2, schema_map, 1, NULL},
-    {3, schema_list, 2, "group"},
-    {4, schema_string, 3, NULL},
-    {3, schema_string, 4, "identifier"},
+struct tag constant_group_tag[] = {
+    {1, meta_list, 0, NULL},
+    {2, meta_map, 1, NULL},
+    {3, meta_list, 2, "group"},
+    {4, meta_string, 3, NULL},
+    {3, meta_string, 4, "identifier"},
     {0, 0, 0},
 };
 
-struct schema_markup argument_markup[] = {
-    {1, schema_list, 0, NULL},
-    {2, schema_map, 1, NULL},
-    {3, schema_string, 2, "identifier"},
-    {3, schema_string, 3, "handler"},
-    {3, schema_list | schema_string, 5, "print"},
-    {4, schema_string, 6, NULL},
-    {3, schema_list, 7, "range"},
-    {4, schema_map, 8, NULL},
-    {5, schema_string, 9, "min"},
-    {5, schema_string, 10, "max"},
-    {3, schema_list, 11, "array"},
-    {4, schema_map, 12, NULL},
-    {5, schema_string, 13, "index"},
-    {5, schema_string, 14, "string"},
-    {3, schema_map, 15, "integer"},
-    {4, schema_string, 16, "sign"},
-    {4, schema_string, 17, "string"},
-    {4, schema_string, 18, "percent"},
-    {4, schema_string, 19, "inverse"},
-    {4, schema_string, 20, "absolute"},
-    {4, schema_string, 21, "divide"},
-    {3, schema_list, 22, "optional"},
-    {4, schema_map, 23, NULL},
-    {5, schema_string, 24, "index"},
-    {5, schema_string, 25, "string"},
+struct tag argument_tag[] = {
+    {1, meta_list, 0, NULL},
+    {2, meta_map, 1, NULL},
+    {3, meta_string, 2, "identifier"},
+    {3, meta_string, 3, "handler"},
+    {3, meta_list | meta_string, 5, "print"},
+    {4, meta_string, 6, NULL},
+    {3, meta_list, 7, "range"},
+    {4, meta_map, 8, NULL},
+    {5, meta_string, 9, "min"},
+    {5, meta_string, 10, "max"},
+    {3, meta_list, 11, "array"},
+    {4, meta_map, 12, NULL},
+    {5, meta_string, 13, "index"},
+    {5, meta_string, 14, "string"},
+    {3, meta_map, 15, "integer"},
+    {4, meta_string, 16, "sign"},
+    {4, meta_string, 17, "string"},
+    {4, meta_string, 18, "percent"},
+    {4, meta_string, 19, "inverse"},
+    {4, meta_string, 20, "absolute"},
+    {4, meta_string, 21, "divide"},
+    {3, meta_list, 22, "optional"},
+    {4, meta_map, 23, NULL},
+    {5, meta_string, 24, "index"},
+    {5, meta_string, 25, "string"},
     {0, 0, 0},
 };
 
@@ -84,6 +85,12 @@ int string_long(struct string * string, long * result) {
 
 int string_store(struct string * string, struct store * store, char ** result) {
     return string_strcpy(string->string, string->length, store, result);
+}
+
+int string_strtol(char * string, long * result) {
+    *result = strtol(string, NULL, 0);
+
+    return 0;
 }
 
 int string_strcpy(char * string, size_t length, struct store * store, char ** result) {
@@ -298,16 +305,16 @@ void skill_destroy(struct skill * skill) {
     store_destroy(&skill->store);
 }
 
-int skill_parse(enum parser_type type, int mark, struct string * string, void * context) {
+int skill_parse(enum yaml_event event, int mark, char * string, size_t length, void * context) {
     struct skill * skill = context;
 
     switch(mark) {
         case 2:
-            if(type == parser_start) {
+            if(event == yaml_map_start) {
                 skill->skill = store_calloc(&skill->store, sizeof(*skill->skill));
                 if(!skill->skill)
                     return panic("failed to calloc store object");
-            } else if(type == parser_end) {
+            } else if(event == yaml_map_end) {
                 if(!skill->skill->name) {
                     return panic("invalid name");
                 } else if(map_insert(&skill->id, &skill->skill->id, skill->skill)) {
@@ -317,10 +324,10 @@ int skill_parse(enum parser_type type, int mark, struct string * string, void * 
                 }
             }
             break;
-        case 3: return string_long(string, &skill->skill->id); break;
-        case 4: return string_store(string, &skill->store, &skill->skill->name); break;
-        case 5: return string_store(string, &skill->store, &skill->skill->description); break;
-        case 6: return string_long(string, &skill->skill->level); break;
+        case 3: return string_strtol(string, &skill->skill->id); break;
+        case 4: return string_strcpy(string, length, &skill->store, &skill->skill->name); break;
+        case 5: return string_strcpy(string, length, &skill->store, &skill->skill->description); break;
+        case 6: return string_strtol(string, &skill->skill->level); break;
     }
 
     return 0;
@@ -477,16 +484,16 @@ struct constant_group_node * constant_group(struct constant * constant) {
     return status ? NULL : group;
 }
 
-int constant_parse(enum parser_type type, int mark, struct string * string, void * context) {
+int constant_parse(enum yaml_event event, int mark, char * string, size_t length, void * context) {
     struct constant * constant = context;
 
     switch(mark) {
         case 1:
-            if(type == parser_start) {
+            if(event == yaml_map_start) {
                 constant->constant = store_calloc(&constant->store, sizeof(*constant->constant));
                 if(!constant->constant)
                     return panic("failed to calloc store object");
-            } else if(type == parser_end) {
+            } else if(event == yaml_map_end) {
                 if(!constant->constant->identifier) {
                     return panic("invalid string object");
                 } else if(map_insert(&constant->identifier, constant->constant->identifier, constant->constant)) {
@@ -494,41 +501,41 @@ int constant_parse(enum parser_type type, int mark, struct string * string, void
                 }
             }
             break;
-        case 2: return string_store(string, &constant->store, &constant->constant->identifier); break;
-        case 3: return string_long(string, &constant->constant->value); break;
+        case 2: return string_strcpy(string, length, &constant->store, &constant->constant->identifier); break;
+        case 3: return string_strtol(string, &constant->constant->value); break;
     }
 
     return 0;
 }
 
-int constant_data_parse(enum parser_type type, int mark, struct string * string, void * context) {
+int constant_data_parse(enum yaml_event event, int mark, char * string, size_t length, void * context) {
     struct constant * constant = context;
 
     switch(mark) {
         case 1:
-            if(type == parser_start)
+            if(event == yaml_map_start)
                 constant->constant = NULL;
             break;
         case 2:
-            constant->constant = map_search(&constant->identifier, string->string);
+            constant->constant = map_search(&constant->identifier, string);
             if(!constant->constant)
-                return panic("failed to search map object - %s", string->string);
+                return panic("failed to search map object - %s", string);
             break;
-        case 4: return string_store(string, &constant->store, &constant->constant->tag); break;
+        case 4: return string_strcpy(string, length, &constant->store, &constant->constant->tag); break;
         case 6:
-            if(type == parser_start) {
+            if(event == yaml_map_start) {
                 constant->range = store_calloc(&constant->store, sizeof(*constant->range));
                 if(!constant->range)
                     return panic("failed to calloc store object");
-            } else if(type == parser_end) {
+            } else if(event == yaml_map_end) {
                 constant->range->next = constant->constant->range;
                 constant->constant->range = constant->range;
             }
             break;
-        case 7: return string_long(string, &constant->range->min); break;
-        case 8: return string_long(string, &constant->range->max); break;
+        case 7: return string_strtol(string, &constant->range->min); break;
+        case 8: return string_strtol(string, &constant->range->max); break;
         case 9:
-            if(!strcmp(string->string, "true"))
+            if(!strcmp(string, "true"))
                 constant->constant->variable = 1;
             break;
     }
@@ -536,7 +543,7 @@ int constant_data_parse(enum parser_type type, int mark, struct string * string,
     return 0;
 }
 
-int constant_group_parse(enum parser_type type, int mark, struct string * string, void * context) {
+int constant_group_parse(enum yaml_event event, int mark, char * string, size_t length, void * context) {
     struct constant * constant;
     struct constant_node * node;
     struct constant_group_node * group;
@@ -555,9 +562,9 @@ int constant_group_parse(enum parser_type type, int mark, struct string * string
             }
             break;
         case 3:
-            node = map_search(&constant->identifier, string->string);
+            node = map_search(&constant->identifier, string);
             if(!node) {
-                return panic("invalid constant - %s", string->string);
+                return panic("invalid constant - %s", string);
             } else if(!node->tag) {
                 return panic("invalid tag - %s", node->identifier);
             } else if(map_insert(&group->map_identifier, node->identifier, node)) {
@@ -567,7 +574,7 @@ int constant_group_parse(enum parser_type type, int mark, struct string * string
             }
             break;
         case 4:
-            if(string_store(string, &constant->store, &group->identifier)) {
+            if(string_strcpy(string, length, &constant->store, &group->identifier)) {
                 return panic("failed to store string object");
             } else if(map_insert(&constant->group, group->identifier, group)) {
                 return panic("failed to insert map object");
@@ -610,7 +617,7 @@ void argument_destroy(struct argument * argument) {
     store_destroy(&argument->store);
 }
 
-int argument_parse(enum parser_type type, int mark, struct string * string, void * context) {
+int argument_parse(enum yaml_event event, int mark, char * string, size_t length, void * context) {
     struct argument_node * node;
     struct print_node * print;
     struct map * map;
@@ -618,7 +625,7 @@ int argument_parse(enum parser_type type, int mark, struct string * string, void
 
     switch(mark) {
         case 1:
-            if(type == parser_start) {
+            if(event == yaml_map_start) {
                 node = store_calloc(&argument->store, sizeof(*node));
                 if(!node) {
                     return panic("failed to calloc store object");
@@ -626,7 +633,7 @@ int argument_parse(enum parser_type type, int mark, struct string * string, void
                     node->next = argument->argument;
                     argument->argument = node;
                 }
-            } else if(type == parser_end) {
+            } else if(event = yaml_map_end) {
                 if(!argument->argument->identifier) {
                     return panic("invalid string object");
                 } else if(map_insert(&argument->identifier, argument->argument->identifier, argument->argument)) {
@@ -634,12 +641,12 @@ int argument_parse(enum parser_type type, int mark, struct string * string, void
                 }
             }
             break;
-        case 2: return string_store(string, &argument->store, &argument->argument->identifier); break;
-        case 3: return string_store(string, &argument->store, &argument->argument->handler); break;
+        case 2: return string_strcpy(string, length, &argument->store, &argument->argument->identifier); break;
+        case 3: return string_strcpy(string, length, &argument->store, &argument->argument->handler); break;
         case 5:
             argument->print = NULL;
-            if(type == parser_next)
-                return argument_parse(type, 6, string, context);
+            if(event == yaml_string)
+                return argument_parse(event, 6, string, length, context);
             break;
         case 6:
             print = store_calloc(&argument->store, sizeof(*print));
@@ -653,24 +660,24 @@ int argument_parse(enum parser_type type, int mark, struct string * string, void
                 }
                 argument->print = print;
 
-                if(argument_entry_parse(argument, string->string, string->length))
+                if(argument_entry_parse(argument, string, length))
                     return panic("failed toi entry push argument object");
             }
             break;
         case 8:
-            if(type == parser_start) {
+            if(event == yaml_map_start) {
                 argument->range = store_calloc(&argument->store, sizeof(*argument->range));
                 if(!argument->range)
                     return panic("failed to calloc store object");
-            } else if(type == parser_end) {
+            } else if(event = yaml_map_end) {
                 argument->range->next = argument->argument->range;
                 argument->argument->range = argument->range;
             }
             break;
-        case 9:  return string_long(string, &argument->range->min); break;
-        case 10: return string_long(string, &argument->range->max); break;
+        case 9:  return string_strtol(string, &argument->range->min); break;
+        case 10: return string_strtol(string, &argument->range->max); break;
         case 11:
-            if(type == parser_start) {
+            if(event == yaml_list_start) {
                 map = store_malloc(&argument->store, sizeof(*map));
                 if(!map) {
                     return panic("failed to malloc store object");
@@ -682,59 +689,59 @@ int argument_parse(enum parser_type type, int mark, struct string * string, void
             }
             break;
         case 12:
-            if(type == parser_start) {
+            if(event == yaml_map_start) {
                 argument->array = store_calloc(&argument->store, sizeof(*argument->array));
                 if(!argument->array)
                     return panic("failed to calloc store object");
-            } else if(type == parser_end) {
+            } else if(event = yaml_map_end) {
                 if(map_insert(argument->argument->map, &argument->array->index, argument->array->string))
                     return panic("failed to insert map object");
             }
             break;
-        case 13: return string_long(string, &argument->array->index); break;
-        case 14: return string_store(string, &argument->store, &argument->array->string); break;
+        case 13: return string_strtol(string, &argument->array->index); break;
+        case 14: return string_strcpy(string, length, &argument->store, &argument->array->string); break;
         case 15:
-            if(type == parser_start) {
+            if(event == yaml_map_start) {
                 argument->integer = store_calloc(&argument->store, sizeof(*argument->integer));
                 if(!argument->integer)
                     return panic("failed to calloc store object");
-            } else if(type == parser_end) {
+            } else if(event = yaml_map_end) {
                 argument->argument->integer = argument->integer;
             }
             break;
         case 16:
-            if(!strcmp("true", string->string))
+            if(!strcmp("true", string))
                 argument->integer->flag |= integer_sign;
             break;
         case 17:
-            if(!strcmp("true", string->string))
+            if(!strcmp("true", string))
                 argument->integer->flag |= integer_string;
             break;
         case 18:
-            if(!strcmp("true", string->string))
+            if(!strcmp("true", string))
                 argument->integer->flag |= integer_percent;
             break;
         case 19:
-            if(!strcmp("true", string->string))
+            if(!strcmp("true", string))
                 argument->integer->flag |= integer_inverse;
             break;
         case 20:
-            if(!strcmp("true", string->string))
+            if(!strcmp("true", string))
                 argument->integer->flag |= integer_absolute;
             break;
-        case 21: return string_long(string, &argument->integer->divide); break;
+        case 21: return string_strtol(string, &argument->integer->divide); break;
         case 23:
-            if(type == parser_start) {
+            if(event == yaml_map_start) {
                 argument->optional = store_calloc(&argument->store, sizeof(*argument->optional));
                 if(!argument->optional)
                     return panic("failed to calloc store object");
-            } else if(type == parser_end) {
+            } else if(event = yaml_map_end) {
                 argument->optional->next = argument->argument->optional;
                 argument->argument->optional = argument->optional;
             }
             break;
-        case 24: return string_long(string, &argument->optional->index); break;
-        case 25: return string_store(string, &argument->store, &argument->optional->string); break;
+        case 24: return string_strtol(string, &argument->optional->index); break;
+        case 25: return string_strcpy(string, length, &argument->store, &argument->optional->string); break;
     }
 
     return 0;
@@ -923,7 +930,7 @@ int table_item_combo_parse(struct table * table, char * path) {
 }
 
 int table_skill_parse(struct table * table, char * path) {
-    return parser_file2(&table->parser, skill_markup, path, skill_parse, &table->skill);
+    return parser_file(&table->parser, skill_tag, path, skill_parse, &table->skill);
 }
 
 int table_mob_parse(struct table * table, char * path) {
@@ -935,55 +942,55 @@ int table_mercenary_parse(struct table * table, char * path) {
 }
 
 int table_constant_parse(struct table * table, char * path) {
-    return parser_file(&table->parser, constant_markup, path, constant_parse, &table->constant);
+    return parser_file(&table->parser, constant_tag, path, constant_parse, &table->constant);
 }
 
 int table_constant_data_parse(struct table * table, char * path) {
-    return parser_file(&table->parser, constant_markup, path, constant_data_parse, &table->constant);
+    return parser_file(&table->parser, constant_tag, path, constant_data_parse, &table->constant);
 }
 
 int table_constant_group_parse(struct table * table, char * path) {
-    return parser_file(&table->parser, constant_group_markup, path, constant_group_parse, &table->constant);
+    return parser_file(&table->parser, constant_group_tag, path, constant_group_parse, &table->constant);
 }
 
 int table_argument_parse(struct table * table, char * path) {
-    return parser_file(&table->parser, argument_markup, path, argument_parse, &table->argument);
+    return parser_file(&table->parser, argument_tag, path, argument_parse, &table->argument);
 }
 
 int table_bonus_parse(struct table * table, char * path) {
-    return parser_file(&table->parser, argument_markup, path, argument_parse, &table->bonus);
+    return parser_file(&table->parser, argument_tag, path, argument_parse, &table->bonus);
 }
 
 int table_bonus2_parse(struct table * table, char * path) {
-    return parser_file(&table->parser, argument_markup, path, argument_parse, &table->bonus2);
+    return parser_file(&table->parser, argument_tag, path, argument_parse, &table->bonus2);
 }
 
 int table_bonus3_parse(struct table * table, char * path) {
-    return parser_file(&table->parser, argument_markup, path, argument_parse, &table->bonus3);
+    return parser_file(&table->parser, argument_tag, path, argument_parse, &table->bonus3);
 }
 
 int table_bonus4_parse(struct table * table, char * path) {
-    return parser_file(&table->parser, argument_markup, path, argument_parse, &table->bonus4);
+    return parser_file(&table->parser, argument_tag, path, argument_parse, &table->bonus4);
 }
 
 int table_bonus5_parse(struct table * table, char * path) {
-    return parser_file(&table->parser, argument_markup, path, argument_parse, &table->bonus5);
+    return parser_file(&table->parser, argument_tag, path, argument_parse, &table->bonus5);
 }
 
 int table_sc_start_parse(struct table * table, char * path) {
-    return parser_file(&table->parser, argument_markup, path, argument_parse, &table->sc_start);
+    return parser_file(&table->parser, argument_tag, path, argument_parse, &table->sc_start);
 }
 
 int table_sc_start2_parse(struct table * table, char * path) {
-    return parser_file(&table->parser, argument_markup, path, argument_parse, &table->sc_start2);
+    return parser_file(&table->parser, argument_tag, path, argument_parse, &table->sc_start2);
 }
 
 int table_sc_start4_parse(struct table * table, char * path) {
-    return parser_file(&table->parser, argument_markup, path, argument_parse, &table->sc_start4);
+    return parser_file(&table->parser, argument_tag, path, argument_parse, &table->sc_start4);
 }
 
 int table_statement_parse(struct table * table, char * path) {
-    return parser_file(&table->parser, argument_markup, path, argument_parse, &table->statement);
+    return parser_file(&table->parser, argument_tag, path, argument_parse, &table->statement);
 }
 
 struct item_node * item_start(struct table * table) {

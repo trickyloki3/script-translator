@@ -1,7 +1,7 @@
 #ifndef range_h
 #define range_h
 
-#include "pool.h"
+#include "slab.h"
 
 struct range_node {
     long min;
