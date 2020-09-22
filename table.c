@@ -88,9 +88,11 @@ int string_store(struct string * string, struct store * store, char ** result) {
 }
 
 int string_strtol(char * string, long * result) {
-    *result = strtol(string, NULL, 0);
+    char * last;
 
-    return 0;
+    *result = strtol(string, &last, 0);
+
+    return *last ? panic("failed to strtol") : 0;
 }
 
 int string_strcpy(char * string, size_t length, struct store * store, char ** result) {

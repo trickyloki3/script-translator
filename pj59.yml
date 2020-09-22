@@ -1,6 +1,6 @@
 source: |
   panic.h     ; header
-  pool.h      ; memory
+  slab.h      ; memory
   store.h     ; memory
   array.h     ; memory
   stack.h     ; container ; doubly linked list (non-circular)
@@ -10,23 +10,23 @@ source: |
   heap.h      ; memory
   csv.h       ; parser
   yaml.h      ; parser
-  parser.h    ; parser, schema
+  meta.h      ; parser
   table.h     ; database
   script.h    ; translater
 
 layout: |
   script.h
   table.h
-    parser.h
       csv.h
       yaml.h
+      meta.h
         event.h
         heap.h
           stack.h
           map.h
           range.h
           logic.h
-            pool.h
+            slab.h
             store.h
             array.h
               panic.h
