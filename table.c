@@ -6,7 +6,7 @@ int string_store(struct string *, struct store *, char **);
 int string_strtol(char *, long *);
 int string_strcpy(char *, size_t, struct store *, char **);
 
-struct tag skill_tag[] = {
+struct meta_tag skill_tag[] = {
     {1, meta_map, 0, NULL},
     {2, meta_list, 1, "Body"},
     {3, meta_map, 2, NULL},
@@ -17,7 +17,7 @@ struct tag skill_tag[] = {
     {0, 0, 0},
 };
 
-struct tag constant_tag[] = {
+struct meta_tag constant_tag[] = {
     {1, meta_list, 0, NULL},
     {2, meta_map, 1, NULL},
     {3, meta_string, 2, "identifier"},
@@ -31,7 +31,7 @@ struct tag constant_tag[] = {
     {0, 0, 0},
 };
 
-struct tag constant_group_tag[] = {
+struct meta_tag constant_group_tag[] = {
     {1, meta_list, 0, NULL},
     {2, meta_map, 1, NULL},
     {3, meta_list, 2, "group"},
@@ -40,7 +40,7 @@ struct tag constant_group_tag[] = {
     {0, 0, 0},
 };
 
-struct tag argument_tag[] = {
+struct meta_tag argument_tag[] = {
     {1, meta_list, 0, NULL},
     {2, meta_map, 1, NULL},
     {3, meta_string, 2, "identifier"},
@@ -816,9 +816,9 @@ int argument_entry_create(struct argument * argument, char * string, size_t leng
 }
 
 int table_create(struct table * table, size_t size, struct heap * heap) {
-    if(parser_create(&table->parser, size)) {
-        panic("failed to create parser object");
-        goto parser_fail;
+    if(meta_create(&table->meta, 64, size)) {
+        panic("failed to create meta object");
+        goto meta_fail;
     } else if(item_create(&table->item, size, heap)) {
         panic("failed to create item object");
         goto item_fail;
@@ -897,8 +897,8 @@ mob_fail:
 skill_fail:
     item_destroy(&table->item);
 item_fail:
-    parser_destroy(&table->parser);
-parser_fail:
+    meta_destroy(&table->meta);
+meta_fail:
     return 1;
 }
 
@@ -918,7 +918,7 @@ void table_destroy(struct table * table) {
     mob_destroy(&table->mob);
     skill_destroy(&table->skill);
     item_destroy(&table->item);
-    parser_destroy(&table->parser);
+    meta_destroy(&table->meta);
 }
 
 int table_item_parse(struct table * table, char * path) {
@@ -930,7 +930,7 @@ int table_item_combo_parse(struct table * table, char * path) {
 }
 
 int table_skill_parse(struct table * table, char * path) {
-    return parser_file(&table->parser, skill_tag, path, skill_parse, &table->skill);
+    return meta_parse(&table->meta, skill_tag, path, skill_parse, &table->skill);
 }
 
 int table_mob_parse(struct table * table, char * path) {
@@ -942,55 +942,55 @@ int table_mercenary_parse(struct table * table, char * path) {
 }
 
 int table_constant_parse(struct table * table, char * path) {
-    return parser_file(&table->parser, constant_tag, path, constant_parse, &table->constant);
+    return meta_parse(&table->meta, constant_tag, path, constant_parse, &table->constant);
 }
 
 int table_constant_data_parse(struct table * table, char * path) {
-    return parser_file(&table->parser, constant_tag, path, constant_data_parse, &table->constant);
+    return meta_parse(&table->meta, constant_tag, path, constant_data_parse, &table->constant);
 }
 
 int table_constant_group_parse(struct table * table, char * path) {
-    return parser_file(&table->parser, constant_group_tag, path, constant_group_parse, &table->constant);
+    return meta_parse(&table->meta, constant_group_tag, path, constant_group_parse, &table->constant);
 }
 
 int table_argument_parse(struct table * table, char * path) {
-    return parser_file(&table->parser, argument_tag, path, argument_parse, &table->argument);
+    return meta_parse(&table->meta, argument_tag, path, argument_parse, &table->argument);
 }
 
 int table_bonus_parse(struct table * table, char * path) {
-    return parser_file(&table->parser, argument_tag, path, argument_parse, &table->bonus);
+    return meta_parse(&table->meta, argument_tag, path, argument_parse, &table->bonus);
 }
 
 int table_bonus2_parse(struct table * table, char * path) {
-    return parser_file(&table->parser, argument_tag, path, argument_parse, &table->bonus2);
+    return meta_parse(&table->meta, argument_tag, path, argument_parse, &table->bonus2);
 }
 
 int table_bonus3_parse(struct table * table, char * path) {
-    return parser_file(&table->parser, argument_tag, path, argument_parse, &table->bonus3);
+    return meta_parse(&table->meta, argument_tag, path, argument_parse, &table->bonus3);
 }
 
 int table_bonus4_parse(struct table * table, char * path) {
-    return parser_file(&table->parser, argument_tag, path, argument_parse, &table->bonus4);
+    return meta_parse(&table->meta, argument_tag, path, argument_parse, &table->bonus4);
 }
 
 int table_bonus5_parse(struct table * table, char * path) {
-    return parser_file(&table->parser, argument_tag, path, argument_parse, &table->bonus5);
+    return meta_parse(&table->meta, argument_tag, path, argument_parse, &table->bonus5);
 }
 
 int table_sc_start_parse(struct table * table, char * path) {
-    return parser_file(&table->parser, argument_tag, path, argument_parse, &table->sc_start);
+    return meta_parse(&table->meta, argument_tag, path, argument_parse, &table->sc_start);
 }
 
 int table_sc_start2_parse(struct table * table, char * path) {
-    return parser_file(&table->parser, argument_tag, path, argument_parse, &table->sc_start2);
+    return meta_parse(&table->meta, argument_tag, path, argument_parse, &table->sc_start2);
 }
 
 int table_sc_start4_parse(struct table * table, char * path) {
-    return parser_file(&table->parser, argument_tag, path, argument_parse, &table->sc_start4);
+    return meta_parse(&table->meta, argument_tag, path, argument_parse, &table->sc_start4);
 }
 
 int table_statement_parse(struct table * table, char * path) {
-    return parser_file(&table->parser, argument_tag, path, argument_parse, &table->statement);
+    return meta_parse(&table->meta, argument_tag, path, argument_parse, &table->statement);
 }
 
 struct item_node * item_start(struct table * table) {

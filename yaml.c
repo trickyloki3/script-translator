@@ -127,7 +127,7 @@ static inline int yaml_pop(struct yaml * yaml, int scope) {
 
 static inline void yaml_comment(struct yaml * yaml) {
     yaml->token = yamllex(yaml->scanner);
-    while(yaml->token == l_empty)
+    while(yaml->token == b_break)
         yaml->token = yamllex(yaml->scanner);
 }
 
@@ -145,7 +145,7 @@ static inline int yaml_document(struct yaml * yaml) {
     yaml_comment(yaml);
 
     while(yaml->token) {
-        if(yaml->token == s_indent) {
+        if(yaml->token == s_separate_in_line) {
             yaml->scope = yaml->space;
             yaml->token = yamllex(yaml->scanner);
         } else {
@@ -185,44 +185,60 @@ static inline int yaml_document(struct yaml * yaml) {
 }
 
 static inline int yaml_block(struct yaml * yaml) {
-    if(yaml->token == ns_key_one_line) {
-        if(yaml_push(yaml, yaml_map))
-            return panic("failed to start yaml object");
-
-        if(yaml->cb(yaml_string, yaml->string, yaml->length, yaml->arg))
-            return panic("failed to process scalar event");
-
-        if(yaml_separate(yaml))
-            return panic("failed to container yaml object");
-    } else if(yaml->token == c_sequence_entry) {
-        if(yaml_push(yaml, yaml_sequence))
-            return panic("failed ot start yaml object");
-
-        if(yaml_separate(yaml))
-            return panic("failed to container yaml object");
-    } else {
-        if(yaml_plain(yaml))
-            return panic("failed to plain yaml object");
+    switch(yaml->token) {
+        case ns_key_one_line:
+            if(yaml_push(yaml, yaml_map))
+                return panic("failed to start yaml object");
+            if(yaml->cb(yaml_string, yaml->string, yaml->length, yaml->arg))
+                return panic("failed to process scalar event");
+            if(yaml_separate(yaml))
+                return panic("failed to container yaml object");
+            break;
+        case c_sequence_entry:
+            if(yaml_push(yaml, yaml_sequence))
+                return panic("failed ot start yaml object");
+            if(yaml_separate(yaml))
+                return panic("failed to container yaml object");
+            break;
+        case ns_plain_one_line:
+            if(yaml->cb(yaml_string, yaml->string, yaml->length, yaml->arg))
+                return panic("failed to process scalar event");
+            if(yaml_newline(yaml))
+                return panic("failed to parse newline");
+            break;
+        case c_literal:
+            if(yaml_scalar(yaml, 1))
+                return panic("failed to scalar yaml object");
+            break;
+        case c_folded:
+            if(yaml_scalar(yaml, 0))
+                return panic("failed to scalar yaml object");
+            break;
+        default:
+            return panic("invalid token - %d", yaml->token);
     }
 
     return 0;
 }
 
 static inline int yaml_plain(struct yaml * yaml) {
-    if(yaml->token == ns_plain_one_line) {
-        if(yaml->cb(yaml_string, yaml->string, yaml->length, yaml->arg))
-            return panic("failed to process scalar event");
-
-        if(yaml_newline(yaml))
-            return panic("failed to parse newline");
-    } else if(yaml->token == c_literal) {
-        if(yaml_scalar(yaml, 1))
-            return panic("failed to scalar yaml object");
-    } else if(yaml->token == c_folded) {
-        if(yaml_scalar(yaml, 0))
-            return panic("failed to scalar yaml object");
-    } else {
-        return panic("invalid token - %d", yaml->token);
+    switch(yaml->token) {
+        case ns_plain_one_line:
+            if(yaml->cb(yaml_string, yaml->string, yaml->length, yaml->arg))
+                return panic("failed to process scalar event");
+            if(yaml_newline(yaml))
+                return panic("failed to parse newline");
+            break;
+        case c_literal:
+            if(yaml_scalar(yaml, 1))
+                return panic("failed to scalar yaml object");
+            break;
+        case c_folded:
+            if(yaml_scalar(yaml, 0))
+                return panic("failed to scalar yaml object");
+            break;
+        default:
+            return panic("invalid token - %d", yaml->token);
     }
 
     return 0;
@@ -239,7 +255,7 @@ static inline int yaml_separate(struct yaml * yaml) {
     } else if(yaml->token == b_break) {
         yaml_comment(yaml);
 
-        if(yaml->token != s_indent)
+        if(yaml->token != s_separate_in_line)
             return panic("expected space");
 
         yaml->scope = yaml->space;
@@ -264,7 +280,7 @@ static inline int yaml_scalar(struct yaml * yaml, int flag) {
     if(yaml_newline(yaml))
         return panic("failed to parse newline");
 
-    if(yaml->token != s_indent)
+    if(yaml->token != s_separate_in_line)
         return panic("expected space");
 
     yaml->scope = yaml->space;
@@ -274,7 +290,7 @@ static inline int yaml_scalar(struct yaml * yaml, int flag) {
 
     memcpy(&cursor, yaml->buffer, sizeof(cursor));
 
-    while(yaml->token == s_indent && yaml->scope <= yaml->space) {
+    while(yaml->token == s_separate_in_line && yaml->scope <= yaml->space) {
         if(flag) {
             if(yaml_putc(&cursor, '\n', newline))
                 return panic("failed to putc buffer object");
@@ -306,7 +322,7 @@ static inline int yaml_scalar(struct yaml * yaml, int flag) {
 
         newline = 1;
         yaml->token = yamllex(yaml->scanner);
-        while(yaml->token == l_empty) {
+        while(yaml->token == b_break) {
             newline++;
             yaml->token = yamllex(yaml->scanner);
         }

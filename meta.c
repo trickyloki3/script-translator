@@ -1,8 +1,12 @@
 #include "meta.h"
 
-struct meta_node * meta_node_create(struct meta *, struct meta_node *, char *, size_t);
-void meta_node_destroy(struct meta *, struct meta_node *);
-void meta_node_print(struct meta_node *, int, char *);
+struct meta_state {
+    struct meta * meta;
+    struct meta_node * root;
+    struct meta_node * node;
+    meta_cb cb;
+    void * arg;
+};
 
 struct meta_node * meta_node_create(struct meta * meta, struct meta_node * root,  char * key, size_t size) {
     struct meta_node * node;
@@ -75,7 +79,7 @@ void meta_node_print(struct meta_node * node, int indent, char * key) {
         meta_node_print(node->list, indent + 1, NULL);
 }
 
-int meta_create(struct meta * meta, size_t size) {
+int meta_create(struct meta * meta, size_t depth, size_t size) {
     int status = 0;
 
     if(pool_create(&meta->pool, sizeof(struct map_node), size / sizeof(struct map_node))) {
@@ -84,7 +88,13 @@ int meta_create(struct meta * meta, size_t size) {
         if(zone_create(&meta->zone, size)) {
             status = panic("failed to create zone object");
         } else {
-            meta->root = NULL;
+            if(yaml_create(&meta->yaml, depth, size)) {
+                status = panic("failed to create yaml object");
+            } else {
+                meta->root = NULL;
+            }
+            if(status)
+                zone_destroy(&meta->zone);
         }
         if(status)
             pool_destroy(&meta->pool);
@@ -95,6 +105,7 @@ int meta_create(struct meta * meta, size_t size) {
 
 void meta_destroy(struct meta * meta) {
     meta_clear(meta);
+    yaml_destroy(&meta->yaml);
     zone_destroy(&meta->zone);
     pool_destroy(&meta->pool);
 }
@@ -143,7 +154,7 @@ struct meta_node * meta_add(struct meta * meta, struct meta_node * root, char * 
     return NULL;
 }
 
-int meta_load(struct meta * meta, struct tag * tag) {
+int meta_load(struct meta * meta, struct meta_tag * tag) {
     struct meta_node * root;
     struct meta_node * node;
 
@@ -172,6 +183,105 @@ int meta_load(struct meta * meta, struct tag * tag) {
 
         tag++;
     }
+
+    return 0;
+}
+
+static inline int meta_state_push(struct meta_state * state, enum yaml_event event, struct meta_node * node) {
+    if(event == yaml_map_start) {
+        node->scope = meta_map;
+        state->root = node;
+
+        if(node->type & meta_map)
+            return state->cb(event, node->id, NULL, 0, state->arg);
+    } else if(event == yaml_list_start) {
+        node->scope = meta_list;
+        state->root = node;
+
+        if(node->type & meta_list)
+            return state->cb(event, node->id, NULL, 0, state->arg);
+    } else {
+        return panic("invalid event - %d", event);
+    }
+
+    return 0;
+}
+
+static inline int meta_state_pop(struct meta_state * state, enum yaml_event event, int type) {
+    struct meta_node * node;
+
+    node = state->root;
+    state->root = node->prev;
+
+    if(node->type & type)
+        return state->cb(event, node->id, NULL, 0, state->arg);
+
+    return 0;
+}
+
+int meta_state_parse(enum yaml_event event, char * string, size_t length, void * arg) {
+    struct meta_state * state = arg;
+    struct meta_node * node;
+
+    if(state->root->scope == meta_map) {
+        if(state->node) {
+            node = state->node;
+            state->node = NULL;
+
+            if(event == yaml_string) {
+                if(node->type & meta_string)
+                    return state->cb(event, node->id, string, length, state->arg);
+            } else {
+                return meta_state_push(state, event, node);
+            }
+        } else {
+            if(event == yaml_map_end) {
+                meta_state_pop(state, event, meta_map);
+            } else if(event == yaml_string) {
+                state->node = meta_add(state->meta, state->root, string, length);
+                if(!state->node)
+                    return panic("failed to add meta object");
+            } else {
+                return panic("invalid event - %d", event);
+            }
+        }
+    } else {
+        if(event == yaml_list_end) {
+            meta_state_pop(state, event, meta_list);
+        } else {
+            node = meta_add(state->meta, state->root, NULL, 0);
+            if(!node)
+                return panic("failed to add meta object");
+
+            if(event == yaml_string) {
+                if(node->type & meta_string)
+                    return state->cb(event, node->id, string, length, state->arg);
+            } else {
+                return meta_state_push(state, event, node);
+            }
+        }
+    }
+
+    return 0;
+}
+
+int meta_parse(struct meta * meta, struct meta_tag * tag, const char * path, meta_cb cb, void * arg) {
+    struct meta_state state;
+
+    if(meta_load(meta, tag))
+        return panic("failed to load meta object");
+
+    state.meta = meta;
+    state.root = NULL;
+    state.node = NULL;
+    state.cb = cb;
+    state.arg = arg;
+
+    if(meta_state_push(&state, yaml_list_start, meta->root))
+        return panic("failed to push state object");
+
+    if(yaml_parse(&meta->yaml, path, meta_state_parse, &state))
+        return panic("failed to parse yaml object");
 
     return 0;
 }

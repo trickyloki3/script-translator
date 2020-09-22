@@ -3,7 +3,7 @@
 
 #include "heap.h"
 #include "csv.h"
-#include "parser.h"
+#include "meta.h"
 
 struct item_combo_node {
     char * combo;
@@ -186,7 +186,7 @@ int argument_entry_parse(struct argument *, char *, size_t);
 int argument_entry_create(struct argument *, char *, size_t);
 
 struct table {
-    struct parser parser;
+    struct meta meta;
     struct item item;
     struct skill skill;
     struct mob mob;
