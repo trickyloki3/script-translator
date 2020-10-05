@@ -1,16 +1,16 @@
 source: |
   panic.h     ; header
-  slab.h      ; memory
+  pool.h      ; memory
   store.h     ; memory
   array.h     ; memory
   stack.h     ; container ; doubly linked list (non-circular)
   map.h       ; container ; red black tree
+  tag.h       ; container
   range.h     ; container
   logic.h     ; container ; disjunctive normal form
   heap.h      ; memory
   csv.h       ; parser
   yaml.h      ; parser
-  meta.h      ; parser
   table.h     ; database
   script.h    ; translater
 
@@ -19,14 +19,14 @@ layout: |
   table.h
       csv.h
       yaml.h
-      meta.h
         event.h
         heap.h
           stack.h
           map.h
+          tag.h
           range.h
           logic.h
-            slab.h
+            pool.h
             store.h
             array.h
               panic.h

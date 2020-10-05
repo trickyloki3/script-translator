@@ -1,9 +1,9 @@
 OBJECT+=panic.o
-OBJECT+=slab.o
+OBJECT+=pool.o
 OBJECT+=array.o
 OBJECT+=stack.o
 OBJECT+=map.o
-OBJECT+=meta.o
+OBJECT+=tag.o
 OBJECT+=range.o
 OBJECT+=logic.o
 OBJECT+=store.o

@@ -1,7 +1,7 @@
 #ifndef logic_h
 #define logic_h
 
-#include "slab.h"
+#include "pool.h"
 
 enum logic_type {
     cond,

@@ -1,4 +1,4 @@
-#include "slab.h"
+#include "pool.h"
 
 int pool_create(struct pool * pool, size_t size, size_t count) {
     if(size < sizeof(struct pool_node))

@@ -1,5 +1,5 @@
-#ifndef slab_h
-#define slab_h
+#ifndef pool_h
+#define pool_h
 
 #include "panic.h"
 

@@ -1,7 +1,7 @@
 #ifndef stack_h
 #define stack_h
 
-#include "slab.h"
+#include "pool.h"
 
 struct stack_node {
     void ** array;

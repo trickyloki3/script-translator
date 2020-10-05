@@ -31,10 +31,6 @@ ns-plain-one-line       {ns-plain-first}{ns-plain-char}*
     return c_sequence_entry;
 }
 
-{c-mapping-value} {
-    return c_mapping_value;
-}
-
 {c-literal} {
     return c_literal;
 }
@@ -88,7 +84,7 @@ ns-plain-one-line       {ns-plain-first}{ns-plain-char}*
 
     yyextra->string = yytext;
     yyextra->length = yyleng;
-    return ns_key_one_line;
+    return c_mapping_value;
 }
 
 <INITIAL,SCALAR>.|{b-break} {

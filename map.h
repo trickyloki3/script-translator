@@ -1,7 +1,7 @@
 #ifndef map_h
 #define map_h
 
-#include "slab.h"
+#include "pool.h"
 
 enum map_color {
     black,

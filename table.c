@@ -6,66 +6,66 @@ int string_store(struct string *, struct store *, char **);
 int string_strtol(char *, long *);
 int string_strcpy(char *, size_t, struct store *, char **);
 
-struct meta_tag skill_tag[] = {
-    {1, meta_map, 0, NULL},
-    {2, meta_list, 1, "Body"},
-    {3, meta_map, 2, NULL},
-    {4, meta_string, 3, "Id"},
-    {4, meta_string, 4, "Name"},
-    {4, meta_string, 5, "Description"},
-    {4, meta_string, 6, "MaxLevel"},
+struct tag_node skill_tag[] = {
+    {1, tag_map, 0, NULL},
+    {2, tag_list, 1, "Body"},
+    {3, tag_map, 2, NULL},
+    {4, tag_string, 3, "Id"},
+    {4, tag_string, 4, "Name"},
+    {4, tag_string, 5, "Description"},
+    {4, tag_string, 6, "MaxLevel"},
     {0, 0, 0},
 };
 
-struct meta_tag constant_tag[] = {
-    {1, meta_list, 0, NULL},
-    {2, meta_map, 1, NULL},
-    {3, meta_string, 2, "identifier"},
-    {3, meta_string, 3, "value"},
-    {3, meta_string, 4, "tag"},
-    {3, meta_list, 5, "range"},
-    {4, meta_map, 6, NULL},
-    {5, meta_string, 7, "min"},
-    {5, meta_string, 8, "max"},
-    {3, meta_string, 9, "variable"},
+struct tag_node constant_tag[] = {
+    {1, tag_list, 0, NULL},
+    {2, tag_map, 1, NULL},
+    {3, tag_string, 2, "identifier"},
+    {3, tag_string, 3, "value"},
+    {3, tag_string, 4, "tag"},
+    {3, tag_list, 5, "range"},
+    {4, tag_map, 6, NULL},
+    {5, tag_string, 7, "min"},
+    {5, tag_string, 8, "max"},
+    {3, tag_string, 9, "variable"},
     {0, 0, 0},
 };
 
-struct meta_tag constant_group_tag[] = {
-    {1, meta_list, 0, NULL},
-    {2, meta_map, 1, NULL},
-    {3, meta_list, 2, "group"},
-    {4, meta_string, 3, NULL},
-    {3, meta_string, 4, "identifier"},
+struct tag_node constant_group_tag[] = {
+    {1, tag_list, 0, NULL},
+    {2, tag_map, 1, NULL},
+    {3, tag_list, 2, "group"},
+    {4, tag_string, 3, NULL},
+    {3, tag_string, 4, "identifier"},
     {0, 0, 0},
 };
 
-struct meta_tag argument_tag[] = {
-    {1, meta_list, 0, NULL},
-    {2, meta_map, 1, NULL},
-    {3, meta_string, 2, "identifier"},
-    {3, meta_string, 3, "handler"},
-    {3, meta_list | meta_string, 5, "print"},
-    {4, meta_string, 6, NULL},
-    {3, meta_list, 7, "range"},
-    {4, meta_map, 8, NULL},
-    {5, meta_string, 9, "min"},
-    {5, meta_string, 10, "max"},
-    {3, meta_list, 11, "array"},
-    {4, meta_map, 12, NULL},
-    {5, meta_string, 13, "index"},
-    {5, meta_string, 14, "string"},
-    {3, meta_map, 15, "integer"},
-    {4, meta_string, 16, "sign"},
-    {4, meta_string, 17, "string"},
-    {4, meta_string, 18, "percent"},
-    {4, meta_string, 19, "inverse"},
-    {4, meta_string, 20, "absolute"},
-    {4, meta_string, 21, "divide"},
-    {3, meta_list, 22, "optional"},
-    {4, meta_map, 23, NULL},
-    {5, meta_string, 24, "index"},
-    {5, meta_string, 25, "string"},
+struct tag_node argument_tag[] = {
+    {1, tag_list, 0, NULL},
+    {2, tag_map, 1, NULL},
+    {3, tag_string, 2, "identifier"},
+    {3, tag_string, 3, "handler"},
+    {3, tag_list | tag_string, 5, "print"},
+    {4, tag_string, 6, NULL},
+    {3, tag_list, 7, "range"},
+    {4, tag_map, 8, NULL},
+    {5, tag_string, 9, "min"},
+    {5, tag_string, 10, "max"},
+    {3, tag_list, 11, "array"},
+    {4, tag_map, 12, NULL},
+    {5, tag_string, 13, "index"},
+    {5, tag_string, 14, "string"},
+    {3, tag_map, 15, "integer"},
+    {4, tag_string, 16, "sign"},
+    {4, tag_string, 17, "string"},
+    {4, tag_string, 18, "percent"},
+    {4, tag_string, 19, "inverse"},
+    {4, tag_string, 20, "absolute"},
+    {4, tag_string, 21, "divide"},
+    {3, tag_list, 22, "optional"},
+    {4, tag_map, 23, NULL},
+    {5, tag_string, 24, "index"},
+    {5, tag_string, 25, "string"},
     {0, 0, 0},
 };
 
@@ -818,9 +818,9 @@ int argument_entry_create(struct argument * argument, char * string, size_t leng
 }
 
 int table_create(struct table * table, size_t size, struct heap * heap) {
-    if(meta_create(&table->meta, 64, size)) {
-        panic("failed to create meta object");
-        goto meta_fail;
+    if(yaml_create(&table->yaml, 64, size)) {
+        panic("failed to create yaml object");
+        goto yaml_fail;
     } else if(item_create(&table->item, size, heap)) {
         panic("failed to create item object");
         goto item_fail;
@@ -899,8 +899,8 @@ mob_fail:
 skill_fail:
     item_destroy(&table->item);
 item_fail:
-    meta_destroy(&table->meta);
-meta_fail:
+    yaml_destroy(&table->yaml);
+yaml_fail:
     return 1;
 }
 
@@ -920,7 +920,7 @@ void table_destroy(struct table * table) {
     mob_destroy(&table->mob);
     skill_destroy(&table->skill);
     item_destroy(&table->item);
-    meta_destroy(&table->meta);
+    yaml_destroy(&table->yaml);
 }
 
 int table_item_parse(struct table * table, char * path) {
@@ -932,7 +932,7 @@ int table_item_combo_parse(struct table * table, char * path) {
 }
 
 int table_skill_parse(struct table * table, char * path) {
-    return meta_parse(&table->meta, skill_tag, path, skill_parse, &table->skill);
+    return yaml_parse(&table->yaml, skill_tag, path, skill_parse, &table->skill);
 }
 
 int table_mob_parse(struct table * table, char * path) {
@@ -944,55 +944,55 @@ int table_mercenary_parse(struct table * table, char * path) {
 }
 
 int table_constant_parse(struct table * table, char * path) {
-    return meta_parse(&table->meta, constant_tag, path, constant_parse, &table->constant);
+    return yaml_parse(&table->yaml, constant_tag, path, constant_parse, &table->constant);
 }
 
 int table_constant_data_parse(struct table * table, char * path) {
-    return meta_parse(&table->meta, constant_tag, path, constant_data_parse, &table->constant);
+    return yaml_parse(&table->yaml, constant_tag, path, constant_data_parse, &table->constant);
 }
 
 int table_constant_group_parse(struct table * table, char * path) {
-    return meta_parse(&table->meta, constant_group_tag, path, constant_group_parse, &table->constant);
+    return yaml_parse(&table->yaml, constant_group_tag, path, constant_group_parse, &table->constant);
 }
 
 int table_argument_parse(struct table * table, char * path) {
-    return meta_parse(&table->meta, argument_tag, path, argument_parse, &table->argument);
+    return yaml_parse(&table->yaml, argument_tag, path, argument_parse, &table->argument);
 }
 
 int table_bonus_parse(struct table * table, char * path) {
-    return meta_parse(&table->meta, argument_tag, path, argument_parse, &table->bonus);
+    return yaml_parse(&table->yaml, argument_tag, path, argument_parse, &table->bonus);
 }
 
 int table_bonus2_parse(struct table * table, char * path) {
-    return meta_parse(&table->meta, argument_tag, path, argument_parse, &table->bonus2);
+    return yaml_parse(&table->yaml, argument_tag, path, argument_parse, &table->bonus2);
 }
 
 int table_bonus3_parse(struct table * table, char * path) {
-    return meta_parse(&table->meta, argument_tag, path, argument_parse, &table->bonus3);
+    return yaml_parse(&table->yaml, argument_tag, path, argument_parse, &table->bonus3);
 }
 
 int table_bonus4_parse(struct table * table, char * path) {
-    return meta_parse(&table->meta, argument_tag, path, argument_parse, &table->bonus4);
+    return yaml_parse(&table->yaml, argument_tag, path, argument_parse, &table->bonus4);
 }
 
 int table_bonus5_parse(struct table * table, char * path) {
-    return meta_parse(&table->meta, argument_tag, path, argument_parse, &table->bonus5);
+    return yaml_parse(&table->yaml, argument_tag, path, argument_parse, &table->bonus5);
 }
 
 int table_sc_start_parse(struct table * table, char * path) {
-    return meta_parse(&table->meta, argument_tag, path, argument_parse, &table->sc_start);
+    return yaml_parse(&table->yaml, argument_tag, path, argument_parse, &table->sc_start);
 }
 
 int table_sc_start2_parse(struct table * table, char * path) {
-    return meta_parse(&table->meta, argument_tag, path, argument_parse, &table->sc_start2);
+    return yaml_parse(&table->yaml, argument_tag, path, argument_parse, &table->sc_start2);
 }
 
 int table_sc_start4_parse(struct table * table, char * path) {
-    return meta_parse(&table->meta, argument_tag, path, argument_parse, &table->sc_start4);
+    return yaml_parse(&table->yaml, argument_tag, path, argument_parse, &table->sc_start4);
 }
 
 int table_statement_parse(struct table * table, char * path) {
-    return meta_parse(&table->meta, argument_tag, path, argument_parse, &table->statement);
+    return yaml_parse(&table->yaml, argument_tag, path, argument_parse, &table->statement);
 }
 
 struct item_node * item_start(struct table * table) {

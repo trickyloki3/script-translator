@@ -1,7 +1,7 @@
 #ifndef yaml_h
 #define yaml_h
 
-#include "panic.h"
+#include "tag.h"
 
 enum yaml_event {
     yaml_list_start = 1,
@@ -11,15 +11,10 @@ enum yaml_event {
     yaml_string
 };
 
-typedef int (* yaml_cb) (enum yaml_event, char *, size_t, void *);
-
-enum yaml_type {
-    yaml_sequence,
-    yaml_map
-};
+typedef int (* yaml_cb) (enum yaml_event, int, char *, size_t, void *);
 
 struct yaml_node {
-    enum yaml_type type;
+    enum yaml_event event;
     int scope;
     struct yaml_node * next;
     struct yaml_node * prev;
@@ -39,14 +34,16 @@ enum yaml_token {
     s_separate_in_line,
     b_break,
     nb_char,
-    ns_plain_one_line,
-    ns_key_one_line
+    ns_plain_one_line
 };
 
 struct yaml {
     struct yaml_node * stack;
     struct yaml_buffer * buffer;
+    struct tag tag;
     void * scanner;
+    struct tag_node * iter;
+    struct tag_node * next;
     yaml_cb cb;
     void * arg;
     struct yaml_node * root;
@@ -60,6 +57,6 @@ struct yaml {
 
 int yaml_create(struct yaml *, size_t, size_t);
 void yaml_destroy(struct yaml *);
-int yaml_parse(struct yaml *, const char *, yaml_cb, void *);
+int yaml_parse(struct yaml *, struct tag_node *, const char *, yaml_cb, void *);
 
 #endif
