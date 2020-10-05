@@ -141,16 +141,16 @@ void item_destroy(struct item * item) {
     store_destroy(&item->store);
 }
 
-int item_parse(enum parser_type type, int mark, struct string * string, void * context) {
+int item_parse(enum csv_event type, int mark, struct string * string, void * context) {
     struct item * item = context;
 
     switch(mark) {
         case 0:
-            if(type == parser_start) {
+            if(type == csv_start) {
                 item->item = store_calloc(&item->store, sizeof(*item->item));
                 if(!item->item)
                     return panic("failed to calloc store object");
-            } else if(type == parser_end) {
+            } else if(type == csv_end) {
                 if(map_insert(&item->id, &item->item->id, item->item)) {
                     return panic("failed to insert map object");
                 } else if(map_insert(&item->name, item->item->name, item->item)) {
@@ -211,7 +211,7 @@ int item_script_parse(struct item * item, char * string) {
     return 0;
 }
 
-int item_combo_parse(enum parser_type type, int mark, struct string * string, void * context) {
+int item_combo_parse(enum csv_event type, int mark, struct string * string, void * context) {
     struct item * item = context;
 
     char * cursor;
@@ -362,16 +362,16 @@ void mob_destroy(struct mob * mob) {
     store_destroy(&mob->store);
 }
 
-int mob_parse(enum parser_type type, int mark, struct string * string, void * context) {
+int mob_parse(enum csv_event type, int mark, struct string * string, void * context) {
     struct mob * mob = context;
 
     switch(mark) {
         case 0:
-            if(type == parser_start) {
+            if(type == csv_start) {
                 mob->mob = store_calloc(&mob->store, sizeof(*mob->mob));
                 if(!mob->mob)
                     return panic("failed to calloc store object");
-            } else if(type == parser_end) {
+            } else if(type == csv_end) {
                 if(map_insert(&mob->id, &mob->mob->id, mob->mob)) {
                     return panic("failed to insert map object");
                 } else if(map_insert(&mob->sprite, mob->mob->sprite, mob->mob)) {
@@ -407,16 +407,16 @@ void mercenary_destroy(struct mercenary * mercenary) {
     store_destroy(&mercenary->store);
 }
 
-int mercenary_parse(enum parser_type type, int mark, struct string * string, void * context) {
+int mercenary_parse(enum csv_event type, int mark, struct string * string, void * context) {
     struct mercenary * mercenary = context;
 
     switch(mark) {
         case 0:
-            if(type == parser_start) {
+            if(type == csv_start) {
                 mercenary->mercenary = store_calloc(&mercenary->store, sizeof(*mercenary->mercenary));
                 if(!mercenary->mercenary)
                     return panic("failed to calloc store object");
-            } else if(type == parser_end) {
+            } else if(type == csv_end) {
                 if(map_insert(&mercenary->id, &mercenary->mercenary->id, mercenary->mercenary))
                     return panic("failed to insert map object");
             }

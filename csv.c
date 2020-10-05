@@ -2,7 +2,7 @@
 
 #include "csv_scanner.h"
 
-int csv_parse(const char * path, parser_cb callback, void * context) {
+int csv_parse(const char * path, csv_cb cb, void * arg) {
     int status = 0;
 
     FILE * file;
@@ -19,8 +19,8 @@ int csv_parse(const char * path, parser_cb callback, void * context) {
             csvrestart(file, scanner);
 
             csv.index = 0;
-            csv.callback = callback;
-            csv.context = context;
+            csv.cb = cb;
+            csv.arg = arg;
 
             if(csvlex(scanner))
                 status = panic("failed to parse %s", path);

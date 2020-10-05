@@ -19,7 +19,6 @@ layout: |
   table.h
       csv.h
       yaml.h
-        event.h
         heap.h
           stack.h
           map.h

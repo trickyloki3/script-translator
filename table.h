@@ -31,9 +31,9 @@ struct item {
 
 int item_create(struct item *, size_t, struct heap *);
 void item_destroy(struct item *);
-int item_parse(enum parser_type, int, struct string *, void *);
+int item_parse(enum csv_event, int, struct string *, void *);
 int item_script_parse(struct item *, char *);
-int item_combo_parse(enum parser_type, int, struct string *, void *);
+int item_combo_parse(enum csv_event, int, struct string *, void *);
 
 struct skill_node {
     long id;
@@ -68,7 +68,7 @@ struct mob {
 
 int mob_create(struct mob *, size_t, struct heap *);
 void mob_destroy(struct mob *);
-int mob_parse(enum parser_type, int, struct string *, void *);
+int mob_parse(enum csv_event, int, struct string *, void *);
 
 struct mercenary_node {
     long id;
@@ -83,7 +83,7 @@ struct mercenary {
 
 int mercenary_create(struct mercenary *, size_t, struct heap *);
 void mercenary_destroy(struct mercenary *);
-int mercenary_parse(enum parser_type, int, struct string *, void *);
+int mercenary_parse(enum csv_event, int, struct string *, void *);
 
 struct constant_node {
     char * identifier;
